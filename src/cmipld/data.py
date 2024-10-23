@@ -4,6 +4,23 @@ from pyld import jsonld
 from dataclasses import dataclass
 import urllib3
 urllib3.disable_warnings()
+import json,os
+def local_document_loader(local_path, options=None):
+    def loader(local_path, options=None):
+        
+        if local_path[0]==".":
+            local_path = os.path.abspath(local_path)
+
+        with open(local_path,"r") as f:
+            content = json.load(f)
+        res ={
+            'contextUrl': None,  # No special context URL
+            'documentUrl': local_path,  # The document's actual URL
+            'document': content  # The parsed JSON-LD document
+        }
+        #print(res)
+        return res
+    return loader
 
 @dataclass
 class Data():
@@ -13,20 +30,35 @@ class Data():
     expanded : dict # the json expanded with context thanks to pyld
     normalized : LiteralString | dict
 
-    def __init__(self,uri):
-        
+    def __init__(self,uri,local_path=None):
+        if local_path is not None:
+            self.local_path = os.path.abspath(local_path) + "/"
+            print(self.local_path)
+        else:
+            self.local_path=None
+
+
         self.uri = uri
-        self._class_vars = {
+        self._class_vars = { # lazy loading => load those only if ask for it
             "json": None,
             "expanded" : None,
             "normalized" : None,
         }
+        if local_path:
+            jsonld.set_document_loader(local_document_loader(""))
+        
     
     def _initialize_var(self,var_name): 
         if var_name == "json":
-            return self.fetch(self.uri)
+            if self.local_path:
+                with open(self.uri,"r") as f:
+                    return json.load(f)
+            else:
+                return self.fetch(self.uri)
         elif var_name == "expanded":
-            return jsonld.expand(self.uri)[0]
+            print("COUCOU", self.local_path, self.uri)
+            return jsonld.expand(self.uri,options={"base":self.uri})
+
         elif var_name == "normalized":
             return jsonld.normalize(self.uri, {'algorithm': 'URDNA2015', 'format': 'application/n-quads'})
         return None
@@ -43,11 +75,8 @@ class Data():
     
     def __str__(self):
         res = "# "*50
-
         res += "\n"+"# "*20 + f"   {self.uri.split("/")[-1]}   "+"# "*20 +"\n"
         res += "# "*50
-
-
         res += f"\nuri : {self.uri}\n"
         res += f"\njson version :\n {self.json}"
         res += f"\n\nexpanded version :\n {self.expanded}"
