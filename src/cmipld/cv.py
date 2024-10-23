@@ -15,9 +15,8 @@ class CV():
         return  terms
 
     def get_term(self, datadescriptor_id, term_id):
-        data = Data(self.url+datadescriptor_id+"/"+term_id)
+        data = Data(self.url+datadescriptor_id+"/"+term_id+".json")
         model = model_mapping[datadescriptor_id]
-        print(data.normalized)
         return model(**data.json)
 
     def parse_datadescriptor_term(self,datadescriptor_name):

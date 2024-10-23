@@ -57,8 +57,10 @@ class Data():
 
     def fetch(self,uri) -> dict | None:
         try:
+            print(uri)
             # Make a GET request to the API endpoint using requests.get()
             response = requests.get(uri, headers = {'accept': 'application/json'}, verify=False)
+            
 
             # Check if the request waµs successful (status code 200)
             if response.status_code == 200:
