@@ -7,6 +7,7 @@ urllib3.disable_warnings()
 
 @dataclass
 class Data():
+    
     uri: str # url
     json : dict | None # None if fetch doesn't get response from uri
     expanded : dict # the json expanded with context thanks to pyld
@@ -15,12 +16,31 @@ class Data():
     def __init__(self,uri):
         
         self.uri = uri
-        self.json = self.fetch(uri)
-        self.expanded = jsonld.expand(uri)[0] 
-        #print(self.expanded)
-        self.normalized = jsonld.normalize(uri, {'algorithm': 'URDNA2015', 'format': 'application/n-quads'})
-        print(type(self.normalized))
+        self._class_vars = {
+            "json": None,
+            "expanded" : None,
+            "normalized" : None,
+        }
+    
+    def _initialize_var(self,var_name): 
+        if var_name == "json":
+            return self.fetch(self.uri)
+        elif var_name == "expanded":
+            return jsonld.expand(self.uri)[0]
+        elif var_name == "normalized":
+            return jsonld.normalize(self.uri, {'algorithm': 'URDNA2015', 'format': 'application/n-quads'})
+        return None
 
+
+
+    def __getattr__(self, name):
+        if name in self._class_vars:
+            if self._class_vars[name] is None:
+                # Initialize the variable the first time it's accessed
+                self._class_vars[name] = self._initialize_var(name)
+            return self._class_vars[name]
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+    
     def __str__(self):
         res = "# "*50
 
