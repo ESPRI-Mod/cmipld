@@ -51,8 +51,10 @@ class CV():
 
     def get_terms(self,datadescriptor):
         data =  Data(self.url+datadescriptor+".json", local_path=self.url if self.local else None)
-        terms_data =  [Data(term["@id"]) for term in data.expanded[self.url+datadescriptor+"/terms"]]
+        #print(data)
+        terms_data =  [Data(self.url+datadescriptor+"/"+term["@value"]+".json") for term in data.expanded[0][self.url+datadescriptor]]
         model = model_mapping[datadescriptor]
+        #print(terms_data)
         terms = [ model(**elem.json) for elem in terms_data ] 
         return  terms
 
