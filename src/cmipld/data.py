@@ -33,7 +33,6 @@ class Data():
     def __init__(self,uri,local_path=None):
         if local_path is not None:
             self.local_path = os.path.abspath(local_path) + "/"
-            print(self.local_path)
         else:
             self.local_path=None
 
