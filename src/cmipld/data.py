@@ -1,10 +1,12 @@
-from typing import LiteralString
+from typing import LiteralString, Any
 import requests
 from pyld import jsonld
 from dataclasses import dataclass
 import urllib3
 urllib3.disable_warnings()
 import json,os
+from cmipld import model_mapping 
+
 def local_document_loader(local_path, options=None):
     def loader(local_path, options=None):
         
@@ -29,6 +31,7 @@ class Data():
     json : dict | None # None if fetch doesn't get response from uri
     expanded : dict # the json expanded with context thanks to pyld
     normalized : LiteralString | dict
+    python : Any # Any cause its a pydantic model 
 
     def __init__(self,uri,local_path=None):
         if local_path is not None:
@@ -42,6 +45,7 @@ class Data():
             "json": None,
             "expanded" : None,
             "normalized" : None,
+            "python": None,
         }
         if local_path:
             jsonld.set_document_loader(local_document_loader(""))
@@ -55,11 +59,15 @@ class Data():
             else:
                 return self.fetch(self.uri)
         elif var_name == "expanded":
-            print("COUCOU", self.local_path, self.uri)
             return jsonld.expand(self.uri,options={"base":self.uri})
 
         elif var_name == "normalized":
             return jsonld.normalize(self.uri, {'algorithm': 'URDNA2015', 'format': 'application/n-quads'})
+        elif var_name == "python":
+            model = self.uri.split("/")[-2]
+            if model in model_mapping.keys():
+                return model_mapping[model](**self.json) # TODO have to check if [-2] is a valid collection .. or exist in model_mapping
+            
         return None
 
 
@@ -80,6 +88,7 @@ class Data():
         res += f"\njson version :\n {self.json}"
         res += f"\n\nexpanded version :\n {self.expanded}"
         res += f"\n\nnormalized version :\n {self.normalized}"
+        res += f"\n\npython version :\n {self.python}"
 
         return res 
 
