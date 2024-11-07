@@ -45,6 +45,7 @@ class ConfiguredBaseModel(BaseModel):
         arbitrary_types_allowed = True,
         use_enum_values = True,
         strict = False,
+        protected_namespaces = (),
     )
     pass
 

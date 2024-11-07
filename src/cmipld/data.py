@@ -2,10 +2,10 @@ from typing import LiteralString, Any
 import requests
 from pyld import jsonld
 from dataclasses import dataclass
-import urllib3
-urllib3.disable_warnings()
 import json,os
 from cmipld import model_mapping 
+
+
 
 def local_document_loader(local_path, options=None):
     def loader(local_path, options=None):
