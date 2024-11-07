@@ -33,7 +33,7 @@ class Data():
     normalized : LiteralString | dict
     python : Any # Any cause its a pydantic model 
 
-    def __init__(self,uri,local_path=None):
+    def __init__(self,uri=None,local_path=None):
         if local_path is not None:
             self.local_path = os.path.abspath(local_path) + "/"
         else:
@@ -79,7 +79,7 @@ class Data():
                 self._class_vars[name] = self._initialize_var(name)
             return self._class_vars[name]
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
-    
+    '''
     def __str__(self):
         res = "# "*50
         res += "\n"+"# "*20 + f"   {self.uri.split("/")[-1]}   "+"# "*20 +"\n"
@@ -91,7 +91,7 @@ class Data():
         res += f"\n\npython version :\n {self.python}"
 
         return res 
-
+    '''
     def fetch(self,uri) -> dict | None:
         try:
             print(uri)
