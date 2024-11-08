@@ -9,3 +9,4 @@ mip-cmor-tables/
 sb.py
 # venv
 .venv
+uv.lock
