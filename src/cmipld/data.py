@@ -5,7 +5,7 @@ from pyld import jsonld
 from dataclasses import dataclass
 import json
 import os
-from cmipld import model_mapping
+from cmipld.models import mapping
 
 
 def local_document_loader(local_path, options=None):
@@ -60,9 +60,9 @@ class Data:
     @cached_property
     def python(self) -> dict | None:
         model = self.uri.split("/")[-2]
-        if model in model_mapping.keys():
-            # TODO have to check if [-2] is a valid collection .. or exist in model_mapping
-            return model_mapping[model](**self.json)
+        if model in mapping.keys():
+            # TODO have to check if [-2] is a valid collection .. or exist in mapping
+            return mapping[model](**self.json)
 
     @property
     def info(self):

@@ -1,5 +1,5 @@
 from cmipld import settings
-from cmipld import model_mapping
+from cmipld.models import mapping
 from cmipld.data import Data
 import os
 
@@ -35,7 +35,7 @@ class CMIP6Plus_CV():
         link_universe_datadescriptor = list(collection_data.expanded[0].keys())[0].replace(self.url_universe,"")[:-1]
         data = Data(self.url_universe+link_universe_datadescriptor+"/"+term_id+".json")
 
-        model = model_mapping[link_universe_datadescriptor]
+        model = mapping[link_universe_datadescriptor]
 
         return model(**data.json)
 
@@ -53,14 +53,14 @@ class CV():
         data =  Data(self.url+datadescriptor+".json", local_path=self.url if self.local else None)
         #print(data)
         terms_data =  [Data(self.url+datadescriptor+"/"+term["@value"]+".json") for term in data.expanded[0][self.url+datadescriptor]]
-        model = model_mapping[datadescriptor]
+        model = mapping[datadescriptor]
         #print(terms_data)
         terms = [ model(**elem.json) for elem in terms_data ] 
         return  terms
 
     def get_term(self, datadescriptor_id, term_id):
         data = Data(self.url+datadescriptor_id+"/"+term_id+".json", local_path=self.url if self.local else None)
-        model = model_mapping[datadescriptor_id]
+        model = mapping[datadescriptor_id]
         print(data)
         return model(**data.json)
 
