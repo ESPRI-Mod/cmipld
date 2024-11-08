@@ -2,7 +2,7 @@ from functools import cached_property
 from typing import Any
 import requests
 from pyld import jsonld
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 import os
 from cmipld.models import mapping
@@ -29,7 +29,7 @@ def local_document_loader(local_path, options=None):
 @dataclass
 class Data:
     uri: str  # url
-    local_path: str | None = None
+    local_path: str | None = field(default = None,repr=False)
 
     def __post_init__(self):
         if self.local_path is not None:

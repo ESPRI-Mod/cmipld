@@ -12,35 +12,108 @@
 -e file:.
 annotated-types==0.7.0
     # via pydantic
+asttokens==2.4.1
+    # via stack-data
 cachetools==5.5.0
     # via pyld
 certifi==2024.8.30
     # via requests
 charset-normalizer==3.4.0
     # via requests
+comm==0.2.2
+    # via ipykernel
+debugpy==1.8.8
+    # via ipykernel
+decorator==5.1.1
+    # via ipython
+executing==2.1.0
+    # via stack-data
 frozendict==2.4.6
     # via pyld
 idna==3.10
     # via requests
 iniconfig==2.0.0
     # via pytest
+ipykernel==6.29.5
+    # via jupyter-console
+ipython==8.29.0
+    # via ipykernel
+    # via jupyter-console
+jedi==0.19.1
+    # via ipython
+jupyter-client==8.6.3
+    # via ipykernel
+    # via jupyter-console
+jupyter-console==6.6.3
+jupyter-core==5.7.2
+    # via ipykernel
+    # via jupyter-client
+    # via jupyter-console
 lxml==5.3.0
     # via pyld
+matplotlib-inline==0.1.7
+    # via ipykernel
+    # via ipython
+nest-asyncio==1.6.0
+    # via ipykernel
 packaging==24.1
+    # via ipykernel
     # via pytest
+parso==0.8.4
+    # via jedi
+pexpect==4.9.0
+    # via ipython
+platformdirs==4.3.6
+    # via jupyter-core
 pluggy==1.5.0
     # via pytest
+prompt-toolkit==3.0.48
+    # via ipython
+    # via jupyter-console
+psutil==6.1.0
+    # via ipykernel
+ptyprocess==0.7.0
+    # via pexpect
+pure-eval==0.2.3
+    # via stack-data
 pydantic==2.9.2
     # via cmipld
 pydantic-core==2.23.4
     # via pydantic
+pygments==2.18.0
+    # via ipython
+    # via jupyter-console
 pyld==2.0.4
     # via cmipld
 pytest==8.3.3
+python-dateutil==2.9.0.post0
+    # via jupyter-client
+pyzmq==26.2.0
+    # via ipykernel
+    # via jupyter-client
+    # via jupyter-console
 requests==2.32.3
     # via cmipld
+six==1.16.0
+    # via asttokens
+    # via python-dateutil
+stack-data==0.6.3
+    # via ipython
+tornado==6.4.1
+    # via ipykernel
+    # via jupyter-client
+traitlets==5.14.3
+    # via comm
+    # via ipykernel
+    # via ipython
+    # via jupyter-client
+    # via jupyter-console
+    # via jupyter-core
+    # via matplotlib-inline
 typing-extensions==4.12.2
     # via pydantic
     # via pydantic-core
 urllib3==2.2.3
     # via requests
+wcwidth==0.2.13
+    # via prompt-toolkit

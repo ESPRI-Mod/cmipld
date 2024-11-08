@@ -21,6 +21,7 @@ build-backend = "hatchling.build"
 managed = true
 dev-dependencies = [
     "pytest>=8.3.3",
+    "jupyter-console>=6.6.3",
 ]
 
 [tool.hatch.metadata]
