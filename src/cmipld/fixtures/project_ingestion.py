@@ -7,8 +7,8 @@ from pydantic import BaseModel
 from sqlmodel import Session, create_engine, select
 from sqlalchemy.exc import NoResultFound
 
-from cmipld.models.sqlmodel.univers_models import UTerm, DataDescriptor
-from cmipld.models.sqlmodel.project_models import Project, Collection, PTerm
+from cmipld.models.sqlmodel.univers import UTerm, DataDescriptor
+from cmipld.models.sqlmodel.project import Project, Collection, PTerm
 from cmipld.models.pydantic import mapping
 from cmipld.models.sqlmodel.mixins import TermKind
 from cmipld.utils.naming import read_json_file

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from cmipld.models.sqlmodel.univers_models import DataDescriptor, UTerm
+from cmipld.models.sqlmodel.univers import DataDescriptor, UTerm
 from cmipld.models.sqlmodel.mixins import TermKind
 from sqlmodel import Session, create_engine
 from cmipld.utils.naming import read_json_file
