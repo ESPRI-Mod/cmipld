@@ -19,37 +19,34 @@ from cmipld.models.resolution import Resolution
 from cmipld.models.source import Source 
 from cmipld.models.source_type import SourceType 
 from cmipld.models.sub_experiment import SubExperiment
-from cmipld.models.table import Table 
 from cmipld.models.variable import Variable
 from cmipld.models.variant_label import VariantLabel
+from cmipld.models.time_range import TimeRange
 
 
 mapping = {
-    "table" : Table,
     "activity": Activity,
     "consortia": Consortia,
-    "experiment": Experiment, 
+    "experiment": Experiment,
     "forcing_index": ForcingIndex,
     "frequency": Frequency,
-    "grid_label": GridLabel, 
-    "initialisation_index": InitialisationIndex, 
+    "grid": GridLabel,
+    "initialisation_index": InitialisationIndex,
     "institution": Institution,
     "license": License,
     "mip_era": MipEra,
     "model_component": ModelComponent,
-    "organisation": Organisation, 
+    "organisation": Organisation,
     "physic_index": PhysicIndex,
     "product": Product,
     "realisation_index": RealisationIndex ,
     "realm": Realm,
     "resolution": Resolution,
-    "source": Source, 
-    "source_type": SourceType, 
+    "source": Source,
+    "source_type": SourceType,
     "sub_experiment": SubExperiment,
-    "table": Table, 
+    "table" : Table,
+    "time_range": TimeRange
     "variable": Variable,
     "variant_label": VariantLabel
-
 }
-
-
