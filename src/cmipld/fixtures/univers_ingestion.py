@@ -33,7 +33,7 @@ def ingest_data_descriptor(data_descriptor_path: Path) -> None:
         for json_file_name in data_descriptor_path.glob('*.json'):
             json_specs = read_json_file(data_descriptor_path.joinpath(json_file_name))
             kind = infer_term_kind(json_specs)
-            term = UTerm(id=json_specs['id'], json_content=json_specs,
+            term = UTerm(id=json_specs['id'], specs=json_specs,
                          data_descriptor=data_descriptor, kind=kind)
             session.add(term)
         session.commit()

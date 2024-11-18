@@ -8,7 +8,7 @@ import cmipld.utils.settings as settings
 
 class Project(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = 'projects'
-    json_content: dict = Field(sa_column=sa.Column(JSON))
+    specs: dict = Field(sa_column=sa.Column(JSON))
     collections: list['Collection'] = Relationship(back_populates='project')
 
 
@@ -22,7 +22,7 @@ class Collection(SQLModel, PkMixin, IdMixin, table=True):
 
 class PTerm(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = 'pterms'
-    json_content: dict = Field(sa_column=sa.Column(JSON))
+    specs: dict = Field(sa_column=sa.Column(JSON))
     kind: TermKind = Field(sa_column=Column(sa.Enum(TermKind)))
     collection_pk: int | None = Field(default=None, foreign_key='collections.pk')
     collection: Collection = Relationship(back_populates='terms')

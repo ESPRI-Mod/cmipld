@@ -34,7 +34,7 @@ def get_univers_term(data_descriptor_id: str, term_id: str, session: Session) ->
     statement = select(UTerm).join(DataDescriptor).where(DataDescriptor.id == data_descriptor_id, UTerm.id == term_id)
     results = session.exec(statement)
     term = results.one()
-    return term.kind, term.json_content
+    return term.kind, term.specs
 
 
 def get_pydantic_class(data_descriptor_id: str) -> BaseModel:
@@ -89,7 +89,7 @@ def ingest_all():
                         # DEBUG
                         project_term_json_specs = univers_term_json_specs
                         
-                        term = PTerm(id=term_id, json_content=project_term_json_specs,
+                        term = PTerm(id=term_id, specs=project_term_json_specs,
                                      collection=collection, kind=kind)
                         project_db_session.add(term)
                     except(NoResultFound): # TODO: support other cases.

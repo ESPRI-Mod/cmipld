@@ -9,13 +9,13 @@ import cmipld.utils.settings as settings
 class DataDescriptor(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = 'data_descriptors'
     # TODO: waiting for the file...
-    #json_content: dict = Field(sa_column=sa.Column(JSON))
+    #specs: dict = Field(sa_column=sa.Column(JSON))
     terms: list['UTerm'] = Relationship(back_populates='data_descriptor')
 
 
 class UTerm(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = 'uterms'
-    json_content: dict = Field(sa_column=sa.Column(JSON))
+    specs: dict = Field(sa_column=sa.Column(JSON))
     kind: TermKind = Field(sa_column=Column(sa.Enum(TermKind)))
     data_descriptor_pk: int | None = Field(default=None, foreign_key='data_descriptors.pk')
     data_descriptor: DataDescriptor = Relationship(back_populates='terms')
