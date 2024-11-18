@@ -11,8 +11,8 @@ from cmipld.models.sqlmodel.univers_models import UTerm, DataDescriptor
 from cmipld.models.sqlmodel.project_models import Project, Collection, PTerm
 from cmipld.models.pydantic import mapping
 from cmipld.models.sqlmodel.mixins import TermKind
-from cmipld.utils import read_json_file
-import cmipld.settings as settings
+from cmipld.utils.naming import read_json_file
+import cmipld.utils.settings as settings
 
 # TODO: to be generalized.
 _CMIP6PLUS_DIR_PATH = Path('/Users/sgardoll/Documents/espri-mod/es-vocab/CMIP6Plus_CVs')

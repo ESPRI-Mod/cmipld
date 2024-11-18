@@ -3,8 +3,8 @@ from pathlib import Path
 from cmipld.models.sqlmodel.univers_models import DataDescriptor, UTerm
 from cmipld.models.sqlmodel.mixins import TermKind
 from sqlmodel import Session, create_engine
-from cmipld.utils import read_json_file
-import cmipld.settings as settings
+from cmipld.utils.naming import read_json_file
+import cmipld.utils.settings as settings
 
 # DEBUG
 _UNIVERS_DIR_PATH = Path('/Users/sgardoll/Documents/espri-mod/es-vocab/mip-cmor-tables')

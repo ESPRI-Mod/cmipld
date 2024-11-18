@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.sqlite import JSON
 
 from cmipld.models.sqlmodel.mixins import PkMixin, IdMixin, TermKind
-import cmipld.settings as settings
+import cmipld.utils.settings as settings
 
 
 class DataDescriptor(SQLModel, PkMixin, IdMixin, table=True):
