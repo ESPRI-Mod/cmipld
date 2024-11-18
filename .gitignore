@@ -10,3 +10,7 @@ sb.py
 # venv
 .venv
 uv.lock
+pdm.lock
+*.sqlite
+.pdm-python
+.DS_Store
