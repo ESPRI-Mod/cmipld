@@ -20,6 +20,7 @@ from cmipld.models.source import Source
 from cmipld.models.source_type import SourceType 
 from cmipld.models.sub_experiment import SubExperiment
 from cmipld.models.table import Table 
+from cmipld.models.time_range import TimeRange 
 from cmipld.models.variable import Variable
 from cmipld.models.variant_label import VariantLabel
 
@@ -31,7 +32,7 @@ mapping = {
     "experiment": Experiment, 
     "forcing_index": ForcingIndex,
     "frequency": Frequency,
-    "grid_label": GridLabel, 
+    "grid": GridLabel, 
     "initialisation_index": InitialisationIndex, 
     "institution": Institution,
     "license": License,
@@ -47,6 +48,7 @@ mapping = {
     "source_type": SourceType, 
     "sub_experiment": SubExperiment,
     "table": Table, 
+    "time_range": TimeRange,
     "variable": Variable,
     "variant_label": VariantLabel
 
