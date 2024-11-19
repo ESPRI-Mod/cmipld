@@ -1,5 +1,3 @@
-from typing import Generator
-
 from pathlib import Path
 import logging
 
@@ -20,7 +18,7 @@ _CMIP6PLUS_DIR_PATH = Path('/Users/sgardoll/Documents/espri-mod/es-vocab/CMIP6Pl
 _LOGGER = logging.getLogger("project_ingestion")
 
 
-def get_collection_filenames(project_dir_path: Path) -> Generator[Path, None, None]:
+def get_collection_filenames(project_dir_path: Path) -> set[Path]:
     # TODO: should be improved.
     result = set(project_dir_path.glob('*.json')) - {project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)}
     return result 
@@ -38,7 +36,7 @@ def get_univers_term(data_descriptor_id: str, term_id: str, session: Session) ->
     return term.kind, term.specs
 
 
-def get_pydantic_class(data_descriptor_id: str) -> BaseModel:
+def get_pydantic_class(data_descriptor_id: str) -> type[BaseModel]:
     if data_descriptor_id in mapping:
         return mapping[data_descriptor_id]
     else:
@@ -47,7 +45,7 @@ def get_pydantic_class(data_descriptor_id: str) -> BaseModel:
 
 def instantiate_project_term(univers_term_json_specs: dict,
                              project_term_json_specs_update: dict,
-                             pydantic_class: BaseModel) -> dict:
+                             pydantic_class: type[BaseModel]) -> dict:
     term_from_universe = pydantic_class(**univers_term_json_specs)
     updated_term = term_from_universe.model_copy(update=project_term_json_specs_update, deep=True)
     return updated_term.model_dump()

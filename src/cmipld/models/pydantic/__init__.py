@@ -1,3 +1,5 @@
+from pydantic import BaseModel
+
 from cmipld.models.pydantic.table import Table 
 from cmipld.models.pydantic.activity import Activity
 from cmipld.models.pydantic.consortia import Consortia
@@ -24,7 +26,7 @@ from cmipld.models.pydantic.variable import Variable
 from cmipld.models.pydantic.variant_label import VariantLabel
 
 
-mapping = {
+mapping: dict[str, type[BaseModel]] = {
     "activity": Activity,
     "consortia": Consortia,
     "experiment": Experiment, 
