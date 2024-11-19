@@ -1,11 +1,12 @@
-from sqlmodel import Field
 from enum import Enum
+
+from sqlmodel import Field
 
 
 class TermKind(Enum):
-    PLAIN = 'plain'
-    PATTERN = 'pattern'
-    COMPOSITE = 'composite'
+    PLAIN = "plain"
+    PATTERN = "pattern"
+    COMPOSITE = "composite"
 
 
 class PkMixin:
