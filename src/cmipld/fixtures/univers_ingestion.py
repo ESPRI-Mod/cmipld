@@ -2,9 +2,8 @@ from pathlib import Path
 
 from cmipld.models.sqlmodel.univers import DataDescriptor, UTerm
 from cmipld.models.sqlmodel.mixins import TermKind
-from sqlmodel import Session, create_engine
 from cmipld.utils.naming import read_json_file
-import cmipld.utils.settings as settings
+import cmipld.db as db
 
 # DEBUG
 _UNIVERS_DIR_PATH = Path('/Users/sgardoll/Documents/espri-mod/es-vocab/mip-cmor-tables')
@@ -27,7 +26,7 @@ def infer_term_kind(json_specs: dict) -> TermKind:
 
 
 def ingest_data_descriptor(data_descriptor_path: Path) -> None:
-    with Session(create_engine(settings.UNIVERS_SQLITE_URL, echo=False)) as session:
+    with db.UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptor = DataDescriptor(id=data_descriptor_path.name)
         session.add(data_descriptor)
         for json_file_name in data_descriptor_path.glob('*.json'):

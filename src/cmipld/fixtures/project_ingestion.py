@@ -4,7 +4,7 @@ from pathlib import Path
 import logging
 
 from pydantic import BaseModel
-from sqlmodel import Session, create_engine, select
+from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 
 from cmipld.models.sqlmodel.univers import UTerm, DataDescriptor
@@ -13,6 +13,7 @@ from cmipld.models.pydantic import mapping
 from cmipld.models.sqlmodel.mixins import TermKind
 from cmipld.utils.naming import read_json_file
 import cmipld.utils.settings as settings
+import cmipld.db as db
 
 # TODO: to be generalized.
 _CMIP6PLUS_DIR_PATH = Path('/Users/sgardoll/Documents/espri-mod/es-vocab/CMIP6Plus_CVs')
@@ -55,13 +56,13 @@ def instantiate_project_term(univers_term_json_specs: dict,
 # TODO: 
 # - project as a parameter.
 def ingest_all():
-    with Session(create_engine(settings.PROJECT_SQLITE_URL, echo=False)) as project_db_session:
+    with db.CMIP6PLUS_DB_CONNECTION.create_session() as project_db_session:
         project_json_specs = read_json_file(_CMIP6PLUS_DIR_PATH.joinpath(settings.PROJECT_SPECS_FILENAME))
         project = Project(id=project_json_specs[settings.PROJECT_ID_JSON_KEY])
         project_db_session.add(project)
         project_context = read_json_file(_CMIP6PLUS_DIR_PATH.joinpath(settings.CONTEXT_FILENAME))
         project_context = project_context[settings.CONTEXT_JSON_KEY]
-        with Session(create_engine(settings.UNIVERS_SQLITE_URL, echo=False)) as univers_db_session:
+        with db.UNIVERS_DB_CONNECTION.create_session() as univers_db_session:
             for collection_filename in get_collection_filenames(_CMIP6PLUS_DIR_PATH):
                 collection_id = collection_filename.stem
                 data_descriptor_id = get_data_descriptor_id_from_context(collection_id, project_context)

@@ -1,9 +1,9 @@
-from sqlmodel import Field, SQLModel, Column, Relationship, create_engine  
+from sqlmodel import Field, SQLModel, Column, Relationship  
 import sqlalchemy as sa
 from sqlalchemy.dialects.sqlite import JSON
 
 from cmipld.models.sqlmodel.mixins import PkMixin, IdMixin, TermKind
-import cmipld.utils.settings as settings
+import cmipld.db as db
 
 
 class DataDescriptor(SQLModel, PkMixin, IdMixin, table=True):
@@ -22,8 +22,7 @@ class UTerm(SQLModel, PkMixin, IdMixin, table=True):
 
 
 def univers_create_db():  
-    engine = create_engine(settings.UNIVERS_SQLITE_URL, echo=False)
-    SQLModel.metadata.create_all(engine)
+    SQLModel.metadata.create_all(db.UNIVERS_DB_CONNECTION.get_engine())
 
 
 if __name__ == "__main__":  

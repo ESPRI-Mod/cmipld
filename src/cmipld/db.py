@@ -1,50 +1,38 @@
-from sqlmodel import Engine, create_engine
+from sqlmodel import Session, create_engine
+from sqlalchemy import Engine
 
-import cmipld.utils.settings as settings
 
-
-# Singleton univers engine.
+# Singleton for SQLModel engines.
 # Not thread safe.
-class UniversEngine:
-    _engine = None
+class DBConnection:
     
-    def __init__(self) -> None:
-        raise NotImplementedError('UniversEngine is a pure static class')
+    _engines: dict[str, Engine] = dict()
 
-    def get_engine(echo: bool = False) -> Engine:
-        if UniversEngine._engine is None:
-            UniversEngine._engine = create_engine(settings.UNIVERS_SQLITE_UR, echo=echo)
-        UniversEngine._engine.echo = echo
-        return UniversEngine._engine
-
-
-# Singleton project engines.
-# Not thread safe.
-class ProjectEngine:
-    
-    _engines_url_short_name_mapping: dict[str, str] = dict()
-    _engine_from_short_names: dict[str, Engine] = dict()
-
-    def __init__(self) -> None:
-        raise NotImplementedError('ProjectEngine is a pure static class')
-    
-    @staticmethod
-    def create_engine(project_sqlite_url: str, short_name: str, echo: bool = False) -> Engine:
-        if project_sqlite_url in ProjectEngine._engines_url_short_name_mapping:
-            result = ProjectEngine._engine_from_short_names[ProjectEngine._engines_url_short_name_mapping[project_sqlite_url]]
-            result.echo = echo
-            ProjectEngine._engine_from_short_names[short_name] = result # Create an alias.
+    def __init__(self, project_sqlite_url: str, name: str, echo: bool = False) -> None:
+        if project_sqlite_url in DBConnection._engines:
+            raise ValueError(f'{project_sqlite_url} is already connected')
         else:
-            result = create_engine(project_sqlite_url, echo=echo)
-            ProjectEngine._engines[short_name] = result
-            ProjectEngine._engines_url_short_name_mapping[project_sqlite_url] = short_name
-        return result
+            self.engine = create_engine(project_sqlite_url, echo=echo)
+            self.name = name
+            DBConnection._engines[project_sqlite_url] = self.engine
     
-    @staticmethod
-    def get_engine(short_name: str, echo: bool = False) -> Engine:
-        if short_name in ProjectEngine._engine_from_short_names:
-            result = ProjectEngine._engine_from_short_names[short_name]
-            result.echo = echo
-            return result
-        else:
-            raise ValueError(f'engine for {short_name} is not created yet. You must create the engine before')
+    def set_echo(self, echo: bool) -> None:
+        self.engine.echo = echo
+            
+    def get_engine(self) -> Engine:
+        return self.engine
+
+    def create_session(self) -> Session:
+        return Session(self.engine)
+    
+    def get_name(self) -> str:
+        return self.name
+    
+
+############## DEBUG ##############
+# The following instructions are only temporary as long as a complet data managment will be implmented.
+
+UNIVERS_DB_CONNECTION = DBConnection('sqlite:///univers.sqlite', 'univers', False)
+CMIP6PLUS_DB_CONNECTION = DBConnection('sqlite:///projects.sqlite', 'cmip6plus', False)
+
+###################################

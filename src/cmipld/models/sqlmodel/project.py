@@ -1,9 +1,9 @@
-from sqlmodel import Field, SQLModel, Column, Relationship, create_engine  
+from sqlmodel import Field, SQLModel, Column, Relationship  
 import sqlalchemy as sa
 from sqlalchemy.dialects.sqlite import JSON
 
 from cmipld.models.sqlmodel.mixins import PkMixin, IdMixin, TermKind
-import cmipld.utils.settings as settings
+import cmipld.db as db
 
 
 class Project(SQLModel, PkMixin, IdMixin, table=True):
@@ -33,9 +33,8 @@ def create_drs_name_index():
 
 
 def project_create_db():  
-    engine = create_engine(settings.PROJECT_SQLITE_URL, echo=False)
     create_drs_name_index()
-    SQLModel.metadata.create_all(engine)
+    SQLModel.metadata.create_all(db.CMIP6PLUS_DB_CONNECTION.get_engine())
 
 
 if __name__ == "__main__":  
