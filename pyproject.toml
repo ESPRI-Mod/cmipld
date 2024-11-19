@@ -3,15 +3,17 @@ name = "cmipld"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
-    { name = "TROUSSELLIER Laurent", email = "laurent.troussellier@ipsl.fr" }
+    {name = "TROUSSELLIER Laurent", email = "laurent.troussellier@ipsl.fr"},
+    {name = "Gardoll Sébastien", email = "sebastien@gardoll.fr"}
 ]
 dependencies = [
-    "pyld>=2.0.4",
+    "idna>=3.10",
     "pydantic>=2.9.2",
-    "sqlmodel"
+    "sqlalchemy>=2.0.36",
+    "sqlmodel>=0.0.22",
 ]
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.13"
 
 [build-system]
 requires = ["hatchling"]
