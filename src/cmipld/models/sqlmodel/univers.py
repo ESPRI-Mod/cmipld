@@ -23,7 +23,10 @@ class UTerm(SQLModel, PkMixin, IdMixin, table=True):
 
 
 def univers_create_db():
-    SQLModel.metadata.create_all(db.UNIVERS_DB_CONNECTION.get_engine())
+    # Avoid creating project tables.
+    tables_to_be_created = [SQLModel.metadata.tables['uterms'],
+                            SQLModel.metadata.tables['data_descriptors']]
+    SQLModel.metadata.create_all(db.UNIVERS_DB_CONNECTION.get_engine(), tables=tables_to_be_created)
 
 
 if __name__ == "__main__":

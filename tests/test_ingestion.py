@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import pytest
@@ -24,13 +23,14 @@ def delete_db():
 def test_create_univers_db() -> None:
     univers.univers_create_db()
 
+
 def test_univers_ingestion() -> None:
     univers_ingestion.ingest_all(settings.UNIVERS_DIR_PATH)
-        
+
+
 def test_create_project_db() -> None:
     project.project_create_db()
     
 
 def test_project_ingestion() -> None:
     project_ingestion.ingest_all(settings.CMIP6PLUS_DIR_PATH)
-

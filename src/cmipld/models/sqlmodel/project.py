@@ -36,8 +36,11 @@ def create_drs_name_index():
 
 
 def project_create_db():
+    tables_to_be_created = [SQLModel.metadata.tables['projects'],
+                            SQLModel.metadata.tables['collections'],
+                            SQLModel.metadata.tables['pterms']]
     create_drs_name_index()
-    SQLModel.metadata.create_all(db.CMIP6PLUS_DB_CONNECTION.get_engine())
+    SQLModel.metadata.create_all(db.CMIP6PLUS_DB_CONNECTION.get_engine(), tables=tables_to_be_created)
 
 
 if __name__ == "__main__":
