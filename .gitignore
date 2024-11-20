@@ -14,3 +14,4 @@ pdm.lock
 *.sqlite
 .pdm-python
 .DS_Store
+.vscode
