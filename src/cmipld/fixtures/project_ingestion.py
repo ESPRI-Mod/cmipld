@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 
 import cmipld.db as db
 import cmipld.utils.settings as settings
-from cmipld.models.pydantic import mapping
+import cmipld.utils.functions as functions
 from cmipld.models.sqlmodel.mixins import TermKind
 from cmipld.models.sqlmodel.project import Collection, Project, PTerm
 from cmipld.models.sqlmodel.univers import DataDescriptor, UTerm
@@ -44,13 +44,6 @@ def get_univers_term(
     results = session.exec(statement)
     term = results.one()
     return term.kind, term.specs
-
-
-def get_pydantic_class(data_descriptor_id: str) -> type[BaseModel]:
-    if data_descriptor_id in mapping:
-        return mapping[data_descriptor_id]
-    else:
-        raise Exception(f"{data_descriptor_id} pydantic class not found")
 
 
 def instantiate_project_term(
@@ -93,7 +86,7 @@ def ingest_all(project_dir_path: Path):
                 project_db_session.add(collection)
 
                 try:
-                    pydantic_class = get_pydantic_class(data_descriptor_id)
+                    pydantic_class = functions.get_pydantic_class(data_descriptor_id)
                 except Exception as e:
                     _LOGGER.error(str(e))
                     continue
