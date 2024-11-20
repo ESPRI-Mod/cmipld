@@ -13,8 +13,6 @@ from cmipld.models.sqlmodel.project import Collection, Project, PTerm
 from cmipld.models.sqlmodel.univers import DataDescriptor, UTerm
 from cmipld.utils.functions import read_json_file
 
-# TODO: to be generalized.
-_CMIP6PLUS_DIR_PATH = Path("/Users/seb/tmp/boulot/CMIP6Plus_CVs")
 _LOGGER = logging.getLogger("project_ingestion")
 
 
@@ -67,21 +65,19 @@ def instantiate_project_term(
     return updated_term.model_dump()
 
 
-# TODO:
-# - project as a parameter.
-def ingest_all():
+def ingest_all(project_dir_path: Path):
     with db.CMIP6PLUS_DB_CONNECTION.create_session() as project_db_session:
         project_json_specs = read_json_file(
-            _CMIP6PLUS_DIR_PATH.joinpath(settings.PROJECT_SPECS_FILENAME)
+            project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)
         )
         project = Project(id=project_json_specs[settings.PROJECT_ID_JSON_KEY])
         project_db_session.add(project)
         project_context = read_json_file(
-            _CMIP6PLUS_DIR_PATH.joinpath(settings.CONTEXT_FILENAME)
+            project_dir_path.joinpath(settings.CONTEXT_FILENAME)
         )
         project_context = project_context[settings.CONTEXT_JSON_KEY]
         with db.UNIVERS_DB_CONNECTION.create_session() as univers_db_session:
-            for collection_filename in get_collection_filenames(_CMIP6PLUS_DIR_PATH):
+            for collection_filename in get_collection_filenames(project_dir_path):
                 collection_id = collection_filename.stem
                 data_descriptor_id = get_data_descriptor_id_from_context(
                     collection_id, project_context
@@ -92,7 +88,7 @@ def ingest_all():
                     data_descriptor_id=data_descriptor_id,
                 )
                 collection_json_specs = read_json_file(
-                    _CMIP6PLUS_DIR_PATH.joinpath(collection_filename)
+                    project_dir_path.joinpath(collection_filename)
                 )
                 project_db_session.add(collection)
 
@@ -131,7 +127,3 @@ def ingest_all():
                         )
                         continue
         project_db_session.commit()
-
-
-if __name__ == "__main__":
-    ingest_all()

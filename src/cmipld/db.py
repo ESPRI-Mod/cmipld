@@ -36,7 +36,9 @@ class DBConnection:
 ############## DEBUG ##############
 # The following instructions are only temporary as long as a complet data managment will be implmented.
 
-UNIVERS_DB_CONNECTION = DBConnection('univers.sqlite', 'univers', False)
-CMIP6PLUS_DB_CONNECTION = DBConnection('projects.sqlite', 'cmip6plus', False)
+_UNIVERS_FILENAME = 'univers.sqlite'
+_CMIP6PLUS_FILENAME = 'projects.sqlite'
+UNIVERS_DB_CONNECTION = DBConnection(_UNIVERS_FILENAME, 'univers', False)
+CMIP6PLUS_DB_CONNECTION = DBConnection(_CMIP6PLUS_FILENAME, 'cmip6plus', False)
 
 ###################################
