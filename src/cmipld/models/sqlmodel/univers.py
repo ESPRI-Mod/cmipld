@@ -8,8 +8,7 @@ from cmipld.models.sqlmodel.mixins import IdMixin, PkMixin, TermKind
 
 class DataDescriptor(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = "data_descriptors"
-    # TODO: waiting for the file...
-    # specs: dict = Field(sa_column=sa.Column(JSON))
+    context: dict = Field(sa_column=sa.Column(JSON))
     terms: list["UTerm"] = Relationship(back_populates="data_descriptor")
 
 

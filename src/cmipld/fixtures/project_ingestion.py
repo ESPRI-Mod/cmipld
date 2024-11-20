@@ -11,10 +11,10 @@ from cmipld.models.pydantic import mapping
 from cmipld.models.sqlmodel.mixins import TermKind
 from cmipld.models.sqlmodel.project import Collection, Project, PTerm
 from cmipld.models.sqlmodel.univers import DataDescriptor, UTerm
-from cmipld.utils.naming import read_json_file
+from cmipld.utils.functions import read_json_file
 
 # TODO: to be generalized.
-_CMIP6PLUS_DIR_PATH = Path("/Users/sgardoll/Documents/espri-mod/es-vocab/CMIP6Plus_CVs")
+_CMIP6PLUS_DIR_PATH = Path("/Users/seb/tmp/boulot/CMIP6Plus_CVs")
 _LOGGER = logging.getLogger("project_ingestion")
 
 

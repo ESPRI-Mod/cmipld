@@ -1,12 +1,16 @@
+import logging
 from pathlib import Path
 
 import cmipld.db as db
 from cmipld.models.sqlmodel.mixins import TermKind
 from cmipld.models.sqlmodel.univers import DataDescriptor, UTerm
-from cmipld.utils.naming import read_json_file
+from cmipld.utils.functions import read_json_file
+import cmipld.utils.settings as settings
+
+_LOGGER = logging.getLogger("univers_ingestion")
 
 # DEBUG
-_UNIVERS_DIR_PATH = Path("/Users/sgardoll/Documents/espri-mod/es-vocab/mip-cmor-tables")
+_UNIVERS_DIR_PATH = Path("/Users/seb/tmp/boulot/mip-cmor-tables")
 
 _SKIPED_DIRNAMES = {"_src", "_tests", ".git"}
 
@@ -27,8 +31,14 @@ def infer_term_kind(json_specs: dict) -> TermKind:
 
 
 def ingest_data_descriptor(data_descriptor_path: Path) -> None:
+    context_file_path = data_descriptor_path.joinpath(settings.CONTEXT_FILENAME)
+    try:
+        context = read_json_file(context_file_path)
+    except Exception as e:
+        _LOGGER.error(f'unable to parse {context_file_path}. Skip data descriptor {data_descriptor_path.name}.\n{str(e)}')
+        return
     with db.UNIVERS_DB_CONNECTION.create_session() as session:
-        data_descriptor = DataDescriptor(id=data_descriptor_path.name)
+        data_descriptor = DataDescriptor(id=data_descriptor_path.name, context=context)
         session.add(data_descriptor)
         for json_file_name in data_descriptor_path.glob("*.json"):
             json_specs = read_json_file(data_descriptor_path.joinpath(json_file_name))
