@@ -63,7 +63,7 @@ def get_all_data_descriptors(session: Session = db.UNIVERS_DB_CONNECTION.create_
     return result
 
 
-def get_all_terms() -> dict[str, dict]:
+def get_all_terms() -> dict[str, type[BaseModel]]:
     with db.UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
         result = dict()
