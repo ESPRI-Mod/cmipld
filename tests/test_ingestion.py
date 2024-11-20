@@ -12,7 +12,7 @@ import cmipld.utils.settings as settings
 
 @pytest.fixture(scope="module", autouse=True)
 def delete_db():
-    univers_file_path = Path(db._UNIVERS_FILENAME)
+    univers_file_path = Path(settings.UNIVERS_DB_FILENAME)
     cmip6plus_file_path = Path(db._CMIP6PLUS_FILENAME)
     if univers_file_path.exists():
         univers_file_path.unlink()

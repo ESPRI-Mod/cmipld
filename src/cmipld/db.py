@@ -1,6 +1,7 @@
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
 
+import cmipld.utils.settings as settings
 
 # Singleton for SQLModel engines.
 # Not thread safe.
@@ -36,9 +37,8 @@ class DBConnection:
 ############## DEBUG ##############
 # The following instructions are only temporary as long as a complet data managment will be implmented.
 
-_UNIVERS_FILENAME = 'univers.sqlite'
 _CMIP6PLUS_FILENAME = 'projects.sqlite'
-UNIVERS_DB_CONNECTION = DBConnection(_UNIVERS_FILENAME, 'univers', False)
+UNIVERS_DB_CONNECTION = DBConnection(settings.UNIVERS_DB_FILENAME, 'univers', False)
 CMIP6PLUS_DB_CONNECTION = DBConnection(_CMIP6PLUS_FILENAME, 'cmip6plus', False)
 
 ###################################
