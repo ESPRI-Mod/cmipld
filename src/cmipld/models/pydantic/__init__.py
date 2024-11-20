@@ -26,7 +26,7 @@ from cmipld.models.pydantic.variable import Variable
 from cmipld.models.pydantic.variant_label import VariantLabel
 
 
-mapping: dict[str, type[BaseModel]] = {
+DATA_DESCRIPTOR_CLASS_MAPPING: dict[str, type[BaseModel]] = {
     "activity": Activity,
     "consortia": Consortia,
     "experiment": Experiment, 
