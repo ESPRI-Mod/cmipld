@@ -9,9 +9,6 @@ import cmipld.utils.settings as settings
 
 _LOGGER = logging.getLogger("univers_ingestion")
 
-# DEBUG
-_UNIVERS_DIR_PATH = Path("/Users/seb/tmp/boulot/mip-cmor-tables")
-
 _SKIPED_DIRNAMES = {"_src", "_tests", ".git"}
 
 
@@ -53,11 +50,8 @@ def ingest_data_descriptor(data_descriptor_path: Path) -> None:
         session.commit()
 
 
-def ingest_all():
-    data_descriptor_ids = get_data_descriptor_ids(_UNIVERS_DIR_PATH)
+def ingest_all(univer_dir_path: Path) -> None:
+    data_descriptor_ids = get_data_descriptor_ids(univer_dir_path)
     for data_descriptor_id in data_descriptor_ids:
-        ingest_data_descriptor(_UNIVERS_DIR_PATH.joinpath(data_descriptor_id))
+        ingest_data_descriptor(univer_dir_path.joinpath(data_descriptor_id))
 
-
-if __name__ == "__main__":
-    ingest_all()
