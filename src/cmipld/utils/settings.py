@@ -11,6 +11,7 @@ LOG_LEVEL = logging.DEBUG
 DIRNAME_AND_FILENAME_SEPARATOR = "_"
 
 ROOT_DIR_PATH = Path(os.path.abspath(__file__)).parents[3]
+SKIPED_DIRNAMES = {"_src", "_tests", ".git"}
 
 UNIVERS_DIR_NAME = 'mip-cmor-tables'
 CMIP6PLUS_DIR_NAME = 'CMIP6Plus_CVs'

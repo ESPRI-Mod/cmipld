@@ -10,13 +10,11 @@ import cmipld.utils.settings as settings
 
 _LOGGER = logging.getLogger("univers_ingestion")
 
-_SKIPED_DIRNAMES = {"_src", "_tests", ".git"}
-
 
 def get_data_descriptor_ids(univers_dir_path: Path) -> set[str]:
     for _, dir_names, _ in univers_dir_path.walk():
         break
-    return set(dir_names) - _SKIPED_DIRNAMES
+    return set(dir_names) - settings.SKIPED_DIRNAMES
 
 
 def infer_term_kind(json_specs: dict) -> TermKind:
