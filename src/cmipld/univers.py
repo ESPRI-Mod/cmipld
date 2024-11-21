@@ -54,8 +54,8 @@ def get_terms(data_descriptor_id: str) -> dict[str, type[BaseModel]]:
         return result
 
 
-def get_all_data_descriptors(session: Session = db.UNIVERS_DB_CONNECTION.create_session()) -> dict[str, dict]:
-    with session:
+def get_all_data_descriptors() -> dict[str, dict]:
+    with db.UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
         result = dict()
         for data_descriptor in data_descriptors:
@@ -72,7 +72,3 @@ def get_all_terms() -> dict[str, type[BaseModel]]:
             for term in terms:
                 result[term.id] = term
     return result
-
-
-if __name__ == "__main__":
-    get_all_terms()
