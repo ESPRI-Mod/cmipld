@@ -6,6 +6,12 @@ import cmipld.db as db
 import cmipld.utils.functions as functions
 from cmipld.models.sqlmodel.univers import UTerm, DataDescriptor
 
+############## DEBUG ##############
+# TODO: to be deleted.
+# The following instructions are only temporary as long as a complet data managment will be implmented.
+UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', False)
+###################################
+
 
 def _get_all_data_descriptors(session: Session) -> list[DataDescriptor]:
     statement = select(DataDescriptor)
@@ -38,14 +44,14 @@ def _get_term(data_descriptor_id: str, term_id: str, session: Session) -> UTerm:
 
 
 def get_term(data_descriptor_id: str, term_id: str) -> type[BaseModel]:
-    with db.UNIVERS_DB_CONNECTION.create_session() as session:
+    with UNIVERS_DB_CONNECTION.create_session() as session:
         term = _get_term(data_descriptor_id, term_id, session)
         term_class = functions.get_pydantic_class(data_descriptor_id)
         return term_class(**term.specs)
 
 
 def get_terms(data_descriptor_id: str) -> dict[str, type[BaseModel]]:
-    with db.UNIVERS_DB_CONNECTION.create_session() as session:
+    with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptor = _get_data_descriptor(data_descriptor_id, session)
         terms = _get_terms(data_descriptor)
         result = dict()
@@ -55,7 +61,7 @@ def get_terms(data_descriptor_id: str) -> dict[str, type[BaseModel]]:
 
 
 def get_all_data_descriptors() -> dict[str, dict]:
-    with db.UNIVERS_DB_CONNECTION.create_session() as session:
+    with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
         result = dict()
         for data_descriptor in data_descriptors:
@@ -64,7 +70,7 @@ def get_all_data_descriptors() -> dict[str, dict]:
 
 
 def get_all_terms() -> dict[str, type[BaseModel]]:
-    with db.UNIVERS_DB_CONNECTION.create_session() as session:
+    with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
         result = dict()
         for data_descriptor in data_descriptors:
