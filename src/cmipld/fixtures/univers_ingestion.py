@@ -7,6 +7,7 @@ from cmipld.models.sqlmodel.mixins import TermKind
 from cmipld.models.sqlmodel.univers import DataDescriptor, UTerm
 from cmipld.utils.functions import read_json_file
 import cmipld.utils.settings as settings
+from cmipld.errors.ingestion import IngestionError
 
 _LOGGER = logging.getLogger("univers_ingestion")
 
@@ -33,14 +34,20 @@ def ingest_data_descriptor(data_descriptor_path: Path) -> None:
     except Exception as e:
         _LOGGER.error(f'unable to parse {context_file_path}. Skip data descriptor {data_descriptor_path.name}.\n{str(e)}')
         return
+        
     with db.UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptor = DataDescriptor(id=data_descriptor_path.name, context=context)
         session.add(data_descriptor)
         for json_file_name in data_descriptor_path.glob("*.json"):
-            json_specs = read_json_file(data_descriptor_path.joinpath(json_file_name))
+            term_file_path = data_descriptor_path.joinpath(json_file_name)
+            try:
+                json_specs = read_json_file(term_file_path)
+            except Exception as e:
+                _LOGGER.error(f'unable to read term {term_file_path}. Skip.\n{e}')
+                continue
             kind = infer_term_kind(json_specs)
             term = UTerm(
-                id=json_specs["id"],
+                id=json_specs[settings.TERM_ID_JSON_KEY],
                 specs=json_specs,
                 data_descriptor=data_descriptor,
                 kind=kind,
@@ -50,9 +57,19 @@ def ingest_data_descriptor(data_descriptor_path: Path) -> None:
 
 
 def ingest_univers(univer_dir_path: Path) -> None:
-    data_descriptor_ids = get_data_descriptor_ids(univer_dir_path)
+    try:
+        data_descriptor_ids = get_data_descriptor_ids(univer_dir_path)
+    except Exception as e:
+        msg = f'unable to list data descriptor in {univer_dir_path}'
+        _LOGGER.fatal(msg)
+        raise IOError(msg) from e
     for data_descriptor_id in data_descriptor_ids:
-        ingest_data_descriptor(univer_dir_path.joinpath(data_descriptor_id))
+        try:
+            ingest_data_descriptor(univer_dir_path.joinpath(data_descriptor_id))
+        except Exception as e:
+            msg = f'unexpected error while parsing univers:\n{str(e)}'
+            _LOGGER.fatal(msg)
+            raise IngestionError(msg) from e
 
 
 if __name__ == "__main__":
