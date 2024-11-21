@@ -26,5 +26,6 @@ PROJECT_ID_JSON_KEY = "project_id"
 CONTEXT_FILENAME = "000_context.jsonld"
 CONTEXT_JSON_KEY = "@context"
 DATA_DESCRIPTOR_JSON_KEY = "@id"
+TERM_ID_JSON_KEY = 'id'
 
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, handlers=LOG_HANDLERS)
