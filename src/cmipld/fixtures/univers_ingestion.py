@@ -1,3 +1,4 @@
+import sys
 import logging
 from pathlib import Path
 
@@ -50,8 +51,11 @@ def ingest_data_descriptor(data_descriptor_path: Path) -> None:
         session.commit()
 
 
-def ingest_all(univer_dir_path: Path) -> None:
+def ingest_univers(univer_dir_path: Path) -> None:
     data_descriptor_ids = get_data_descriptor_ids(univer_dir_path)
     for data_descriptor_id in data_descriptor_ids:
         ingest_data_descriptor(univer_dir_path.joinpath(data_descriptor_id))
 
+
+if __name__ == "__main__":
+    ingest_univers(Path(sys.argv[1]))

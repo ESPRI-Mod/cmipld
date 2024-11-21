@@ -26,7 +26,7 @@ def test_create_univers_db() -> None:
 
 def test_univers_ingestion(caplog) -> None:
     caplog.clear()
-    univers_ingestion.ingest_all(settings.UNIVERS_DIR_PATH)
+    univers_ingestion.ingest_univers(settings.UNIVERS_DIR_PATH)
     count_error_tags = caplog.text.count("ERROR")
     assert count_error_tags == 0
 
@@ -37,6 +37,6 @@ def test_create_project_db() -> None:
 
 def test_project_ingestion(caplog) -> None:
     caplog.clear()
-    project_ingestion.ingest_all(settings.CMIP6PLUS_DIR_PATH)
+    project_ingestion.ingest_project(settings.CMIP6PLUS_DIR_PATH)
     count_error_tags = caplog.text.count("ERROR")
     assert count_error_tags == 0

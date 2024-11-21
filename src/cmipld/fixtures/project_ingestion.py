@@ -1,3 +1,4 @@
+import sys
 import logging
 from pathlib import Path
 
@@ -58,7 +59,7 @@ def instantiate_project_term(
     return updated_term.model_dump()
 
 
-def ingest_all(project_dir_path: Path):
+def ingest_project(project_dir_path: Path):
     with db.CMIP6PLUS_DB_CONNECTION.create_session() as project_db_session:
         project_json_specs = read_json_file(
             project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)
@@ -120,3 +121,7 @@ def ingest_all(project_dir_path: Path):
                         )
                         continue
         project_db_session.commit()
+
+
+if __name__ == "__main__":
+    ingest_project(Path(sys.argv[1]))
