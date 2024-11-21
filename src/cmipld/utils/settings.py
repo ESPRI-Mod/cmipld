@@ -13,14 +13,6 @@ DIRNAME_AND_FILENAME_SEPARATOR = "_"
 ROOT_DIR_PATH = Path(os.path.abspath(__file__)).parents[3]
 SKIPED_DIRNAMES = {"_src", "_tests", ".git"}
 
-UNIVERS_DIR_NAME = 'mip-cmor-tables'
-CMIP6PLUS_DIR_NAME = 'CMIP6Plus_CVs'
-
-UNIVERS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(UNIVERS_DIR_NAME)
-CMIP6PLUS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(CMIP6PLUS_DIR_NAME)
-
-UNIVERS_DB_FILENAME = 'univers.sqlite'
-
 PROJECT_SPECS_FILENAME = "project_specs.json"
 PROJECT_ID_JSON_KEY = "project_id"
 CONTEXT_FILENAME = "000_context.jsonld"

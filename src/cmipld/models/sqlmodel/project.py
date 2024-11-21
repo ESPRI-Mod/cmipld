@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+import logging
 import sqlalchemy as sa
 from sqlalchemy.dialects.sqlite import JSON
 from sqlmodel import Column, Field, Relationship, SQLModel
@@ -5,6 +8,7 @@ from sqlmodel import Column, Field, Relationship, SQLModel
 import cmipld.db as db
 from cmipld.models.sqlmodel.mixins import IdMixin, PkMixin, TermKind
 
+_LOGGER = logging.getLogger("project_db_creation")
 
 class Project(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = "projects"
@@ -35,13 +39,24 @@ def create_drs_name_index():
     )
 
 
-def project_create_db():
-    tables_to_be_created = [SQLModel.metadata.tables['projects'],
-                            SQLModel.metadata.tables['collections'],
-                            SQLModel.metadata.tables['pterms']]
-    create_drs_name_index()
-    SQLModel.metadata.create_all(db.CMIP6PLUS_DB_CONNECTION.get_engine(), tables=tables_to_be_created)
+def project_create_db(db_file_path: Path):
+    try:
+        connection = db.DBConnection(db_file_path)
+    except Exception as e:
+        msg = f'Unable to create SQlite file at {db_file_path}. Abort.'
+        _LOGGER.fatal(msg)
+        raise RuntimeError(msg) from e
+    try:
+        tables_to_be_created = [SQLModel.metadata.tables['projects'],
+                                SQLModel.metadata.tables['collections'],
+                                SQLModel.metadata.tables['pterms']]
+        create_drs_name_index()
+        SQLModel.metadata.create_all(connection.get_engine(), tables=tables_to_be_created)
+    except Exception as e:
+        msg = f'Unable to create tables in SQLite database at {db_file_path}. Abort.'
+        _LOGGER.fatal(msg)
+        raise RuntimeError(msg) from e
 
 
 if __name__ == "__main__":
-    project_create_db()
+    project_create_db(Path(sys.argv[1]))

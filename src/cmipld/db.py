@@ -1,7 +1,7 @@
+from pathlib import Path
+
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
-
-import cmipld.utils.settings as settings
 
 # Singleton for SQLModel engines.
 # Not thread safe.
@@ -9,14 +9,14 @@ class DBConnection:
     SQLITE_URL_PREFIX = 'sqlite://'
     _ENGINES: dict[str, Engine] = dict()
 
-    def __init__(self, db_filename: str, name: str, echo: bool = False) -> None:
-        if db_filename in DBConnection._ENGINES:
-            raise ValueError(f"{db_filename} is already connected")
+    def __init__(self, db_file_path: Path, name: str = None, echo: bool = False) -> None:
+        if db_file_path in DBConnection._ENGINES:
+            self.engine = DBConnection._ENGINES[db_file_path]
         else:
-            self.engine = create_engine(f'{DBConnection.SQLITE_URL_PREFIX}/{db_filename}', echo=echo)
-            self.name = name
-            self.filename = db_filename
-            DBConnection._ENGINES[db_filename] = self.engine
+            self.engine = create_engine(f'{DBConnection.SQLITE_URL_PREFIX}/{str(db_file_path)}', echo=echo)
+            DBConnection._ENGINES[db_file_path] = self.engine
+        self.name = name
+        self.file_path = db_file_path
 
     def set_echo(self, echo: bool) -> None:
         self.engine.echo = echo
@@ -30,15 +30,22 @@ class DBConnection:
     def get_name(self) -> str:
         return self.name
     
-    def get_file_name(self) -> str:
-        return self.filename
+    def get_file_path(self) -> str:
+        return self.file_path
 
 
 ############## DEBUG ##############
 # The following instructions are only temporary as long as a complet data managment will be implmented.
 
-_CMIP6PLUS_FILENAME = 'projects.sqlite'
-UNIVERS_DB_CONNECTION = DBConnection(settings.UNIVERS_DB_FILENAME, 'univers', False)
-CMIP6PLUS_DB_CONNECTION = DBConnection(_CMIP6PLUS_FILENAME, 'cmip6plus', False)
+from cmipld.utils.settings import ROOT_DIR_PATH # noqa
+
+UNIVERS_DIR_NAME = 'mip-cmor-tables'
+CMIP6PLUS_DIR_NAME = 'CMIP6Plus_CVs'
+
+UNIVERS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(UNIVERS_DIR_NAME)
+CMIP6PLUS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(CMIP6PLUS_DIR_NAME)
+
+UNIVERS_DB_FILE_PATH = Path('univers.sqlite')
+CMIP6PLUS_DB_FILE_PATH = Path('projects.sqlite')
 
 ###################################
