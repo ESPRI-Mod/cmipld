@@ -35,6 +35,7 @@ class DBConnection:
 
 
 ############## DEBUG ##############
+# TODO: to be deleted.
 # The following instructions are only temporary as long as a complet data managment will be implmented.
 
 from cmipld.utils.settings import ROOT_DIR_PATH # noqa
@@ -47,5 +48,4 @@ CMIP6PLUS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(CMIP6PLUS_DIR_NAME)
 
 UNIVERS_DB_FILE_PATH = Path('univers.sqlite')
 CMIP6PLUS_DB_FILE_PATH = Path('projects.sqlite')
-
 ###################################
