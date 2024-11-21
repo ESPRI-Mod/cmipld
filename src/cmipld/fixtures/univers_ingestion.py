@@ -18,9 +18,9 @@ def get_data_descriptor_ids(univers_dir_path: Path) -> set[str]:
 
 
 def infer_term_kind(json_specs: dict) -> TermKind:
-    if "pattern" in json_specs:
+    if settings.PATTERN_JSON_KEY in json_specs:
         return TermKind.PATTERN
-    elif "parts" in json_specs:
+    elif settings.COMPOSITE_JSON_KEY in json_specs:
         return TermKind.COMPOSITE
     else:
         return TermKind.PLAIN

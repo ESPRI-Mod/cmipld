@@ -19,5 +19,7 @@ CONTEXT_FILENAME = "000_context.jsonld"
 CONTEXT_JSON_KEY = "@context"
 DATA_DESCRIPTOR_JSON_KEY = "@id"
 TERM_ID_JSON_KEY = 'id'
+PATTERN_JSON_KEY = 'pattern'
+COMPOSITE_JSON_KEY = 'parts'
 
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, handlers=LOG_HANDLERS)
