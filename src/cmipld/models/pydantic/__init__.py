@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from cmipld.models.pydantic.table import Table 
 from cmipld.models.pydantic.activity import Activity
 from cmipld.models.pydantic.consortia import Consortia
+from cmipld.models.pydantic.date import Date
 from cmipld.models.pydantic.experiment import Experiment 
 from cmipld.models.pydantic.forcing_index import ForcingIndex
 from cmipld.models.pydantic.frequency import Frequency
@@ -29,6 +30,7 @@ from cmipld.models.pydantic.variant_label import VariantLabel
 DATA_DESCRIPTOR_CLASS_MAPPING: dict[str, type[BaseModel]] = {
     "activity": Activity,
     "consortia": Consortia,
+    "date": Date,
     "experiment": Experiment, 
     "forcing_index": ForcingIndex,
     "frequency": Frequency,
