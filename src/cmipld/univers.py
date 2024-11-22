@@ -65,33 +65,11 @@ def find_terms_in_univers(term_id: str, settings: SearchSettings = SearchSetting
     return result
 
 
-def _get_all_data_descriptor_in_univers(data_descriptor_id: str, settings: SearchSettings, session: Session) -> list[DataDescriptor]:
-    where_expression = create_str_comparison_expression(field=DataDescriptor.id,
-                                                        value=data_descriptor_id,
-                                                        settings=settings)
-    statement = select(DataDescriptor).where(where_expression)
-    results = session.exec(statement).all()
-    return results
-
-
 def _get_all_terms_in_data_descriptor(data_descriptor: DataDescriptor) -> list[type[BaseModel]]:
     result = list()
     term_class = functions.get_pydantic_class(data_descriptor.id)
     for term in data_descriptor.terms:
         result.append(term_class(**term.specs))
-    return result
-
-
-# Returns dict[data descriptor id: [term id: term pydantic instance]]. Len > 1 depending on settings type of search.
-def get_all_terms_in_data_descriptor(data_descriptor_id: str, settings: SearchSettings = SearchSettings()) -> dict[str, dict[str, type[BaseModel]]]:
-    result = dict()
-    with UNIVERS_DB_CONNECTION.create_session() as session:
-        data_descriptors = _get_all_data_descriptor_in_univers(data_descriptor_id, settings, session)
-        for data_descriptor in data_descriptors:
-            result[data_descriptor.id] = dict()
-            terms = _get_all_terms_in_data_descriptor(data_descriptor)
-            for term in terms:
-                result[data_descriptor.id][term.id] = term
     return result
 
 
@@ -102,6 +80,19 @@ def _find_data_descriptors_in_univers(data_descriptor_id, settings, session) -> 
     statement = select(DataDescriptor).where(where_expression)
     results = session.exec(statement).all()
     return results
+
+
+# Returns dict[data descriptor id: [term id: term pydantic instance]]. Len > 1 depending on settings type of search.
+def get_all_terms_in_data_descriptor(data_descriptor_id: str, settings: SearchSettings = SearchSettings()) -> dict[str, dict[str, type[BaseModel]]]:
+    result = dict()
+    with UNIVERS_DB_CONNECTION.create_session() as session:
+        data_descriptors = _find_data_descriptors_in_univers(data_descriptor_id, settings, session)
+        for data_descriptor in data_descriptors:
+            result[data_descriptor.id] = dict()
+            terms = _get_all_terms_in_data_descriptor(data_descriptor)
+            for term in terms:
+                result[data_descriptor.id][term.id] = term
+    return result
 
 
 # Returns dict[data descriptor id, data descriptor context].
@@ -138,7 +129,7 @@ def get_all_terms_in_univers() -> dict[str, dict[str, type[BaseModel]]]:
         data_descriptors = _get_all_data_descriptors_in_univers(session)
         result = dict()
         for data_descriptor in data_descriptors:
-            # Term may be sysnonym within the whole univers.
+            # Term may have some sysnonyms within the whole univers.
             result[data_descriptor.id] = dict()
             terms = _get_all_terms_in_data_descriptor(data_descriptor)
             for term in terms:
