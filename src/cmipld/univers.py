@@ -49,7 +49,9 @@ def _get_term(data_descriptor_id: str, term_id: str, settings: SearchSettings, s
     return results
 
 
-def get_term(data_descriptor_id: str, term_id: str, settings: SearchSettings = SearchSettings()) -> dict[str: type[BaseModel]]:
+# Returns dict[term id: term pydantic instance]. Len > 1 depending on settings type of search.
+# Settings only apply on the term_id comparison.
+def get_term_in_data_descriptor(data_descriptor_id: str, term_id: str, settings: SearchSettings = SearchSettings()) -> dict[str: type[BaseModel]]:
     with UNIVERS_DB_CONNECTION.create_session() as session:
         result = dict()
         terms = _get_term(data_descriptor_id, term_id, settings, session)
@@ -59,7 +61,8 @@ def get_term(data_descriptor_id: str, term_id: str, settings: SearchSettings = S
     return result
 
 
-def get_terms(data_descriptor_id: str, settings: SearchSettings = SearchSettings()) -> dict[str, dict[str, type[BaseModel]]]:
+# Returns dict[data descriptor id: [term id: term pydantic instance]]. Len > 1 depending on settings type of search.
+def get_all_terms_in_data_descriptor(data_descriptor_id: str, settings: SearchSettings = SearchSettings()) -> dict[str, dict[str, type[BaseModel]]]:
     result = dict()
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_data_descriptor(data_descriptor_id, settings, session)

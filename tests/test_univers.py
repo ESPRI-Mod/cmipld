@@ -18,9 +18,9 @@ def test_get_all_data_descriptors() -> None:
 
 def test_get_terms() -> None:
     for data_descriptor_id in _DATA_DESCRIPTOR_IDS:
-        univers.get_terms(data_descriptor_id)
+        univers.get_all_terms_in_data_descriptor(data_descriptor_id)
 
 
 def test_get_term() -> None:
     for item in _TERM_REQUESTS:
-        univers.get_term(**item)
+        univers.get_term_in_data_descriptor(**item)
