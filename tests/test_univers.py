@@ -22,11 +22,11 @@ def test_get_terms_in_data_descriptor() -> None:
         univers.get_all_terms_in_data_descriptor(data_descriptor_id)
 
 
-def test_get_term_in_data_descriptor() -> None:
+def test_find_term_in_data_descriptor() -> None:
     for item in _SOME_TERM_REQUESTS:
-        univers.get_term_in_data_descriptor(**item)
+        univers.find_term_in_data_descriptor(**item)
 
 
-def test_get_terms_in_univers() -> None:
+def test_find_terms_in_univers() -> None:
     for term_id in _SOME_TERM_IDS:
-        print(univers.get_terms_in_univers(term_id))
+        print(univers.find_terms_in_univers(term_id))
