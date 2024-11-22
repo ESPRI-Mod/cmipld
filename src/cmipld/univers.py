@@ -17,6 +17,15 @@ UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', Fals
 # - handle item not found.
 # - docstring all functions.
 
+def _find_data_descriptors_in_univers(data_descriptor_id, settings, session) -> list[DataDescriptor]:
+    where_expression = create_str_comparison_expression(field=DataDescriptor.id,
+                                                        value=data_descriptor_id,
+                                                        settings=settings)
+    statement = select(DataDescriptor).where(where_expression)
+    results = session.exec(statement).all()
+    return results
+
+
 def _get_all_data_descriptors_in_univers(session: Session) -> list[DataDescriptor]:
     statement = select(DataDescriptor)
     data_descriptors = session.exec(statement)
@@ -61,7 +70,8 @@ def _find_terms_in_univers(term_id: str, settings: SearchSettings, session: Sess
     return results
 
 
-# Returns dict[term id: term pydantic instance]. Len > 1 depending on settings type of search.
+# Returns dict[term id: term pydantic instance].
+# Len > 1 depending on settings type of search.
 # Settings only apply on the term_id comparison.
 def find_term_in_data_descriptor(data_descriptor_id: str, term_id: str, settings: SearchSettings = SearchSettings()) -> dict[str: type[BaseModel]]:
     with UNIVERS_DB_CONNECTION.create_session() as session:
@@ -97,6 +107,17 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str, settings: SearchSe
             terms = _get_all_terms_in_data_descriptor(data_descriptor)
             for term in terms:
                 result[data_descriptor.id][term.id] = term
+    return result
+
+
+# Returns dict[data descriptor id, data descriptor context].
+# Len > 1 depending on settings type of search.
+def find_data_descriptors_in_univers(data_descriptor_id: str, settings: SearchSettings = SearchSettings()) -> dict[str, dict]:
+    with UNIVERS_DB_CONNECTION.create_session() as session:
+        data_descriptors = _find_data_descriptors_in_univers(data_descriptor_id, settings, session)
+        result = dict()
+        for data_descriptor in data_descriptors:
+            result[data_descriptor.id] = data_descriptor.context
     return result
 
 

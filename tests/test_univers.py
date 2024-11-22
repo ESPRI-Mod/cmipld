@@ -30,3 +30,8 @@ def test_find_term_in_data_descriptor() -> None:
 def test_find_terms_in_univers() -> None:
     for term_id in _SOME_TERM_IDS:
         print(univers.find_terms_in_univers(term_id))
+
+
+def test_find_data_descriptor_in_univers() -> None:
+    for data_descriptor_id in _SOME_DATA_DESCRIPTOR_IDS:
+        univers.find_data_descriptors_in_univers(data_descriptor_id)
