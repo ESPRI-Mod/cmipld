@@ -15,3 +15,4 @@ pdm.lock
 .pdm-python
 .DS_Store
 .vscode
+tmp*
