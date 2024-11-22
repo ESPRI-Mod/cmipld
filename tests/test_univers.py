@@ -8,19 +8,19 @@ _TERM_REQUESTS = [
                  ]
 
 
-def test_get_all_terms() -> None:
-    univers.get_all_terms()
+def test_get_all_terms_in_univers() -> None:
+    univers.get_all_terms_in_univers()
 
 
-def test_get_all_data_descriptors() -> None:
-    univers.get_all_data_descriptors()
+def test_get_all_data_descriptors_in_univers() -> None:
+    univers.get_all_data_descriptors_in_univers()
 
 
-def test_get_terms() -> None:
+def test_get_terms_in_data_descriptor() -> None:
     for data_descriptor_id in _DATA_DESCRIPTOR_IDS:
         univers.get_all_terms_in_data_descriptor(data_descriptor_id)
 
 
-def test_get_term() -> None:
+def test_get_term_in_data_descriptor() -> None:
     for item in _TERM_REQUESTS:
         univers.get_term_in_data_descriptor(**item)

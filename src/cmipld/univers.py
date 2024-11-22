@@ -74,7 +74,7 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str, settings: SearchSe
     return result
 
 
-def get_all_data_descriptors() -> dict[str, dict]:
+def get_all_data_descriptors_in_univers() -> dict[str, dict]:
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
         result = dict()
@@ -83,7 +83,7 @@ def get_all_data_descriptors() -> dict[str, dict]:
     return result
 
 
-def get_all_terms() -> dict[str, dict[str, type[BaseModel]]]:
+def get_all_terms_in_univers() -> dict[str, dict[str, type[BaseModel]]]:
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
         result = dict()
