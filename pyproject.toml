@@ -13,7 +13,7 @@ dependencies = [
     "sqlmodel>=0.0.22",
 ]
 readme = "README.md"
-requires-python = ">= 3.13"
+requires-python = ">= 3.12"
 
 [build-system]
 requires = ["hatchling"]
