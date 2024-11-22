@@ -39,7 +39,7 @@ def _get_terms(data_descriptor: DataDescriptor) -> list[type[BaseModel]]:
 
 
 # Settings only apply on the term_id comparison.
-def _get_term(data_descriptor_id: str, term_id: str, settings: SearchSettings, session: Session) -> list[UTerm]:
+def _get_term_in_data_descriptor(data_descriptor_id: str, term_id: str, settings: SearchSettings, session: Session) -> list[UTerm]:
     where_expression = create_str_comparison_expression(field=UTerm.id,
                                                         value=term_id,
                                                         settings=settings)
@@ -54,7 +54,7 @@ def _get_term(data_descriptor_id: str, term_id: str, settings: SearchSettings, s
 def get_term_in_data_descriptor(data_descriptor_id: str, term_id: str, settings: SearchSettings = SearchSettings()) -> dict[str: type[BaseModel]]:
     with UNIVERS_DB_CONNECTION.create_session() as session:
         result = dict()
-        terms = _get_term(data_descriptor_id, term_id, settings, session)
+        terms = _get_term_in_data_descriptor(data_descriptor_id, term_id, settings, session)
         term_class = functions.get_pydantic_class(data_descriptor_id)
         for term in terms:
             result[term.id] = term_class(**term.specs)
