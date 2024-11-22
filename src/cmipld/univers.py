@@ -13,6 +13,7 @@ from cmipld.utils.functions import SearchSettings, create_str_comparison_express
 UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', False)
 ###################################
 
+# TODO: docstring all functions.
 
 def _get_all_data_descriptors(session: Session) -> list[DataDescriptor]:
     statement = select(DataDescriptor)
@@ -49,6 +50,15 @@ def _get_term_in_data_descriptor(data_descriptor_id: str, term_id: str, settings
     return results
 
 
+def _get_terms_in_univers(term_id: str, settings: SearchSettings, session: Session) -> list[UTerm]:
+    where_expression = create_str_comparison_expression(field=UTerm.id,
+                                                        value=term_id,
+                                                        settings=settings)
+    statement = select(UTerm).where(where_expression)
+    results = session.exec(statement).all()
+    return results
+
+
 # Returns dict[term id: term pydantic instance]. Len > 1 depending on settings type of search.
 # Settings only apply on the term_id comparison.
 def get_term_in_data_descriptor(data_descriptor_id: str, term_id: str, settings: SearchSettings = SearchSettings()) -> dict[str: type[BaseModel]]:
@@ -58,6 +68,20 @@ def get_term_in_data_descriptor(data_descriptor_id: str, term_id: str, settings:
         term_class = functions.get_pydantic_class(data_descriptor_id)
         for term in terms:
             result[term.id] = term_class(**term.specs)
+    return result
+
+
+# Returns dict[data descriptor id, dict[term id, term pydantic instance]].
+# Terms are unique within a data descriptor and may have some synonyms within the univers.
+def get_terms_in_univers(term_id: str, settings: SearchSettings = SearchSettings()) -> dict[str, dict[str, type[BaseModel]]]:
+    result = dict()
+    with UNIVERS_DB_CONNECTION.create_session() as session:
+        terms = _get_terms_in_univers(term_id, settings, session)
+        for term in terms:
+            if term.data_descriptor.id not in result:
+                result[term.data_descriptor.id] = dict()
+            term_class = functions.get_pydantic_class(term.data_descriptor.id)
+            result[term.data_descriptor.id][term.id] = term_class(**term.specs)
     return result
 
 
@@ -74,6 +98,7 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str, settings: SearchSe
     return result
 
 
+# Returns dict[data descriptor id, data descriptor context]
 def get_all_data_descriptors_in_univers() -> dict[str, dict]:
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
@@ -83,6 +108,7 @@ def get_all_data_descriptors_in_univers() -> dict[str, dict]:
     return result
 
 
+# Returns dic[data descriptor id, dict[term id, term pydantic instance]]
 def get_all_terms_in_univers() -> dict[str, dict[str, type[BaseModel]]]:
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
