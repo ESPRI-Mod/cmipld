@@ -82,7 +82,8 @@ def _find_data_descriptors_in_univers(data_descriptor_id, settings, session) -> 
     return results
 
 
-# Returns dict[data descriptor id: [term id: term pydantic instance]]. Len > 1 depending on settings type of search.
+# Returns dict[data descriptor id: [term id: term pydantic instance]].
+# Len > 1 depending on settings type of search.
 def get_all_terms_in_data_descriptor(data_descriptor_id: str, settings: SearchSettings = SearchSettings()) -> dict[str, dict[str, type[BaseModel]]]:
     result = dict()
     with UNIVERS_DB_CONNECTION.create_session() as session:
