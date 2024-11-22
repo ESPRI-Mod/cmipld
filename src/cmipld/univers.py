@@ -80,12 +80,14 @@ def get_all_data_descriptors() -> dict[str, dict]:
     return result
 
 
-def get_all_terms() -> dict[str, type[BaseModel]]:
+def get_all_terms() -> dict[str, dict[str, type[BaseModel]]]:
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors(session)
         result = dict()
         for data_descriptor in data_descriptors:
+            # Term may be sysnonym within the whole univers.
+            result[data_descriptor.id] = dict()
             terms = _get_terms(data_descriptor)
             for term in terms:
-                result[term.id] = term
+                result[data_descriptor.id][term.id] = term
     return result
