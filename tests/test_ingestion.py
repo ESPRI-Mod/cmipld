@@ -8,7 +8,7 @@ import cmipld.db.models.project as project
 import cmipld.db.project_ingestion as project_ingestion
 import cmipld.db as db
 
-
+# TODO: automize each tests!
 @pytest.fixture(scope="module", autouse=True)
 def delete_db():
     univers_file_path = Path(db.UNIVERS_DB_FILE_PATH)
@@ -27,6 +27,8 @@ def test_univers_ingestion(caplog) -> None:
     caplog.clear()
     univers_ingestion.ingest_univers(db.UNIVERS_DIR_PATH, db.UNIVERS_DB_FILE_PATH)
     count_error_tags = caplog.text.count("ERROR")
+    if count_error_tags > 0:
+        print(caplog.text)
     assert count_error_tags == 0
 
 
@@ -40,4 +42,6 @@ def test_project_ingestion(caplog) -> None:
                                      db.CMIP6PLUS_DB_FILE_PATH,
                                      db.UNIVERS_DB_FILE_PATH)
     count_error_tags = caplog.text.count("ERROR")
+    if count_error_tags > 0:
+        print(caplog.text)
     assert count_error_tags == 0
