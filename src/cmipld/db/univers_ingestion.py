@@ -11,12 +11,6 @@ import cmipld.settings as settings
 _LOGGER = logging.getLogger("univers_ingestion")
 
 
-def get_data_descriptor_ids(univers_dir_path: Path) -> set[str]:
-    for _, dir_names, _ in univers_dir_path.walk():
-        break
-    return set(dir_names) - settings.SKIPED_DIRNAMES
-
-
 def infer_term_kind(json_specs: dict) -> TermKind:
     if settings.PATTERN_JSON_KEY in json_specs:
         return TermKind.PATTERN
@@ -64,7 +58,7 @@ def ingest_univers(univer_dir_path: Path, univers_db_file_path: Path) -> None:
         _LOGGER.fatal(msg)
         raise IOError(msg) from e
     try:
-        data_descriptor_ids = get_data_descriptor_ids(univer_dir_path)
+        data_descriptor_ids = db.items_of_interest(univer_dir_path, 'dir')
     except Exception as e:
         msg = f'Unable to list data descriptor in {univer_dir_path}. Abort.'
         _LOGGER.fatal(msg)

@@ -1,13 +1,45 @@
 import json
 from pathlib import Path
+from typing import Generator
 
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
+
+import cmipld.settings as settings
 
 
 def read_json_file(json_file_path: Path) -> dict:
     return json.loads(json_file_path.read_text())
 
+
+# TODO: repositories structures should be reworked.
+def items_of_interest(dir_path: Path, kind: str = None) -> Generator[Path]:
+    for directory_object in dir_path.iterdir():
+        escape_this_item = False
+        for escape_char in settings.SKIPED_DIR_ITEMS:
+            if directory_object.name.startswith(escape_char):
+                escape_this_item = True
+                break
+        if escape_this_item:
+            continue
+        else:
+            match kind:
+                case 'dir':
+                    if directory_object.is_dir():
+                        yield directory_object
+                    else:
+                        continue
+                case 'file':
+                    if directory_object.is_file():
+                        yield directory_object
+                    else:
+                        continue
+                case 'all':
+                    yield directory_object
+                
+                case _:
+                    raise NotImplementedError(f'kind {kind} is not supported')
+                
 
 # Singleton for SQLModel engines.
 # Not thread safe.
