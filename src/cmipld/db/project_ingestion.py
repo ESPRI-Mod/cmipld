@@ -7,12 +7,12 @@ from sqlalchemy.exc import NoResultFound
 from sqlmodel import Session, select
 
 import cmipld.db as db
-import cmipld.utils.settings as settings
-import cmipld.utils.functions as functions
-from cmipld.models.api.mixins import TermKind
-from cmipld.models.api.project import Collection, Project, PTerm
-from cmipld.models.api.univers import DataDescriptor, UTerm
-from cmipld.utils.functions import read_json_file
+import cmipld.settings as settings
+from cmipld import get_pydantic_class
+from cmipld.db.models.mixins import TermKind
+from cmipld.db.models.project import Collection, Project, PTerm
+from cmipld.db.models.univers import DataDescriptor, UTerm
+from cmipld.db import read_json_file
 
 _LOGGER = logging.getLogger("project_ingestion")
 
@@ -88,7 +88,7 @@ def ingest_collection(collection_filename,
     project_db_session.add(collection)
 
     try:
-        pydantic_class = functions.get_pydantic_class(data_descriptor_id)
+        pydantic_class = get_pydantic_class(data_descriptor_id)
     except Exception as e:
         _LOGGER.error(str(e))
         return

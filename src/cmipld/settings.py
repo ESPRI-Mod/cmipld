@@ -10,7 +10,7 @@ LOG_LEVEL = logging.DEBUG
 
 DIRNAME_AND_FILENAME_SEPARATOR = "_"
 
-ROOT_DIR_PATH = Path(os.path.abspath(__file__)).parents[3]
+ROOT_DIR_PATH = Path(os.path.abspath(__file__)).parents[2]
 SKIPED_DIRNAMES = {"_src", "_tests", ".git"}
 
 PROJECT_SPECS_FILENAME = "project_specs.json"

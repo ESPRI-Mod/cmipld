@@ -1,4 +1,4 @@
-import cmipld.univers as univers
+import cmipld.api.univers as univers
 
 _SOME_DATA_DESCRIPTOR_IDS = ['institution', 'product', 'variable']
 _SOME_TERM_IDS = ['ipsl', 'day']

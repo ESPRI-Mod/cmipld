@@ -3,9 +3,9 @@ from pydantic import BaseModel
 from sqlmodel import select, Session
 
 import cmipld.db as db
-import cmipld.utils.functions as functions
-from cmipld.models.api.univers import UTerm, DataDescriptor
-from cmipld.utils.functions import SearchSettings, create_str_comparison_expression
+from cmipld import get_pydantic_class
+from cmipld.db.models.univers import UTerm, DataDescriptor
+from cmipld.api import SearchSettings, create_str_comparison_expression
 
 ############## DEBUG ##############
 # TODO: to be deleted.
@@ -37,7 +37,7 @@ def find_term_in_data_descriptor(data_descriptor_id: str, term_id: str, settings
         result = dict()
         terms = _find_term_in_data_descriptor(data_descriptor_id, term_id, settings, session)
         if terms:
-            term_class = functions.get_pydantic_class(data_descriptor_id)
+            term_class = get_pydantic_class(data_descriptor_id)
             for term in terms:
                 result[term.id] = term_class(**term.specs)
     return result
@@ -62,14 +62,14 @@ def find_terms_in_univers(term_id: str, settings: SearchSettings = SearchSetting
         for term in terms:
             if term.data_descriptor.id not in result:
                 result[term.data_descriptor.id] = dict()
-            term_class = functions.get_pydantic_class(term.data_descriptor.id)
+            term_class = get_pydantic_class(term.data_descriptor.id)
             result[term.data_descriptor.id][term.id] = term_class(**term.specs)
     return result
 
 
 def _get_all_terms_in_data_descriptor(data_descriptor: DataDescriptor) -> list[type[BaseModel]]:
     result = list()
-    term_class = functions.get_pydantic_class(data_descriptor.id)
+    term_class = get_pydantic_class(data_descriptor.id)
     for term in data_descriptor.terms:
         result.append(term_class(**term.specs))
     return result
