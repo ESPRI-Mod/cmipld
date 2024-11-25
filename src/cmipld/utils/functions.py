@@ -30,8 +30,8 @@ class SearchType(Enum):
 
 class SearchSettings(BaseModel):
     type: SearchType = SearchType.EXACT
-    is_case_sensitive: bool = True
-    has_not_operator: bool = False
+    case_sensitive: bool = True
+    not_operator: bool = False
 
 
 # SQLite LIKE is case insensitive (and so STARTS/ENDS_WITH which are implemented with LIKE).
@@ -44,18 +44,18 @@ def create_str_comparison_expression(
     match settings.type:
         # Early return because not operator is not implement with tilde symbol.
         case SearchType.EXACT:
-            if settings.is_case_sensitive:
-                if settings.has_not_operator:
+            if settings.case_sensitive:
+                if settings.not_operator:
                     return col(field).is_not(other=value)
                 else:
                     return col(field).is_(other=value)
             else:
-                if settings.has_not_operator:
+                if settings.not_operator:
                     return func.lower(field) != func.lower(value)
                 else:
                     return func.lower(field) == func.lower(value)
         case SearchType.LIKE:
-            if settings.is_case_sensitive:
+            if settings.case_sensitive:
                 result = col(field).regexp_match(pattern=f".*{value}.*")
             else:
                 result = col(field).contains(
@@ -63,7 +63,7 @@ def create_str_comparison_expression(
                     autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
                 )
         case SearchType.STARTS_WITH:
-            if settings.is_case_sensitive:
+            if settings.case_sensitive:
                 result = col(field).regexp_match(pattern=f"^{value}.*")
             else:
                 result = col(field).startswith(
@@ -71,7 +71,7 @@ def create_str_comparison_expression(
                     autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
                 )
         case SearchType.ENDS_WITH:
-            if settings.is_case_sensitive:
+            if settings.case_sensitive:
                 result = col(field).regexp_match(pattern=f"{value}$")
             else:
                 result = col(field).endswith(
@@ -79,13 +79,13 @@ def create_str_comparison_expression(
                     autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
                 )
         case SearchType.REGEX:
-            if settings.is_case_sensitive:
+            if settings.case_sensitive:
                 result = col(field).regexp_match(pattern=value)
             else:
                 raise NotImplementedError(
                     "regex string comparison case insensitive is not implemented"
                 )
-    if settings.has_not_operator:
+    if settings.not_operator:
         return ~result
     else:
         return result
