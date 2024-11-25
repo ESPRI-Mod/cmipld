@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-import cmipld.models.sqlmodel.univers as univers
+import cmipld.models.api.univers as univers
 import cmipld.fixtures.univers_ingestion as univers_ingestion
-import cmipld.models.sqlmodel.project as project
+import cmipld.models.api.project as project
 import cmipld.fixtures.project_ingestion as project_ingestion
 import cmipld.db as db
 

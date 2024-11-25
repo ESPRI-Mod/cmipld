@@ -9,9 +9,9 @@ from sqlmodel import Session, select
 import cmipld.db as db
 import cmipld.utils.settings as settings
 import cmipld.utils.functions as functions
-from cmipld.models.sqlmodel.mixins import TermKind
-from cmipld.models.sqlmodel.project import Collection, Project, PTerm
-from cmipld.models.sqlmodel.univers import DataDescriptor, UTerm
+from cmipld.models.api.mixins import TermKind
+from cmipld.models.api.project import Collection, Project, PTerm
+from cmipld.models.api.univers import DataDescriptor, UTerm
 from cmipld.utils.functions import read_json_file
 
 _LOGGER = logging.getLogger("project_ingestion")

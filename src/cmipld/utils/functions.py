@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import BinaryExpression, func
 from sqlmodel import col
 
-from cmipld.models.pydantic import DATA_DESCRIPTOR_CLASS_MAPPING
+from cmipld.models.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
 
 
 def read_json_file(json_file_path: Path) -> dict:

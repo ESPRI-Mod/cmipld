@@ -4,7 +4,7 @@ from sqlmodel import select, Session
 
 import cmipld.db as db
 import cmipld.utils.functions as functions
-from cmipld.models.sqlmodel.univers import UTerm, DataDescriptor
+from cmipld.models.api.univers import UTerm, DataDescriptor
 from cmipld.utils.functions import SearchSettings, create_str_comparison_expression
 
 ############## DEBUG ##############

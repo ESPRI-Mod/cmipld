@@ -6,7 +6,7 @@ from sqlalchemy.dialects.sqlite import JSON
 from sqlmodel import Column, Field, Relationship, SQLModel
 
 import cmipld.db as db
-from cmipld.models.sqlmodel.mixins import IdMixin, PkMixin, TermKind
+from cmipld.models.api.mixins import IdMixin, PkMixin, TermKind
 
 _LOGGER = logging.getLogger("project_db_creation")
 
