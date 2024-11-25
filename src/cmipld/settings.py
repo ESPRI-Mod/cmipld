@@ -11,7 +11,7 @@ LOG_LEVEL = logging.DEBUG
 DIRNAME_AND_FILENAME_SEPARATOR = "_"
 
 ROOT_DIR_PATH = Path(os.path.abspath(__file__)).parents[2]
-SKIPED_DIRNAMES = {"_src", "_tests", ".git"}
+SKIPED_DIRNAMES = {"_src", "_tests", ".git", ".venv", ".pytest_cache"} # DEBUG
 
 PROJECT_SPECS_FILENAME = "project_specs.json"
 PROJECT_ID_JSON_KEY = "project_id"
