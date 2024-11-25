@@ -15,6 +15,7 @@ UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', Fals
 
 # TODO: 
 # - docstring all functions.
+# - missing pydantic class.
 
 
 # Settings only apply on the term_id comparison.
