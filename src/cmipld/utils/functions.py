@@ -28,16 +28,10 @@ class SearchType(Enum):
     REGEX = ("regex",)
 
 
-class SearchSettings:
-    def __init__(
-        self,
-        type: SearchType = SearchType.EXACT,
-        is_case_sensitive: bool = True,
-        add_not_operator: bool = False,
-    ):
-        self.type = type
-        self.is_case_sensitive = is_case_sensitive
-        self.has_not_operator = add_not_operator
+class SearchSettings(BaseModel):
+    type: SearchType = SearchType.EXACT
+    is_case_sensitive: bool = True
+    has_not_operator: bool = False
 
 
 # SQLite LIKE is case insensitive (and so STARTS/ENDS_WITH which are implemented with LIKE).
