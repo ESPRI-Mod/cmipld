@@ -29,7 +29,7 @@ def test_univers_ingestion(caplog) -> None:
     count_error_tags = caplog.text.count("ERROR")
     if count_error_tags > 0:
         print(caplog.text)
-    assert count_error_tags == 0
+        raise Exception(f'Found {count_error_tags} error(s)')
 
 
 def test_create_project_db() -> None:
@@ -44,4 +44,4 @@ def test_project_ingestion(caplog) -> None:
     count_error_tags = caplog.text.count("ERROR")
     if count_error_tags > 0:
         print(caplog.text)
-    assert count_error_tags == 0
+        raise Exception(f'Found {count_error_tags} error(s)')
