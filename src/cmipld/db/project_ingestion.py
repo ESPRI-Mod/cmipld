@@ -3,7 +3,6 @@ import logging
 from pathlib import Path
 
 from pydantic import BaseModel
-from sqlalchemy.exc import NoResultFound
 from sqlmodel import Session, select
 
 import cmipld.db as db
@@ -12,31 +11,19 @@ from cmipld import get_pydantic_class
 from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.project import Collection, Project, PTerm
 from cmipld.db.models.univers import DataDescriptor, UTerm
-from cmipld.db import read_json_file
+from cmipld.db import read_json_file, items_of_interest
 
 _LOGGER = logging.getLogger("project_ingestion")
 
-# TODO: update
-def get_collection_filenames(project_dir_path: Path) -> set[Path]:
-    # TODO: should be improved.
-    result = set(project_dir_path.glob("*.json")) - {
-        project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)
-    }
-    return result
 
-
-def get_data_descriptor_id_from_context(
-    collection_id: str, project_context: dict
-) -> str:
-    data_descriptor_url = project_context[collection_id][
-        settings.DATA_DESCRIPTOR_JSON_KEY
-    ]
+def get_data_descriptor_id_from_context(collection_context: dict) -> str:
+    data_descriptor_url = collection_context[settings.CONTEXT_JSON_KEY][settings.DATA_DESCRIPTOR_JSON_KEY]
     return Path(data_descriptor_url).name
 
 
-def get_univers_term(
-    data_descriptor_id: str, term_id: str, univers_db_session: Session
-) -> tuple[TermKind, dict]:
+def get_univers_term(data_descriptor_id: str,
+                     term_id: str,
+                     univers_db_session: Session) -> tuple[TermKind, dict]:
     statement = (
         select(UTerm)
         .join(DataDescriptor)
@@ -59,48 +46,55 @@ def instantiate_project_term(
     return updated_term.model_dump()
 
 
-def ingest_collection(collection_filename,
+def ingest_collection(collection_dir_path: Path,
                       project: Project,
-                      project_dir_path: Path,
-                      project_context: dict,
-                      project_db_session, univers_db_session) -> None:
-    collection_id = collection_filename.stem
-    try:
-        data_descriptor_id = get_data_descriptor_id_from_context(
-            collection_id, project_context
-        )
-    except Exception as e:
-        _LOGGER.error(f'Unable to parse the data descriptor id for the collection {collection_id}. Skip.\n{str(e)}')
-        return
-    collection = Collection(
-        id=collection_id,
-        project=project,
-        data_descriptor_id=data_descriptor_id,
-    )
+                      project_db_session,
+                      univers_db_session) -> None:
     
+    collection_id = collection_dir_path.name
+    collection_context_file_path = collection_dir_path.joinpath(settings.CONTEXT_FILENAME)
     try:
-        collection_json_file_path = project_dir_path.joinpath(collection_filename)
-        collection_json_specs = read_json_file(collection_json_file_path)
+        
+        collection_context = read_json_file(collection_context_file_path)
+        data_descriptor_id = get_data_descriptor_id_from_context(collection_context)
     except Exception as e:
-        _LOGGER.error(f'Unable to read the collection json file {collection_json_file_path}. Skip.\n{str(e)}')
-        return
-    
-    project_db_session.add(collection)
+        msg = f'Unable to read project context file {collection_context_file_path}. Abort.'
+        _LOGGER.fatal(msg)
+        raise RuntimeError(msg) from e
 
     try:
         pydantic_class = get_pydantic_class(data_descriptor_id)
     except Exception as e:
-        _LOGGER.error(str(e))
-        return
+        msg = f'Unable to find the pydantic class for data descriptor {data_descriptor_id}. Abort.'
+        _LOGGER.fatal(msg)
+        raise RuntimeError(msg) from e
 
-    for term_node in collection_json_specs[collection_id]:
+    collection = Collection(
+        id=collection_id,
+        context=collection_context,
+        project=project,
+        data_descriptor_id=data_descriptor_id,
+    )
+    project_db_session.add(collection)
+    
+    for term_file_path in items_of_interest(dir_path=collection_dir_path,
+                                            glob_inclusion_pattern='*.json',
+                                            exclude_prefixes=settings.SKIPED_FILE_DIR_NAME_PREFIXES,
+                                            kind='file'):
         try:
-            # DEBUG
-            term_id = term_node
-
+            term_json_specs = read_json_file(term_file_path)
+        except Exception as e:
+            _LOGGER.error(f'Unable to read the term json file {term_file_path}. Skip.\n{str(e)}')
+            return
+        try:
+            term_id = term_json_specs[settings.TERM_ID_JSON_KEY]
+        except Exception as e:
+            _LOGGER.error(f'Term id not found in the term json file {term_file_path}. Skip.\n{str(e)}')
+            return
+        try:
             kind, univers_term_json_specs = get_univers_term(
-                data_descriptor_id, term_id, univers_db_session
-            )
+                    data_descriptor_id, term_id, univers_db_session
+                )
             # project_term_json_specs = instantiate_project_term(univers_term_json_specs,
             #                                                   project_term_json_specs_update,
             #                                                   pydantic_class)
@@ -115,10 +109,11 @@ def ingest_collection(collection_filename,
                 kind=kind,
             )
             project_db_session.add(term)
-        except NoResultFound:  # TODO: support other cases.
+        
+        except Exception as e:
             _LOGGER.error(
                 f"fail to find term {term_id} in data descriptor {data_descriptor_id} "
-                + f"for the collection {collection_id} of the project {project.id}"
+                + f"for the collection {collection_id} of the project {project.id}. Skip {term_id}.\n{str(e)}"
             )
             continue
 
@@ -152,28 +147,19 @@ def ingest_project(project_dir_path: Path,
             _LOGGER.fatal(msg)
             raise RuntimeError(msg) from e
         
-        try:
-            project_context_file_path = project_dir_path.joinpath(settings.CONTEXT_FILENAME)
-            project_context = read_json_file(project_context_file_path)
-            project_context = project_context[settings.CONTEXT_JSON_KEY]
-        except Exception as e:
-            msg = f'Unable to read project context file {project_context_file_path}. Abort.'
-            _LOGGER.fatal(msg)
-            raise RuntimeError(msg) from e
-
         project = Project(id=project_id, specs=project_json_specs)
         project_db_session.add(project)
         
-        for collection_filename in get_collection_filenames(project_dir_path):
+        for collection_dir_path in items_of_interest(dir_path=project_dir_path,
+                                                     exclude_prefixes=settings.SKIPED_FILE_DIR_NAME_PREFIXES,
+                                                     kind='dir'):
             try:
-                ingest_collection(collection_filename,
+                ingest_collection(collection_dir_path,
                                   project,
-                                  project_dir_path,
-                                  project_context,
                                   project_db_session,
-                                univers_db_session)
+                                  univers_db_session)
             except Exception as e:
-                msg = f'Unexpected error while ingesting collection {collection_filename}. Abort.'
+                msg = f'Unexpected error while ingesting collection {collection_dir_path}. Abort.'
                 _LOGGER.fatal(msg)
                 raise RuntimeError(msg) from e
         project_db_session.commit()
