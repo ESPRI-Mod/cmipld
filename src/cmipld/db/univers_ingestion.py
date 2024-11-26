@@ -31,8 +31,10 @@ def ingest_data_descriptor(data_descriptor_path: Path, connection: db.DBConnecti
     with connection.create_session() as session:
         data_descriptor = DataDescriptor(id=data_descriptor_path.name, context=context)
         session.add(data_descriptor)
-        for json_file_name in data_descriptor_path.glob("*.json"):
-            term_file_path = data_descriptor_path.joinpath(json_file_name)
+        for term_file_path in db.items_of_interest(dir_path=data_descriptor_path,
+                                                   glob_inclusion_pattern='*.json',
+                                                   exclude_prefixes=settings.SKIPED_FILE_DIR_NAME_PREFIXES,
+                                                   kind='file'):
             try:
                 json_specs = read_json_file(term_file_path)
                 term_id = json_specs[settings.TERM_ID_JSON_KEY]
