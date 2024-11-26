@@ -12,7 +12,7 @@ DIRNAME_AND_FILENAME_SEPARATOR = "_"
 
 ROOT_DIR_PATH = Path(os.path.abspath(__file__)).parents[2]
  # TODO: should be directories should be reworked.
-SKIPED_DIR_ITEMS = ['_', '.', 'src']
+SKIPED_FILE_DIR_NAME_PREFIXES = ['_', '.', 'src']
 
 PROJECT_SPECS_FILENAME = "project_specs.json"
 PROJECT_ID_JSON_KEY = "project_id"

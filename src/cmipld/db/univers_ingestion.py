@@ -58,7 +58,9 @@ def ingest_univers(univer_dir_path: Path, univers_db_file_path: Path) -> None:
         _LOGGER.fatal(msg)
         raise IOError(msg) from e
     try:
-        data_descriptor_ids = db.items_of_interest(univer_dir_path, 'dir')
+        data_descriptor_ids = db.items_of_interest(dir_path=univer_dir_path,
+                                                   exclude_prefixes=settings.SKIPED_FILE_DIR_NAME_PREFIXES,
+                                                   kind='dir')
     except Exception as e:
         msg = f'Unable to list data descriptor in {univer_dir_path}. Abort.'
         _LOGGER.fatal(msg)
