@@ -34,11 +34,9 @@ def get_univers_term(data_descriptor_id: str,
     return term.kind, term.specs
 
 
-def instantiate_project_term(
-    univers_term_json_specs: dict,
-    project_term_json_specs_update: dict,
-    pydantic_class: type[BaseModel],
-) -> dict:
+def instantiate_project_term(univers_term_json_specs: dict,
+                             project_term_json_specs_update: dict,
+                             pydantic_class: type[BaseModel]) -> dict:
     term_from_universe = pydantic_class(**univers_term_json_specs)
     updated_term = term_from_universe.model_copy(
         update=project_term_json_specs_update, deep=True
@@ -54,14 +52,12 @@ def ingest_collection(collection_dir_path: Path,
     collection_id = collection_dir_path.name
     collection_context_file_path = collection_dir_path.joinpath(settings.CONTEXT_FILENAME)
     try:
-        
         collection_context = read_json_file(collection_context_file_path)
         data_descriptor_id = get_data_descriptor_id_from_context(collection_context)
     except Exception as e:
         msg = f'Unable to read project context file {collection_context_file_path}. Abort.'
         _LOGGER.fatal(msg)
         raise RuntimeError(msg) from e
-
     try:
         pydantic_class = get_pydantic_class(data_descriptor_id)
     except Exception as e:
@@ -73,8 +69,7 @@ def ingest_collection(collection_dir_path: Path,
         id=collection_id,
         context=collection_context,
         project=project,
-        data_descriptor_id=data_descriptor_id,
-    )
+        data_descriptor_id=data_descriptor_id)
     project_db_session.add(collection)
     
     for term_file_path in items_of_interest(dir_path=collection_dir_path,
@@ -105,7 +100,6 @@ def ingest_collection(collection_dir_path: Path,
                 kind=kind,
             )
             project_db_session.add(term)
-        
         except Exception as e:
             _LOGGER.error(
                 f"fail to find term {term_id} in data descriptor {data_descriptor_id} "
@@ -117,7 +111,6 @@ def ingest_collection(collection_dir_path: Path,
 def ingest_project(project_dir_path: Path,
                    project_db_file_path: Path,
                    univers_db_file_path: Path):
-    
     try:
         project_connection = db.DBConnection(project_db_file_path)
     except Exception as e:
