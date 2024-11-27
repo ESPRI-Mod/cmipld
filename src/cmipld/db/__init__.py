@@ -5,6 +5,7 @@ from typing import Generator
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
 
+
 def read_json_file(json_file_path: Path) -> dict:
     return json.loads(json_file_path.read_text())
 
@@ -75,7 +76,7 @@ class DBConnection:
 # TODO: to be deleted.
 # The following instructions are only temporary as long as a complet data managment will be implmented.
 
-from cmipld.settings import ROOT_DIR_PATH # noqa
+from cmipld.settings import ROOT_DIR_PATH  # noqa
 
 UNIVERS_DIR_NAME = 'mip-cmor-tables'
 CMIP6PLUS_DIR_NAME = 'CMIP6Plus_CVs'

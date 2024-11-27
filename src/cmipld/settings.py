@@ -1,8 +1,7 @@
-import sys
-import os
 import logging
+import os
+import sys
 from pathlib import Path
-
 
 LOG_HANDLERS = [logging.StreamHandler(sys.stdout)]
 LOG_FORMAT = "[%(name)s][%(levelname)s] %(message)s"

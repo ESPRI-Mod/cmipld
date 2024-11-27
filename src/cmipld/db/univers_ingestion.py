@@ -1,12 +1,12 @@
-import sys
 import logging
+import sys
 from pathlib import Path
 
 import cmipld.db as db
+import cmipld.settings as settings
+from cmipld.db import read_json_file
 from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.univers import DataDescriptor, UTerm
-from cmipld.db import read_json_file
-import cmipld.settings as settings
 
 _LOGGER = logging.getLogger("univers_ingestion")
 

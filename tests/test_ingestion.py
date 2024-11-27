@@ -2,11 +2,12 @@ from pathlib import Path
 
 import pytest
 
-import cmipld.db.models.univers as univers
-import cmipld.db.univers_ingestion as univers_ingestion
-import cmipld.db.models.project as project
-import cmipld.db.project_ingestion as project_ingestion
 import cmipld.db as db
+import cmipld.db.models.project as project
+import cmipld.db.models.univers as univers
+import cmipld.db.project_ingestion as project_ingestion
+import cmipld.db.univers_ingestion as univers_ingestion
+
 
 # TODO: automize each tests!
 @pytest.fixture(scope="module", autouse=True)

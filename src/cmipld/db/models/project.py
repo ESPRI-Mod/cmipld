@@ -1,6 +1,7 @@
+import logging
 import sys
 from pathlib import Path
-import logging
+
 import sqlalchemy as sa
 from sqlalchemy.dialects.sqlite import JSON
 from sqlmodel import Column, Field, Relationship, SQLModel

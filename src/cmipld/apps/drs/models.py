@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
-from typing import Literal, Annotated
+from typing import Annotated, Literal
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DrsType(str, Enum):

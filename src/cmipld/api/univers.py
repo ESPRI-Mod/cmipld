@@ -1,11 +1,10 @@
 from pydantic import BaseModel
-
-from sqlmodel import select, Session
+from sqlmodel import Session, select
 
 import cmipld.db as db
 from cmipld import get_pydantic_class
-from cmipld.db.models.univers import UTerm, DataDescriptor
 from cmipld.api import SearchSettings, create_str_comparison_expression
+from cmipld.db.models.univers import DataDescriptor, UTerm
 
 ############## DEBUG ##############
 # TODO: to be deleted.

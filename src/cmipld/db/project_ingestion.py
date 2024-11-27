@@ -7,10 +7,10 @@ from sqlmodel import Session, select
 import cmipld.db as db
 import cmipld.settings as settings
 from cmipld import get_pydantic_class
+from cmipld.db import items_of_interest, read_json_file
 from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.project import Collection, Project, PTerm
 from cmipld.db.models.univers import DataDescriptor, UTerm
-from cmipld.db import read_json_file, items_of_interest
 
 _LOGGER = logging.getLogger("project_ingestion")
 
