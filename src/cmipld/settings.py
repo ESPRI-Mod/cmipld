@@ -26,3 +26,7 @@ SKIPED_FILE_DIR_NAME_PREFIXES = ['_', '.', 'src']
 
 # TODO: should be replaced by the type key in term json files.
 DATA_DESCRIPTOR_JSON_KEY = "@base"
+
+# TODO: this variable lists the data descriptors whose terms are references to terms from other data descriptors.
+# This list will be removed when mechanism that automatically recognizes such data descriptors, will be implemeted.
+DATA_DESCRIPTORS_WHOSE_TERMS_ARE_REFERENCES_TO_OTHER_TERMS = ['organisation']
