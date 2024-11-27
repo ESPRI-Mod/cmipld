@@ -20,12 +20,14 @@ def infer_term_kind(json_specs: dict) -> TermKind:
         return TermKind.PLAIN
 
 
-def ingest_data_descriptor(data_descriptor_path: Path, connection: db.DBConnection) -> None:
+def ingest_data_descriptor(data_descriptor_path: Path,
+                           connection: db.DBConnection) -> None:
     context_file_path = data_descriptor_path.joinpath(settings.CONTEXT_FILENAME)
     try:
         context = read_json_file(context_file_path)
     except Exception as e:
-        msg = f'Unable to read the context file {context_file_path} of data descriptor {data_descriptor_path.name}. Skip.\n{str(e)}'
+        msg = f'Unable to read the context file {context_file_path} of data descriptor \
+               {data_descriptor_path.name}. Skip.\n{str(e)}'
         _LOGGER.error(msg)
         return        
     with connection.create_session() as session:

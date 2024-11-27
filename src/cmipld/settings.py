@@ -11,8 +11,7 @@ LOG_LEVEL = logging.DEBUG
 DIRNAME_AND_FILENAME_SEPARATOR = "_"
 
 ROOT_DIR_PATH = Path(os.path.abspath(__file__)).parents[2]
- # TODO: should be directories should be reworked.
-SKIPED_FILE_DIR_NAME_PREFIXES = ['_', '.', 'src']
+SKIPED_FILE_DIR_NAME_PREFIXES = ['_', '.', 'src']  # TODO: should be directories should be reworked.
 
 PROJECT_SPECS_FILENAME = "project_specs.json"
 PROJECT_ID_JSON_KEY = "project_id"
