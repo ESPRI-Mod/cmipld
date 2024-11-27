@@ -82,12 +82,12 @@ def ingest_collection(collection_dir_path: Path,
                                             exclude_prefixes=settings.SKIPED_FILE_DIR_NAME_PREFIXES,
                                             kind='file'):
         try:
-            term_json_specs = read_json_file(term_file_path)
+            project_term_json_specs = read_json_file(term_file_path)
         except Exception as e:
             _LOGGER.error(f'Unable to read the term json file {term_file_path}. Skip.\n{str(e)}')
             return
         try:
-            term_id = term_json_specs[settings.TERM_ID_JSON_KEY]
+            term_id = project_term_json_specs[settings.TERM_ID_JSON_KEY]
         except Exception as e:
             _LOGGER.error(f'Term id not found in the term json file {term_file_path}. Skip.\n{str(e)}')
             return
@@ -95,13 +95,9 @@ def ingest_collection(collection_dir_path: Path,
             kind, univers_term_json_specs = get_univers_term(
                     data_descriptor_id, term_id, univers_db_session
                 )
-            # project_term_json_specs = instantiate_project_term(univers_term_json_specs,
-            #                                                   project_term_json_specs_update,
-            #                                                   pydantic_class)
-
-            # DEBUG
-            project_term_json_specs = univers_term_json_specs
-
+            project_term_json_specs = instantiate_project_term(univers_term_json_specs,
+                                                               project_term_json_specs,
+                                                               pydantic_class)
             term = PTerm(
                 id=term_id,
                 specs=project_term_json_specs,
@@ -166,4 +162,5 @@ def ingest_project(project_dir_path: Path,
 
 
 if __name__ == "__main__":
-    ingest_project(Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]))
+    #ingest_project(Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]))
+    ingest_project(db.CMIP6PLUS_DIR_PATH, db.CMIP6PLUS_DB_FILE_PATH, db.UNIVERS_DB_FILE_PATH)
