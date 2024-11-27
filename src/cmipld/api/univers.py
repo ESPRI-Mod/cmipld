@@ -12,10 +12,6 @@ from cmipld.db.models.univers import DataDescriptor, UTerm
 UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', False)
 ###################################
 
-# TODO: 
-# - docstring all functions.
-# - missing pydantic class.
-
 
 # Settings only apply on the term_id comparison.
 def _find_term_in_data_descriptor(data_descriptor_id: str,
@@ -30,14 +26,26 @@ def _find_term_in_data_descriptor(data_descriptor_id: str,
     return results
 
 
-# Returns dict[term id: term pydantic instance].
-# Len > 1 depending on settings type of search.
-# Empty dictionary if the id (data_descriptor_id or term_id) is not found.
-# Settings only apply on the term_id comparison.
 def find_term_in_data_descriptor(data_descriptor_id: str,
                                  term_id: str,
                                  settings: SearchSettings = SearchSettings()) \
                                     -> dict[str: type[BaseModel]]:
+    """Finds one or more terms in the given data descriptor.
+    It returns an empty dictionary if one of the given ids is not found.
+    The result length depends of the search settings that only apply on the term_id.
+    This function search exactly for the given data_descriptor_id
+    and won't search for close data_descriptor_ids.
+    If the search type is EXACT or REGEX, length is 0 or 1, otherwise length >= 0.
+
+    :param data_descriptor_id: A data descriptor id
+    :type data_descriptor_id: str
+    :param term_id: A term id to be found
+    :type term_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings
+    :returns: A dict[term id: term pydantic instance]
+    :rtype: dict[str: type[BaseModel]]
+    """
     with UNIVERS_DB_CONNECTION.create_session() as session:
         result = dict()
         terms = _find_term_in_data_descriptor(data_descriptor_id, term_id, settings, session)
@@ -58,12 +66,22 @@ def _find_terms_in_univers(term_id: str,
     return results
 
 
-# Returns dict[data descriptor id, dict[term id, term pydantic instance]].
-# Empty dictionary if the id is not found.
-# Terms are unique within a data descriptor and may have some synonyms within the univers.
 def find_terms_in_univers(term_id: str,
                           settings: SearchSettings = SearchSettings()) \
                             -> dict[str, dict[str, type[BaseModel]]]:
+    """Finds one or more terms of the univers.
+    It returns an empty dictionary if the given id is not found.
+    Terms are unique within a data descriptor but may have some synonyms within the univers.
+    The result length depends of the search settings.
+    If the search type is EXACT or REGEX, length is 0 or 1 per data descriptor, otherwise length >= 0.
+
+    :param term_id: A term id to be found
+    :type term_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings
+    :returns: A dict[data descriptor id, dict[term id, term pydantic instance]]
+    :rtype: dict[str, dict[str, type[BaseModel]]]
+    """
     result = dict()
     with UNIVERS_DB_CONNECTION.create_session() as session:
         terms = _find_terms_in_univers(term_id, settings, session)
@@ -93,15 +111,25 @@ def _find_data_descriptors_in_univers(data_descriptor_id,
     return results
 
 
-# Returns dict[data descriptor id: [term id: term pydantic instance]].
-# Empty dictionary if the id is not found.
-# Len > 1 depending on settings type of search.
 def get_all_terms_in_data_descriptor(data_descriptor_id: str,
                                      settings: SearchSettings = SearchSettings()) \
                                         -> dict[str, dict[str, type[BaseModel]]]:
+    """Gets all the term of the given data descriptor.
+    It returns an empty dictionary if the given id is not found.
+    The result length depends of the search settings.
+    If the search type is EXACT or REGEX, length is 0 or 1, otherwise length >= 0.
+
+    :param data_descriptor_id: The data descriptor id
+    :type data_descriptor_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings
+    :returns: A dict[data descriptor id: [term id: term pydantic instance]]
+    :rtype: dict[str, dict[str, type[BaseModel]]]
+    """
     result = dict()
     with UNIVERS_DB_CONNECTION.create_session() as session:
-        data_descriptors = _find_data_descriptors_in_univers(data_descriptor_id, settings, session)
+        data_descriptors = _find_data_descriptors_in_univers(data_descriptor_id,
+                                                             settings, session)
         for data_descriptor in data_descriptors:
             result[data_descriptor.id] = dict()
             terms = _get_all_terms_in_data_descriptor(data_descriptor)
@@ -110,12 +138,21 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str,
     return result
 
 
-# Returns dict[data descriptor id, data descriptor context].
-# Empty dictionary if the id is not found.
-# Len > 1 depending on settings type of search.
 def find_data_descriptors_in_univers(data_descriptor_id: str,
                                      settings: SearchSettings = SearchSettings()) \
                                         -> dict[str, dict]:
+    """Finds one or more data descriptor of the univers.
+    It returns an empty dictionary if the given id is not found.
+    The result length depends of the search settings.
+    If the search type is EXACT or REGEX, length is 0 or 1, otherwise length >= 0.
+
+    :param data_descriptor_id: A data descriptor id to be found
+    :type data_descriptor_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings
+    :returns: A dict[data descriptor id, data descriptor context]
+    :rtype: dict[str, dict]
+    """
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _find_data_descriptors_in_univers(data_descriptor_id, settings, session)
         result = dict()
@@ -131,8 +168,12 @@ def _get_all_data_descriptors_in_univers(session: Session) -> list[DataDescripto
     return result
 
 
-# Returns dict[data descriptor id, data descriptor context]
 def get_all_data_descriptors_in_univers() -> dict[str, dict]:
+    """Gets all the data descriptors of the univers
+
+    :returns: A dict[data descriptor id, data descriptor context]
+    :rtype: dict[str, dict]
+    """
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors_in_univers(session)
         result = dict()
@@ -141,8 +182,12 @@ def get_all_data_descriptors_in_univers() -> dict[str, dict]:
     return result
 
 
-# Returns dic[data descriptor id, dict[term id, term pydantic instance]]
 def get_all_terms_in_univers() -> dict[str, dict[str, type[BaseModel]]]:
+    """Gets all the terms of the univers
+
+    :returns: A dict[data descriptor id, dict[term id, term pydantic instance]]
+    :rtype: dict[str, dict[str, type[BaseModel]]]
+    """
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors_in_univers(session)
         result = dict()
