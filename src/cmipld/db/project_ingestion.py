@@ -1,4 +1,3 @@
-import sys
 import logging
 from pathlib import Path
 
@@ -126,7 +125,6 @@ def ingest_project(project_dir_path: Path,
     
     with project_connection.create_session() as project_db_session,\
          univers_connection.create_session() as univers_db_session:
-        
         try:
             project_specs_file_path = project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)
             project_json_specs = read_json_file(project_specs_file_path)
