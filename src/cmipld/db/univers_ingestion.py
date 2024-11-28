@@ -62,21 +62,21 @@ def ingest_univers(univer_dir_path: Path, univers_db_file_path: Path) -> None:
         _LOGGER.fatal(msg)
         raise IOError(msg) from e
     try:
-        data_descriptor_ids = db.items_of_interest(dir_path=univer_dir_path,
+        data_descriptor_dir_paths = db.items_of_interest(dir_path=univer_dir_path,
                                                    exclude_prefixes=settings.SKIPED_FILE_DIR_NAME_PREFIXES,
                                                    kind='dir')
     except Exception as e:
         msg = f'Unable to list data descriptor in {univer_dir_path}. Abort.'
         _LOGGER.fatal(msg)
         raise IOError(msg) from e
-    for data_descriptor_id in data_descriptor_ids:
+    for data_descriptor_dir_path in data_descriptor_dir_paths:
         try:
-            ingest_data_descriptor(univer_dir_path.joinpath(data_descriptor_id), connection)
+            ingest_data_descriptor(data_descriptor_dir_path, connection)
         except Exception as e:
-            msg = f'Unexpected error while processing data descriptor {data_descriptor_id}. Abort.'
+            msg = f'Unexpected error while processing data descriptor {data_descriptor_dir_path}. Abort.'
             _LOGGER.fatal(msg)
             raise RuntimeError(msg) from e
 
 
 if __name__ == "__main__":
-    ingest_univers(Path(sys.argv[1]), Path(sys.argv[2]))
+    ingest_univers(db.UNIVERS_DIR_PATH, db.UNIVERS_DB_FILE_PATH)
