@@ -23,7 +23,7 @@ class GitHubBranch(BaseModel):
     protected: bool
 
 
-class DataFetcher:
+class RepoFetcher:
     """
     DataFetcher is responsible for fetching data from external sources such as GitHub.
     """
@@ -142,7 +142,7 @@ class DataFetcher:
         return None
 
 if __name__ == "__main__":
-    fetcher = DataFetcher()
+    fetcher = RepoFetcher()
     
     # Fetch repositories for a user
     #repos = fetcher.fetch_repositories("ESPRI-Mod")

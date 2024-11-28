@@ -1,14 +1,14 @@
 
 import pytest
 from unittest.mock import patch
-from cmipld.core.data_fetcher import DataFetcher 
+from cmipld.core.repo_fetcher import RepoFetcher 
 
 @pytest.fixture
 def fetcher():
-    return DataFetcher()
+    return RepoFetcher()
 
 
-@patch("cmipld.core.data_fetcher.requests.get")
+@patch("cmipld.core.repo_fetcher.requests.get")
 def test_fetch_repositories_success(mock_get, fetcher):
     """
     Test successful fetching of repositories for a user.
@@ -39,7 +39,7 @@ def test_fetch_repositories_success(mock_get, fetcher):
     assert repos[0].language == "Python"
 
 
-@patch("cmipld.core.data_fetcher.requests.get")
+@patch("cmipld.core.repo_fetcher.requests.get")
 def test_fetch_repositories_failure(mock_get, fetcher):
     """
     Test failure when fetching repositories with a non-200 status code.
@@ -51,7 +51,7 @@ def test_fetch_repositories_failure(mock_get, fetcher):
         fetcher.fetch_repositories("invaliduser")
 
 
-@patch("cmipld.core.data_fetcher.requests.get")
+@patch("cmipld.core.repo_fetcher.requests.get")
 def test_fetch_repository_details_success(mock_get, fetcher):
     """
     Test successful fetching of a single repository's details.
@@ -81,7 +81,7 @@ def test_fetch_repository_details_success(mock_get, fetcher):
     assert repo.language == "Python"
 
 
-@patch("cmipld.core.data_fetcher.requests.get")
+@patch("cmipld.core.repo_fetcher.requests.get")
 def test_fetch_repository_details_failure(mock_get, fetcher):
     """
     Test failure when fetching a repository's details with a non-200 status code.
@@ -93,7 +93,7 @@ def test_fetch_repository_details_failure(mock_get, fetcher):
         fetcher.fetch_repository_details("invaliduser", "invalid-repo")
 
 
-@patch("cmipld.core.data_fetcher.requests.get")
+@patch("cmipld.core.repo_fetcher.requests.get")
 def test_fetch_branch_details_success(mock_get, fetcher):
     """
     Test successful fetching of a specific branch's details.
@@ -116,7 +116,7 @@ def test_fetch_branch_details_success(mock_get, fetcher):
     assert branch.protected is False
 
 
-@patch("cmipld.core.data_fetcher.requests.get")
+@patch("cmipld.core.repo_fetcher.requests.get")
 def test_fetch_branch_details_failure(mock_get, fetcher):
     """
     Test failure when fetching a branch's details with a non-200 status code.
@@ -129,8 +129,7 @@ def test_fetch_branch_details_failure(mock_get, fetcher):
 
 
 @patch("subprocess.run")
-def test_clone_repository(mock_run):
-    fetcher = DataFetcher()
+def test_clone_repository(mock_run,fetcher):
 
     # Test cloning the default branch
     fetcher.clone_repository("testuser","test-repo")
