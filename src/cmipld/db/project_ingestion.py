@@ -153,5 +153,4 @@ def ingest_project(project_dir_path: Path,
 
 
 if __name__ == "__main__":
-    #ingest_project(Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3]))
     ingest_project(db.CMIP6PLUS_DIR_PATH, db.CMIP6PLUS_DB_FILE_PATH, db.UNIVERS_DB_FILE_PATH)
