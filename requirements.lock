@@ -12,20 +12,28 @@
 -e file:.
 annotated-types==0.7.0
     # via pydantic
+cachetools==5.5.0
+    # via pyld
 certifi==2024.8.30
     # via requests
 charset-normalizer==3.4.0
     # via requests
+frozendict==2.4.6
+    # via pyld
 greenlet==3.1.1
     # via sqlalchemy
 idna==3.10
     # via cmipld
     # via requests
+lxml==5.3.0
+    # via pyld
 pydantic==2.10.2
     # via cmipld
     # via sqlmodel
 pydantic-core==2.27.1
     # via pydantic
+pyld==2.0.4
+    # via cmipld
 requests==2.32.3
     # via cmipld
 sqlalchemy==2.0.36

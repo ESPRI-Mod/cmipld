@@ -11,6 +11,8 @@ dependencies = [
     "pydantic>=2.9.2",
     "sqlalchemy>=2.0.36",
     "sqlmodel>=0.0.22",
+    "pyld>=2.0.4",
+    "requests>=2.32.3",
 ]
 readme = "README.md"
 requires-python = ">= 3.12"
