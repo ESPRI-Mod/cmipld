@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from cmipld.api.data_descriptors.activity import Activity
-from cmipld.api.data_descriptors.consortia import Consortia
+from cmipld.api.data_descriptors.consortium import Consortium
 from cmipld.api.data_descriptors.date import Date
 from cmipld.api.data_descriptors.experiment import Experiment 
 from cmipld.api.data_descriptors.forcing_index import ForcingIndex
@@ -29,7 +29,7 @@ from cmipld.api.data_descriptors.variant_label import VariantLabel
 
 DATA_DESCRIPTOR_CLASS_MAPPING: dict[str, type[BaseModel]] = {
     "activity": Activity,
-    "consortia": Consortia,
+    "consortium": Consortium,
     "date": Date,
     "experiment": Experiment, 
     "forcing_index": ForcingIndex,

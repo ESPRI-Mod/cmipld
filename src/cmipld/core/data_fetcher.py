@@ -1,0 +1,161 @@
+import os
+from _pytest.pytester import subprocess
+import requests
+from pydantic import BaseModel, ValidationError
+from typing import List, Dict, Any, Optional
+
+
+class GitHubRepository(BaseModel):
+    id: int
+    name: str
+    full_name: str
+    description: Optional[str]
+    html_url: str
+    stargazers_count: int
+    forks_count: int
+    language: Optional[str]
+    created_at: str
+    updated_at: str
+
+class GitHubBranch(BaseModel):
+    name: str
+    commit: dict
+    protected: bool
+
+
+class DataFetcher:
+    """
+    DataFetcher is responsible for fetching data from external sources such as GitHub.
+    """
+
+    def __init__(self, base_url: str = "https://api.github.com",local_path: str = ".cache/repos"):
+        self.base_url = base_url
+        self.repo_dir = local_path
+
+    def fetch_repositories(self, user: str) -> List[GitHubRepository]:
+        """
+        Fetch repositories of a given GitHub user.
+        :param user: GitHub username
+        :return: List of GitHubRepository objects
+        """
+        url = f"{self.base_url}/users/{user}/repos"
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            raise Exception(f"Failed to fetch data: {response.status_code} - {response.text}")
+
+        try:
+            data = response.json()
+            return [GitHubRepository(**repo) for repo in data]
+        except ValidationError as e:
+            raise Exception(f"Data validation error: {e}")
+
+    def fetch_repository_details(self, owner: str, repo: str) -> GitHubRepository:
+        """
+        Fetch details of a specific repository.
+        :param owner: Repository owner
+        :param repo: Repository name
+        :return: GitHubRepository object
+        """
+        url = f"{self.base_url}/repos/{owner}/{repo}"
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            raise Exception(f"Failed to fetch data: {response.status_code} - {response.text}")
+
+        try:
+            data = response.json()
+            return GitHubRepository(**data)
+        except ValidationError as e:
+            raise Exception(f"Data validation error: {e}")
+
+
+    def fetch_branch_details(self, owner: str, repo: str, branch: str) -> GitHubBranch:
+        """
+        Fetch details of a specific branch in a repository.
+        :param owner: Repository owner
+        :param repo: Repository name
+        :param branch: Branch name
+        :return: GitHubBranch object
+        """
+        url = f"{self.base_url}/repos/{owner}/{repo}/branches/{branch}"
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            raise Exception(f"Failed to fetch branch data: {response.status_code} - {response.text}")
+
+        try:
+            return GitHubBranch(**response.json())
+        except ValidationError as e:
+            raise Exception(f"Data validation error: {e}")
+
+    def clone_repository(self, owner: str, repo: str, branch: Optional[str] = None):
+        """
+        Clone a GitHub repository to a target directory.
+        :param owner: Repository owner
+        :param repo: Repository name
+        :param target_dir: The directory where the repository should be cloned.
+        :param branch: (Optional) The branch to clone. Clones the default branch if None.
+        """
+        repo_url = f"https://github.com/{owner}/{repo}.git"
+
+        command = ["git", "clone", repo_url, f"{self.repo_dir}/{repo}"]
+        if branch:
+            command.extend(["--branch", branch])
+        
+        try:
+            subprocess.run(command, check=True)
+            print(f"Repository cloned successfully into {self.repo_dir}/{repo}")
+        except subprocess.CalledProcessError as e:
+            try:
+                current_work_dir = os.getcwd()
+                os.chdir(f"{self.repo_dir}/{repo}")
+                command = ["git", "pull"]
+                subprocess.run(command, check=True)
+                os.chdir(current_work_dir)
+
+
+            except Exception as e:
+                raise Exception(f"Failed to clone repository: {e}")
+
+    def get_github_version(self, owner: str, repo: str, branch: str ="main"):
+        """ Fetch the latest commit version (or any other versioning scheme) from GitHub. """
+        details = self.fetch_branch_details( owner, repo, branch)
+        return details.commit.get('sha')
+
+    def get_local_repo_version(self, repo: str, branch: Optional[str] = "main"):
+        """ Check the version of the local repository by fetching the latest commit hash. """
+        repo_path = os.path.join(self.repo_dir, repo)
+
+        if os.path.exists(repo_path):
+            command = ["git", "-C", repo_path]
+            if branch:
+                command.extend(["switch", branch])
+        
+            # Ensure we are on the correct branch
+
+            subprocess.run(command)
+            
+            # Get the latest commit hash (SHA) from the local repository
+            commit_hash = subprocess.check_output(["git", "-C", repo_path, "rev-parse", "HEAD"]).strip().decode()
+            return commit_hash
+        return None
+
+if __name__ == "__main__":
+    fetcher = DataFetcher()
+    
+    # Fetch repositories for a user
+    #repos = fetcher.fetch_repositories("ESPRI-Mod")
+    #for repo in repos:
+    #    print(repo)
+
+    # Fetch a specific repository's details
+    #repo_details = fetcher.fetch_repository_details("ESPRI-Mod", "mip-cmor-tables")
+    #"print(repo_details)
+    #branch_details = fetcher.fetch_branch_details("ESPRI-Mod", "mip-cmor-tables", "uni_proj_ld")
+    #print(branch_details)
+    fetcher.clone_repository("ESPRI-Mod","mip-cmor-tables", branch="uni_proj_ld")
+    #a =fetcher.get_github_version("ESPRI-Mod", "mip-cmor-tables", "uni_proj_ld")
+    #print(a)
+    a = fetcher.get_local_repo_version("mip-cmor-tables","uni_proj_ld")
+    print(a)

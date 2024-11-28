@@ -63,7 +63,7 @@ class Member(ConfiguredBaseModel):
     dates : List[Dates] = Field(default_factory=list)
     membership_type : str # prior, current
 
-class Consortia(ConfiguredBaseModel):
+class Consortium(ConfiguredBaseModel):
 
     id: str 
     validation_method: str = Field(default = "list")
@@ -78,4 +78,4 @@ class Consortia(ConfiguredBaseModel):
 
 # Model rebuild
 # see https://pydantic-docs.helpmanual.io/usage/models/#rebuilding-a-model
-Consortia.model_rebuild()
+Consortium.model_rebuild()
