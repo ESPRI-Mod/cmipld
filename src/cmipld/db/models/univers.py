@@ -1,5 +1,4 @@
 import logging
-import sys
 from pathlib import Path
 
 import sqlalchemy as sa
@@ -47,4 +46,4 @@ def univers_create_db(db_file_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    univers_create_db(Path(sys.argv[1]))
+    univers_create_db(db.UNIVERS_DB_FILE_PATH)
