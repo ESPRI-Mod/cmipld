@@ -18,6 +18,7 @@ CONTEXT_JSON_KEY = "@context"
 TERM_ID_JSON_KEY = 'id'
 PATTERN_JSON_KEY = 'pattern'
 COMPOSITE_JSON_KEY = 'parts'
+TERM_TYPE_JSON_KEY = 'type'
 
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, handlers=LOG_HANDLERS)
 
