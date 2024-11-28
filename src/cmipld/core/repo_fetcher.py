@@ -154,8 +154,12 @@ if __name__ == "__main__":
     #"print(repo_details)
     #branch_details = fetcher.fetch_branch_details("ESPRI-Mod", "mip-cmor-tables", "uni_proj_ld")
     #print(branch_details)
+    
     fetcher.clone_repository("ESPRI-Mod","mip-cmor-tables", branch="uni_proj_ld")
+    
     #a =fetcher.get_github_version("ESPRI-Mod", "mip-cmor-tables", "uni_proj_ld")
     #print(a)
-    a = fetcher.get_local_repo_version("mip-cmor-tables","uni_proj_ld")
-    print(a)
+    #a = fetcher.get_local_repo_version("mip-cmor-tables","uni_proj_ld")
+    #print(a)
+
+    fetcher.clone_repository("ESPRI-Mod","CMIP6Plus_CVs", branch="uni_proj_ld")

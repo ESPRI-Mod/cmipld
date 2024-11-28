@@ -102,9 +102,16 @@ class Data(BaseModel):
 
 
 if __name__ == "__main__":
+    ## For Universe 
     #online
     # d = Data(uri = "https://espri-mod.github.io/mip-cmor-tables/activity/cmip.json")
     # print(d.info)
     #offline
-    print(Data(uri = ".cache/repos/mip-cmor-tables/activity/cmip.json").info)
+    #print(Data(uri = ".cache/repos/mip-cmor-tables/activity/cmip.json").info)
 
+    ## for Project 
+
+    #d = Data(uri = "https://espri-mod.github.io/CMIP6Plus_CVs/activity_id/cmip.json")
+    #print(d.info)
+    #offline
+    print(Data(uri = ".cache/repos/CMIP6Plus_CVs/activity_id/cmip.json").info)
