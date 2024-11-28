@@ -14,7 +14,7 @@ def read_json_file(json_file_path: Path) -> dict:
 def items_of_interest(dir_path: Path,
                       glob_inclusion_pattern: str = '*',
                       exclude_prefixes: list[str] = [],
-                      kind: str = 'all') -> Generator[Path]:
+                      kind: str = 'all') :
     for item in dir_path.glob(glob_inclusion_pattern):
         skip_item = False
         for exclude_prefix in exclude_prefixes:
