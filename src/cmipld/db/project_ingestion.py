@@ -2,15 +2,14 @@ import logging
 from pathlib import Path
 
 from pydantic import BaseModel
-from sqlmodel import Session, select
 
 import cmipld.db as db
 import cmipld.settings as settings
 from cmipld import get_pydantic_class
 from cmipld.db import items_of_interest, read_json_file
-from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.project import Collection, Project, PTerm
-from cmipld.db.models.univers import DataDescriptor, UTerm
+import cmipld.db.univers_ingestion as univers_ingestion
+
 
 _LOGGER = logging.getLogger("project_ingestion")
 
@@ -18,19 +17,6 @@ _LOGGER = logging.getLogger("project_ingestion")
 def get_data_descriptor_id_from_context(collection_context: dict) -> str:
     data_descriptor_url = collection_context[settings.CONTEXT_JSON_KEY][settings.DATA_DESCRIPTOR_JSON_KEY]
     return Path(data_descriptor_url).name
-
-
-def get_univers_term(data_descriptor_id: str,
-                     term_id: str,
-                     univers_db_session: Session) -> tuple[TermKind, dict]:
-    statement = (
-        select(UTerm)
-        .join(DataDescriptor)
-        .where(DataDescriptor.id == data_descriptor_id, UTerm.id == term_id)
-    )
-    results = univers_db_session.exec(statement)
-    term = results.one()
-    return term.kind, term.specs
 
 
 def instantiate_project_term(univers_term_json_specs: dict,
@@ -57,13 +43,6 @@ def ingest_collection(collection_dir_path: Path,
         msg = f'Unable to read project context file {collection_context_file_path}. Abort.'
         _LOGGER.fatal(msg)
         raise RuntimeError(msg) from e
-    try:
-        pydantic_class = get_pydantic_class(data_descriptor_id)
-    except Exception as e:
-        msg = f'Unable to find the pydantic class for data descriptor {data_descriptor_id}. Abort.'
-        _LOGGER.fatal(msg)
-        raise RuntimeError(msg) from e
-
     collection = Collection(
         id=collection_id,
         context=collection_context,
@@ -86,9 +65,16 @@ def ingest_collection(collection_dir_path: Path,
             _LOGGER.error(f'Term id not found in the term json file {term_file_path}. Skip.\n{str(e)}')
             return
         try:
-            kind, univers_term_json_specs = get_univers_term(
-                    data_descriptor_id, term_id, univers_db_session
-                )
+            kind, univers_term_json_specs = univers_ingestion.get_univers_term(
+                    data_descriptor_id, term_id, univers_db_session)
+            try:
+                term_type = univers_term_json_specs[settings.TERM_TYPE_JSON_KEY]
+                pydantic_class = get_pydantic_class(term_type)
+            except Exception as e:
+                msg = f'Unable to find the pydantic class for term {term_file_path}. Skip.\n{str(e)}'
+                _LOGGER.error(msg)
+                continue
+            
             project_term_json_specs = instantiate_project_term(univers_term_json_specs,
                                                                project_term_json_specs,
                                                                pydantic_class)
