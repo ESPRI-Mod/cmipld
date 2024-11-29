@@ -21,7 +21,7 @@ class DrsConstantPart(BaseModel):
 
 
 class DrsCollectionPart(BaseModel):
-    collection_name: str
+    collection_id: str
     is_required: bool
     kind: Literal[DrsPartType.collection] = DrsPartType.collection
 
@@ -32,6 +32,7 @@ DrsPart = Annotated[DrsConstantPart | DrsCollectionPart, Field(discriminator="ki
 class DrsSpecification(BaseModel):
     type: DrsType
     separator: str
+    properties: dict = None
     parts: list[DrsPart]
 
 
