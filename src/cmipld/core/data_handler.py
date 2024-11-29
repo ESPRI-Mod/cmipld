@@ -29,7 +29,7 @@ def unified_document_loader(uri: str) -> Dict:
         with open(uri, "r") as f:
             return json.load(f)
 
-class Data(BaseModel):
+class JsonLdResource(BaseModel):
     uri: str
     local_path: Optional[str] = None
 
@@ -48,7 +48,7 @@ class Data(BaseModel):
             "document": unified_document_loader(uri),  # The parsed JSON-LD document
         }) 
         return values
-
+    
     @cached_property
     def json(self) -> Dict:
         """Fetch the original JSON data."""
@@ -60,6 +60,24 @@ class Data(BaseModel):
         """Expand the JSON-LD data."""
         logger.info(f"Expanding JSON-LD data for {self.uri}")
         return jsonld.expand(self.uri, options={"base": self.uri})
+    
+    @cached_property
+    def context(self) -> Dict:
+        """Fetch and return the JSON content of the '@context'."""
+        context_data =JsonLdResource(uri="/".join(self.uri.split("/")[:-1])+"/"+self.json["@context"]) 
+
+        context_value = context_data.json
+        if isinstance(context_value, str):
+            # It's a URI, fetch it
+            logger.info(f"Fetching context from URI: {context_value}")
+            return unified_document_loader(context_value)
+        elif isinstance(context_value, dict):
+            # Embedded context
+            logger.info("Using embedded context.")
+            return context_value
+        else:
+            logger.warning("No valid '@context' found.")
+            return {}
 
     @cached_property
     def normalized(self) -> str:
@@ -108,10 +126,8 @@ if __name__ == "__main__":
     # print(d.info)
     #offline
     #print(Data(uri = ".cache/repos/mip-cmor-tables/activity/cmip.json").info)
-
     ## for Project 
-
     #d = Data(uri = "https://espri-mod.github.io/CMIP6Plus_CVs/activity_id/cmip.json")
     #print(d.info)
     #offline
-    print(Data(uri = ".cache/repos/CMIP6Plus_CVs/activity_id/cmip.json").info)
+    print(JsonLdResource(uri = ".cache/repos/CMIP6Plus_CVs/activity_id/cmip.json").info)
