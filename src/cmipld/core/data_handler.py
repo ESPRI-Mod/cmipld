@@ -64,7 +64,9 @@ class JsonLdResource(BaseModel):
     @cached_property
     def context(self) -> Dict:
         """Fetch and return the JSON content of the '@context'."""
+        
         context_data =JsonLdResource(uri="/".join(self.uri.split("/")[:-1])+"/"+self.json["@context"]) 
+        # Works only in relative path declaration
 
         context_value = context_data.json
         if isinstance(context_value, str):
