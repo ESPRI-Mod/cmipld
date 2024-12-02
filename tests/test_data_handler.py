@@ -1,4 +1,5 @@
 
+from pathlib import Path
 import pytest
 from unittest.mock import patch
 from pydantic import ValidationError
@@ -22,3 +23,33 @@ def test_invalid_uri():
 def test_local_path():
     data = JsonLdResource(uri="http://example.com/resource", local_path="./data")
     assert data.local_path.endswith("/data/")
+
+
+# Integration test 
+
+def test_local_project_all_term():
+    repos_dir = Path(".cache/repos/CMIP6Plus_CVs") 
+    for dir in repos_dir.iterdir():
+        
+        if dir.is_dir() and dir /"000_context.jsonld" in list(dir.iterdir()):
+             for term_uri in dir.iterdir():
+                if "000_context" not in term_uri.stem:
+                    term = JsonLdResource(uri=str(term_uri))
+                    
+
+ 
+def test_local_universe_all_term():
+    repos_dir = Path(".cache/repos/mip-cmor-tables") 
+    for dir in repos_dir.iterdir():
+        
+        if dir.is_dir() and dir /"000_context.jsonld" in list(dir.iterdir()):
+             for term_uri in dir.iterdir():
+                if "000_context" not in term_uri.stem:
+                    term = JsonLdResource(uri=str(term_uri))
+                    print(term.info)
+                    
+           
+    
+
+
+   

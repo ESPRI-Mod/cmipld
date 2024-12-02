@@ -2,6 +2,10 @@
 from typing import Dict, List, Set
 from cmipld.core.data_handler import JsonLdResource
 import pyld
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def merge_dicts(original: list, custom: list) -> dict:
     """Shallow merge: Overwrites original data with custom data."""
@@ -33,9 +37,9 @@ class DataMerger:
         visited = set(self.data.uri)  # Track visited URIs to prevent cycles
 
         current_data = self.data
+        print(current_data.expanded)
 
         while True:
-
             next_id = self._get_next_id(current_data.expanded[0])
             if not next_id or next_id in visited or not self._should_resolve(next_id):
                 break
