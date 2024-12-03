@@ -1,0 +1,20 @@
+
+[universe]
+github_repo = "https://github.com/ESPRI-Mod/mip-cmor-tables"
+branch = "uni_proj_ld"
+local_path = ".cache/repos/mip-cmor-tables"
+db_name = "universe.db"
+
+[[projects]]
+project_name = "CMIP6Plus_CVs"
+github_repo = "https://github.com/ESPRI-Mod/CMIP6Plus_CVs"
+branch = "uni_proj_ld"
+local_path = ".cache/repos/CMIP6Plus_CVs"
+db_name = "cmip6plus.duckdb"
+
+[[projects]]
+project_name = "TestProject" # for testing purpose when path and link doesn't exist
+github_repo = "XXX"
+branch = "XXX"
+local_path = "XXX"
+db_name = "XXXX.duckdb"

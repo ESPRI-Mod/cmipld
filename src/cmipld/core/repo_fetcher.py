@@ -156,17 +156,17 @@ class RepoFetcher:
         details = self.fetch_branch_details( owner, repo, branch)
         return details.commit.get('sha')
 
-    def get_local_repo_version(self, repo: str, branch: Optional[str] = "main"):
+    def get_local_repo_version(self, repo_path: str, branch: Optional[str] = "main"):
         """ Check the version of the local repository by fetching the latest commit hash. """
-        repo_path = os.path.join(self.repo_dir, repo)
-
+        # repo_path = os.path.join(self.repo_dir, repo)
+        # print(repo_path)
+        
         if os.path.exists(repo_path):
             command = ["git", "-C", repo_path]
             if branch:
                 command.extend(["switch", branch])
         
             # Ensure we are on the correct branch
-
             subprocess.run(command)
             
             # Get the latest commit hash (SHA) from the local repository
