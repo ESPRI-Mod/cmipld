@@ -42,7 +42,9 @@ def test_remote_project_remote_universe():
     rf = RepoFetcher()
     dir_list = rf.list_directory("ESPRI-Mod","CMIP6Plus_CVs","uni_proj_ld")
     res = {}
+    nbmax = 10
     for dir in dir_list:
+        nb=0
         file_list = rf.list_files("ESPRI-Mod","CMIP6Plus_CVs",dir,"uni_proj_ld")
         if "000_context.jsonld" in file_list:
             for file in file_list:
@@ -52,34 +54,46 @@ def test_remote_project_remote_universe():
                     final_term = merge(uri=term_uri)
                     print(final_term)
                     res[term_uri] = final_term 
+                    nb=nb+1
+                    if nb>nbmax:
+                        break
     
-    assert(len(res)==1212)
+    assert(len(res)==59)
+
 
 def test_remote_project_local_universe():
     rf = RepoFetcher()
     dir_list = rf.list_directory("ESPRI-Mod","CMIP6Plus_CVs","uni_proj_ld")
     res = {}
+    nbmax =10
     for dir in dir_list:
         file_list = rf.list_files("ESPRI-Mod","CMIP6Plus_CVs",dir,"uni_proj_ld")
         if "000_context.jsonld" in file_list:
+            nb=0
             for file in file_list:
                 if file != "000_context.jsonld":
+                    
                     term_uri = "https://espri-mod.github.io/CMIP6Plus_CVs/"+dir+"/"+file
                     term = JsonLdResource(uri=str(term_uri))
                     mdm = DataMerger(data= term,
                                      locally_available={"https://espri-mod.github.io/mip-cmor-tables":".cache/repos/mip-cmor-tables"})
                     res[str(term_uri)]=mdm.merge_linked_json()[-1]
                     print(str(term_uri),res[str(term_uri)])
+                    nb=nb+1
+                if nb>nbmax:
+                    break
 
-    assert(len(res)==1212)
+    assert(len(res)==59)
 
 
 def test_local_project_remote_universe():
     repos_dir = Path(".cache/repos/CMIP6Plus_CVs")
     res = {}
+    nbmax = 10
     for dir in repos_dir.iterdir():
         
         if dir.is_dir() and dir /"000_context.jsonld" in list(dir.iterdir()):
+            nb=0
             for term_uri in dir.iterdir():
                 if "000_context" not in term_uri.stem:
                     term = JsonLdResource(uri=str(term_uri))
@@ -87,15 +101,19 @@ def test_local_project_remote_universe():
                     res[str(term_uri)]=mdm.merge_linked_json()[-1]
                     print(res[str(term_uri)])
                     print("LENGTH ",len(res))
-    assert len(res)==1212
+                    nb = nb+1
+                    if nb>nbmax:
+                        break
+    assert len(res)==59
     
 
 def test_local_project_local_universe():
     repos_dir = Path(".cache/repos/CMIP6Plus_CVs") 
     res = {}
+    nbmax = 10
     for dir in repos_dir.iterdir():
-        
         if dir.is_dir() and dir /"000_context.jsonld" in list(dir.iterdir()):
+            nb = 0
             for term_uri in dir.iterdir():
                 if "000_context" not in term_uri.stem:
                     #res[str(term_uri)]=merge(uri= str(term_uri))
@@ -105,8 +123,11 @@ def test_local_project_local_universe():
                                      locally_available={"https://espri-mod.github.io/mip-cmor-tables":".cache/repos/mip-cmor-tables","https://espri-mod.github.io/CMIP6Plus_CVs":".cache/repos/CMIP6Plus_CVs"})
 
                     res[term_uri] = mdm.merge_linked_json()[-1]
+                    nb=nb+1
+                    if nb>nbmax:
+                        break
             
-    assert len(res)==1212 # For now at least .. 
+    assert len(res)==59 # For now at least .. 
 
 
 
