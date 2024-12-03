@@ -89,6 +89,39 @@ class RepoFetcher:
         except ValidationError as e:
             raise Exception(f"Data validation error: {e}")
 
+    def list_directory(self,owner, repo, branch='main'):
+        """
+        List directories in the root of a GitHub repository.
+
+        :param owner: GitHub username or organization name.
+        :param repo: Repository name.
+        :param branch: Branch name (default: 'main').
+        :return: List of directories in the repository.
+        """
+        url = f"https://api.github.com/repos/{owner}/{repo}/contents/?ref={branch}"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for bad responses
+        contents = response.json()
+        directories = [item['name'] for item in contents if item['type'] == 'dir']
+        return directories
+
+    def list_files(self,owner, repo, directory, branch='main'):
+        """
+        List files in a specific directory of a GitHub repository.
+
+        :param owner: GitHub username or organization name.
+        :param repo: Repository name.
+        :param directory: Target directory path within the repo.
+        :param branch: Branch name (default: 'main').
+        :return: List of files in the specified directory.
+        """
+        url = f"https://api.github.com/repos/{owner}/{repo}/contents/{directory}?ref={branch}"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for bad responses
+        contents = response.json()
+        files = [item['name'] for item in contents if item['type'] == 'file']
+        return files
+    
     def clone_repository(self, owner: str, repo: str, branch: Optional[str] = None):
         """
         Clone a GitHub repository to a target directory.
