@@ -1,12 +1,8 @@
-from _pytest.python import pytest_pycollect_makeitem
-from cmipld.core import service
 from cmipld.core.repo_fetcher import RepoFetcher
 from cmipld.core.service.settings import ServiceSettings, UniverseSettings, ProjectSettings
 import logging
 
 logger = logging.getLogger(__name__)
-
-
 
 from typing import Optional
 
@@ -47,7 +43,6 @@ class BaseState:
 
         ## TODO Add Get Version from DB ##
 
-
         return {
             "github_sync": self.github_version == self.local_version if (self.github_version is not None and self.local_version is not None) else None,
             "local_db_sync": self.local_version == self.db_version if (self.local_version is not None and self.db_version is not None) else None,
@@ -57,9 +52,17 @@ class BaseState:
     def sync(self) -> bool:
         # Placeholder sync logic
         # the truth is always the github repository 
-        # but if local and distant version are not the same => git pull 
-        self.local_version = self.github_version
-        self.db_version = self.github_version
+        # but if local and distant version are not the same => git pull
+        if self.github_version is not None and self.github_version != self.local_version:
+            owner, repo = self.github_repo.lstrip("https://github.com/").split("/")
+            branch = self.branch
+            self.rf.clone_repository(owner,repo, branch)
+            self.check_sync_status()    
+        
+        #TODO add DB sync 
+        #self.local_version = self.github_version
+        #self.db_version = self.github_version
+            
         return True
 
     def __repr__(self) -> str:
@@ -100,26 +103,26 @@ class StateService:
             project.sync()
         return True
 
-    def find_version_differences(self):
-        summary = self.get_state_summary()
-        if not summary["universe"]["github_sync"]:
-            print("OUT OF SYNC")
-            print(f"github universe version: {self.universe.github_version}")
-            print(f"local universe version: {self.universe.local_version}")
-        for project in summary["projects"]:
-            if not project["github_sync"]:
-                print("OUT OF SYNC")
-                print("AHHHHHHHHHHHH", project)
-                # print(f"github {project["project_name"]} version: {project["github_version"]}")
-                # print(f"local {project["project_name"]} version: {project["local_version"]}")
-
-        out_of_sync_projects = [
-            project for project in summary["projects"] if not project["github_db_sync"]
-        ]
-        return {
-            "universe_out_of_sync": not summary["universe"]["github_db_sync"],
-            "out_of_sync_projects": out_of_sync_projects
-        }
+    # def find_version_differences(self):
+    #     summary = self.get_state_summary()
+    #     if not summary["universe"]["github_sync"]:
+    #         print("OUT OF SYNC")
+    #         print(f"github universe version: {self.universe.github_version}")
+    #         print(f"local universe version: {self.universe.local_version}")
+    #     for project in summary["projects"]:
+    #         if not project["github_sync"]:
+    #             print("OUT OF SYNC")
+    #             print("AHHHHHHHHHHHH", project)
+    #             # print(f"github {project["project_name"]} version: {project["github_version"]}")
+    #             # print(f"local {project["project_name"]} version: {project["local_version"]}")
+    #
+    #     out_of_sync_projects = [
+    #         project for project in summary["projects"] if not project["github_db_sync"]
+    #     ]
+    #     return {
+    #         "universe_out_of_sync": not summary["universe"]["github_db_sync"],
+    #         "out_of_sync_projects": out_of_sync_projects
+    #     }
 
 
 if __name__ == "__main__":
@@ -129,12 +132,13 @@ if __name__ == "__main__":
     
     # Initialize StateService
     state_service = StateService(service_settings)
-    # Print state summary
-    pprint(state_service.get_state_summary())
-    pprint(state_service.universe)
-    #pprint(state_service.projects)
-    # Synchronize all
+    state_service.get_state_summary()
+
+        # Synchronize all
     state_service.synchronize_all()
 
+    pprint(state_service.universe)
+
+    
     # Check for differences
-    pprint(state_service.find_version_differences())
+    #pprint(state_service.find_version_differences())

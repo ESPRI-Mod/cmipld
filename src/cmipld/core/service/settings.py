@@ -1,6 +1,6 @@
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Dict, Optional
 import toml
 
 
@@ -20,20 +20,37 @@ class UniverseSettings(BaseModel):
 
 class ServiceSettings(BaseModel):
     universe: UniverseSettings
-    projects: List[ProjectSettings] = Field(default_factory=list)
+    projects: Dict[str,ProjectSettings] = Field(default_factory=dict)
+
+    # Custom validation to convert a list to a dictionary, if needed
+    @classmethod
+    def from_projects_list(cls, universe: UniverseSettings, projects_list: list[ProjectSettings]):
+        return cls(
+            universe=universe,
+            projects={project["project_name"]: project for project in projects_list}
+        )
 
     @classmethod
     def load_from_file(cls, file_path: str) -> "ServiceSettings":
         """
         Load service settings from a TOML file.
         """
-        data = toml.load(file_path)
-        return cls.model_validate(data)
+        data = toml.load(file_path) 
+        return cls.from_projects_list(data["universe"],data["projects"])
 
     def save_to_file(self, file_path: str):
         """
         Save service settings to a TOML file.
         """
-        with open(file_path, "w") as f:
-            toml.dump(self.model_dump_json(), f)
+        project_list = []
+        for project_name in self.projects.keys():
+            project_list.append(self.projects[project_name].model_dump())
 
+        data = {}
+        data["projects"] = project_list
+        data["universe"] = self.universe.model_dump()
+
+        with open(file_path, "w") as f:
+            toml.dump(data, f)
+        
+        
