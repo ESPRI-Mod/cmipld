@@ -60,4 +60,4 @@ def project_create_db(db_file_path: Path):
 
 
 if __name__ == "__main__":
-    project_create_db(Path(sys.argv[1]))
+    project_create_db(Path(db.CMIP6PLUS_DB_FILE_PATH))
