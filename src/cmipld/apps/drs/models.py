@@ -15,18 +15,18 @@ class DrsPartType(str, Enum):
     collection = "collection"
 
 
-class DrsConstantPart(BaseModel):
+class DrsConstant(BaseModel):
     value: str
     kind: Literal[DrsPartType.constant] = DrsPartType.constant
 
 
-class DrsCollectionPart(BaseModel):
+class DrsCollection(BaseModel):
     collection_id: str
     is_required: bool
     kind: Literal[DrsPartType.collection] = DrsPartType.collection
 
 
-DrsPart = Annotated[DrsConstantPart | DrsCollectionPart, Field(discriminator="kind")]
+DrsPart = Annotated[DrsConstant | DrsCollection, Field(discriminator="kind")]
 
 
 class DrsSpecification(BaseModel):
