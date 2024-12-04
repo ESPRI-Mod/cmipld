@@ -60,6 +60,7 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                 _LOGGER.error(f'Unable to read term {term_file_path}. Skip.\n{str(e)}')
                 continue
             if has_term_references:
+                term_id = term_id.split('/')[1] # DEBUG: id should not be part of URL.
                 try:
                     data_descriptor_id_of_the_ref = json_specs[settings.TERM_TYPE_JSON_KEY]
                 except Exception as e:
@@ -67,8 +68,13 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                                   f'Skip the resolution of its reference.\n{str(e)}')
                     continue
                 # Resolve term referenced.
-                term_kind, json_specs = get_univers_term(data_descriptor_id_of_the_ref,
-                                                         term_id, session)
+                try:
+                    term_kind, json_specs = get_univers_term(data_descriptor_id_of_the_ref,
+                                                             term_id, session)
+                except Exception as e:
+                    _LOGGER.error(f'unable to find reference of term {term_id} ' +
+                                  f'in {data_descriptor_id_of_the_ref}. Skip:\n{str(e)}')
+                    continue
             else:
                 term_kind = infer_term_kind(json_specs)
             term = UTerm(
