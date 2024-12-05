@@ -30,6 +30,10 @@ dev-dependencies = [
     "pytest>=8.3.3",
     "jupyter-console>=6.6.3",
 ]
+[tool.rye.scripts]
+ev = { cmd = "python src/cmipld/cli/main.py" }
+evc = { cmd = "python src/cmipld/cli/main.py config" }
+evcp = { cmd = "python src/cmipld/cli/main.py config projects." }
 
 [tool.hatch.metadata]
 allow-direct-references = true
