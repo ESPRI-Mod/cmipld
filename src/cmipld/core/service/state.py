@@ -1,20 +1,26 @@
 import logging
+from pathlib import Path
 from typing import Optional
 from cmipld.core.repo_fetcher import RepoFetcher
-from cmipld.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings 
+from cmipld.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings
+from cmipld.db import DBConnection 
 
 logger = logging.getLogger(__name__)
 
 class BaseState:
     def __init__(self, github_repo: str, branch: str = "main", local_path: Optional[str] = None, db_path: Optional[str] = None):
+    
         self.github_repo = github_repo
         self.branch = branch
         self.local_path = local_path
+        self.rf = RepoFetcher()
+        
         self.db_path = db_path
+        self.db_connection = DBConnection(db_file_path= Path(self.db_path)) if self.db_path is not None else None 
+
         self.github_version = None
         self.local_version = None
         self.db_version = None
-        self.rf = RepoFetcher()
 
     def fetch_versions(self):
         try:
