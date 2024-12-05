@@ -6,11 +6,11 @@ from cmipld.core.service.settings import UniverseSettings, ProjectSettings, Serv
 logger = logging.getLogger(__name__)
 
 class BaseState:
-    def __init__(self, github_repo: str, branch: str = "main", local_path: Optional[str] = None, db_name: Optional[str] = None):
+    def __init__(self, github_repo: str, branch: str = "main", local_path: Optional[str] = None, db_path: Optional[str] = None):
         self.github_repo = github_repo
         self.branch = branch
         self.local_path = local_path
-        self.db_name = db_name
+        self.db_path = db_path
         self.github_version = None
         self.local_version = None
         self.db_version = None

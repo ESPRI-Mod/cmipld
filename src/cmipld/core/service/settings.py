@@ -7,13 +7,13 @@ class ProjectSettings(BaseModel):
     github_repo: str
     branch: Optional[str] = "main"
     local_path: Optional[str] = None
-    db_name: Optional[str] = None
+    db_path: Optional[str] = None
 
 class UniverseSettings(BaseModel):
     github_repo: str
     branch: Optional[str] = None
     local_path: Optional[str] = None
-    db_name: Optional[str] = None
+    db_path: Optional[str] = None
 
 class ServiceSettings(BaseModel):
     universe: UniverseSettings
