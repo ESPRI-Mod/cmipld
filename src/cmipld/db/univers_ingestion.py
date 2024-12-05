@@ -25,6 +25,7 @@ def get_univers_term(data_descriptor_id: str,
     return term.kind, term.specs
 
 
+# [KEEP]
 def infer_term_kind(json_specs: dict) -> TermKind:
     if settings.PATTERN_JSON_KEY in json_specs:
         return TermKind.PATTERN
@@ -47,8 +48,10 @@ def ingest_data_descriptor(data_descriptor_path: Path,
         _LOGGER.error(msg)
         return        
     with connection.create_session() as session:
+        # [KEEP]
         data_descriptor = DataDescriptor(id=data_descriptor_id, context=context)
         session.add(data_descriptor)
+        
         for term_file_path in db.items_of_interest(dir_path=data_descriptor_path,
                                                    glob_inclusion_pattern='*.json',
                                                    exclude_prefixes=settings.SKIPED_FILE_DIR_NAME_PREFIXES,
@@ -77,6 +80,7 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                     continue
             else:
                 term_kind = infer_term_kind(json_specs)
+            # [KEEP]
             term = UTerm(
                 id=term_id,
                 specs=json_specs,

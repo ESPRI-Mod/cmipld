@@ -43,6 +43,7 @@ def ingest_collection(collection_dir_path: Path,
         msg = f'Unable to read project context file {collection_context_file_path}. Abort.'
         _LOGGER.fatal(msg)
         raise RuntimeError(msg) from e
+    # [KEEP]
     collection = Collection(
         id=collection_id,
         context=collection_context,
@@ -78,6 +79,7 @@ def ingest_collection(collection_dir_path: Path,
             project_term_json_specs = instantiate_project_term(univers_term_json_specs,
                                                                project_term_json_specs,
                                                                pydantic_class)
+            # [KEEP]
             term = PTerm(
                 id=term_id,
                 specs=project_term_json_specs,
@@ -120,6 +122,7 @@ def ingest_project(project_dir_path: Path,
             _LOGGER.fatal(msg)
             raise RuntimeError(msg) from e
         
+        # [KEEP]
         project = Project(id=project_id, specs=project_json_specs)
         project_db_session.add(project)
         
