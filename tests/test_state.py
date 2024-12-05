@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import MagicMock
 from cmipld.core.service.state import StateService
 from cmipld.core.service.settings import ServiceSettings, UniverseSettings, ProjectSettings
+from pprint import pprint
 
 @pytest.fixture
 def mock_repo_fetcher(mocker):
@@ -24,7 +25,7 @@ def service_settings():
             local_path="/local/universe",
             db_name="universe.db"
         ),
-        projects=[
+        projects={"Project1":
             ProjectSettings(
                 project_name="Project1",
                 github_repo="https://github.com/example/project1",
@@ -32,7 +33,8 @@ def service_settings():
                 local_path="/local/project1",
                 db_name="project1.db"
             )
-        ]
+
+        }
     )
 
 def test_all_in_sync(mock_repo_fetcher, service_settings):
@@ -46,7 +48,7 @@ def test_all_in_sync(mock_repo_fetcher, service_settings):
 
     # Inject the mock RepoFetcher into universe and projects
     state_service.universe.rf = mock_repo_fetcher
-    for project in state_service.projects:
+    for _, project in state_service.projects.items():
         project.rf = mock_repo_fetcher
 
     # Get state summary and assert
@@ -54,7 +56,8 @@ def test_all_in_sync(mock_repo_fetcher, service_settings):
     print(summary)
 
     assert summary['universe']['github_sync'] is True
-    assert summary['projects'][0]['github_sync'] is True
+    for project_name,_ in summary['projects'].items():
+        assert summary['projects'][project_name]['github_sync'] is True
 
 
 
@@ -64,9 +67,9 @@ def test_github_ahead_of_local(mock_repo_fetcher, service_settings):
     mock_repo_fetcher.get_local_repo_version.side_effect = lambda path, branch: "old_commit_hash"
 
     state_service = StateService(service_settings)
-    # Inject the mock RepoFetcher into universe and projects
+# Inject the mock RepoFetcher into universe and projects
     state_service.universe.rf = mock_repo_fetcher
-    for project in state_service.projects:
+    for _,project in state_service.projects.items():
         project.rf = mock_repo_fetcher
 
 
