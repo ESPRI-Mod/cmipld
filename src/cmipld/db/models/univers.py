@@ -23,6 +23,7 @@ class DataDescriptor(SQLModel, PkMixin, IdMixin, table=True):
     univers_pk: int | None = Field(default=None, foreign_key="univers.pk")
     univers: Univers = Relationship(back_populates="data_descriptors")
     terms: list["UTerm"] = Relationship(back_populates="data_descriptor")
+    term_kind: TermKind = Field(sa_column=Column(sa.Enum(TermKind)))
 
 
 class UTerm(SQLModel, PkMixin, IdMixin, table=True):

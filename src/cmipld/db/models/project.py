@@ -25,6 +25,7 @@ class Collection(SQLModel, PkMixin, IdMixin, table=True):
     project_pk: int | None = Field(default=None, foreign_key="projects.pk")
     project: Project = Relationship(back_populates="collections")
     terms: list["PTerm"] = Relationship(back_populates="collection")
+    term_kind: TermKind = Field(sa_column=Column(sa.Enum(TermKind)))
 
 
 class PTerm(SQLModel, PkMixin, IdMixin, table=True):

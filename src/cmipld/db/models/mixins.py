@@ -7,6 +7,7 @@ class TermKind(Enum):
     PLAIN = "plain"
     PATTERN = "pattern"
     COMPOSITE = "composite"
+    MIXED = 'mixed'
 
 
 class PkMixin:
