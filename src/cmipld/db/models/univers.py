@@ -11,9 +11,17 @@ from cmipld.db.models.mixins import IdMixin, PkMixin, TermKind
 _LOGGER = logging.getLogger("univers_db_creation")
 
 
+class Univers(SQLModel, PkMixin, table=True):
+    __tablename__ = "univers"
+    git_hash: str
+    data_descriptors: list["DataDescriptor"] = Relationship(back_populates="univers")
+
+
 class DataDescriptor(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = "data_descriptors"
     context: dict = Field(sa_column=sa.Column(JSON))
+    univers_pk: int | None = Field(default=None, foreign_key="univers.pk")
+    univers: Univers = Relationship(back_populates="data_descriptors")
     terms: list["UTerm"] = Relationship(back_populates="data_descriptor")
 
 
@@ -37,7 +45,8 @@ def univers_create_db(db_file_path: Path) -> None:
     try:
         # Avoid creating project tables.
         tables_to_be_created = [SQLModel.metadata.tables['uterms'],
-                                SQLModel.metadata.tables['data_descriptors']]
+                                SQLModel.metadata.tables['data_descriptors'],
+                                SQLModel.metadata.tables['univers']]
         SQLModel.metadata.create_all(connection.get_engine(), tables=tables_to_be_created)
     except Exception as e:
         msg = f'Unable to create tables in SQLite database at {db_file_path}. Abort.'

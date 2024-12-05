@@ -11,9 +11,11 @@ from cmipld.db.models.mixins import IdMixin, PkMixin, TermKind
 
 _LOGGER = logging.getLogger("project_db_creation")
 
+
 class Project(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = "projects"
     specs: dict = Field(sa_column=sa.Column(JSON))
+    git_hash: str
     collections: list["Collection"] = Relationship(back_populates="project")
 
 
