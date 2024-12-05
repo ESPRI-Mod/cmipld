@@ -1,9 +1,11 @@
 
 import json
+from rich.syntax import Syntax
 import typer
 from cmipld.core.service.settings import ServiceSettings, UniverseSettings, ProjectSettings
 from pathlib import Path
 from rich import print
+import toml
 
 app = typer.Typer()
 
@@ -57,7 +59,7 @@ def set_nested_value(settings_dict: dict, key_path: str, new_value):
     return settings_dict
     
 @app.command()
-def config(key: str = typer.Argument(None), value: str = typer.Argument(None)):
+def config(key: str |None = typer.Argument(None), value: str|None = typer.Argument(None)):
     """
     Manage configuration settings.
 
@@ -65,10 +67,13 @@ def config(key: str = typer.Argument(None), value: str = typer.Argument(None)):
     - With one argument (key): display the value of the key.
     - With two arguments (key and value): modify the key's value and save.
     """
+    
     settings = load_settings()
     if key is None:
         # No key provided, print all settings
-        typer.echo(settings.model_dump_json(indent=4)) 
+        # typer.echo(settings.model_dump())
+        syntax = Syntax(toml.dumps(settings.model_dump()), "toml")
+        print(syntax) 
         return
     if value is None:
         # Key provided but no value, print the specific key's value
@@ -89,9 +94,8 @@ def config(key: str = typer.Argument(None), value: str = typer.Argument(None)):
     try :
         selected_value = get_nested_value(json.loads(settings.model_dump_json()),key)
     except Exception as e:
-        pass
-    try : 
         key = "projects."+key
+    try : 
         selected_value = get_nested_value(json.loads(settings.model_dump_json()),key)
         if selected_value:
             new_settings_dict = set_nested_value(json.loads(settings.model_dump_json()),key, value )

@@ -16,3 +16,4 @@ pdm.lock
 .DS_Store
 .vscode
 tmp*
+.cache

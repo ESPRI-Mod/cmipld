@@ -1,7 +1,7 @@
 [[projects]]
 project_name = "CMIP6Plus_CVs"
 github_repo = "https://github.com/ESPRI-Mod/CMIP6Plus_CVs"
-branch = "uni_proj_ld"
+branch = "ttoto"
 local_path = ".cache/repos/CMIP6Plus_CVs"
 db_name = "cmip6plus.duckdb"
 
