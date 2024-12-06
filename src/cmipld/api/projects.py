@@ -8,11 +8,12 @@ import cmipld.db as db
 from cmipld.db.models.project import Project, Collection
 
 
-############## DEBUG ##############
-# TODO: to be deleted.
-# The following instructions are only temporary as long as a complet data managment will be implmented.
-CMIP6PLUS_DB_CONNECTION = db.DBConnection(db.CMIP6PLUS_DB_FILE_PATH, 'cmip6plus', False)
-###################################
+def _get_project_connection(project_id: str) -> db.DBConnection|None:
+    ############## DEBUG ##############
+    # TODO: to be deleted.
+    # The following instructions are only temporary as long as a complet data managment will be implmented.
+    return db.DBConnection(db.CMIP6PLUS_DB_FILE_PATH, 'cmip6plus', False)
+    ###################################
 
 
 def _find_collections_in_project(project_id: str,
@@ -26,7 +27,7 @@ def _find_collections_in_project(project_id: str,
     return results
 
 
-def find_collections_in_univers(project_id: str,
+def find_collections_in_project(project_id: str,
                                 collection_id: str,
                                 settings: SearchSettings = SearchSettings()) \
                                     -> dict[str, dict]:
@@ -36,12 +37,14 @@ def find_collections_in_univers(project_id: str,
     The given `collection_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
     As a result, the function returns a dictionary that maps collection ids to their context.
-    If the provided `collection_id` is not found, the function returns an empty dictionary.
+    If the provided `collection_id` or `project_id` is not found, the function returns an empty dictionary.
     
     Behavior based on search type:
     - `EXACT` or `REGEX`: returns 0 or 1 result.
     - `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results.
 
+    :param project_id: A project id to be found
+    :type project_id: str
     :param collection_id: A collection id to be found
     :type collection_id: str
     :param settings: The search settings
@@ -50,11 +53,15 @@ def find_collections_in_univers(project_id: str,
     Returns an empty dictionary if no matches are found.
     :rtype: dict[str, dict]
     """
-    with CMIP6PLUS_DB_CONNECTION.create_session() as session:
-        collections = _find_collections_in_project(project_id, collection_id, settings, session)
-        result = dict()
-        for collection in collections:
-            result[collection.id] = collection.context
+    result = dict()
+    if connection:=_get_project_connection(project_id):
+        with connection.create_session() as session:
+            collections = _find_collections_in_project(project_id,
+                                                       collection_id,
+                                                       settings,
+                                                       session)
+            for collection in collections:
+                result[collection.id] = collection.context
     return result
 
 
@@ -77,14 +84,18 @@ def get_all_collections_in_project(project_id) -> dict[str, dict]:
     Gets all the collections of the given project.
     This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
 
+    :param project_id: A project id to be found
+    :type project_id: str
     :returns: A dictionary that maps collection ids to their context.
+    Returns an empty dictionary if no matches are found.
     :rtype: dict[str, dict]
     """
-    with CMIP6PLUS_DB_CONNECTION.create_session() as session:
-        collections = _get_all_collections_in_project(project_id, session)
-        result = dict()
-        for collection in collections:
-            result[collection.id] = collection.context
+    result = dict()
+    if connection:=_get_project_connection(project_id):
+        with connection.create_session() as session:
+            collections = _get_all_collections_in_project(project_id, session)
+            for collection in collections:
+                result[collection.id] = collection.context
     return result
 
 
@@ -93,62 +104,59 @@ def get_all_terms_in_project(project_id: str) -> dict[str, dict[str, type[BaseMo
     Gets all the terms of the given project.
     This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
     As terms are unique within a collection but may have some synonyms within a project,
-    the result maps every term to their collection.
-
-    :returns: A dictionary that maps collection ids to a mapping of term ids and their corresponding Pydantic model instances.
-    :rtype: dict[str, dict[str, type[BaseModel]]]
-    """
-    with CMIP6PLUS_DB_CONNECTION.create_session() as session:
-        collections = _get_all_collections_in_project(project_id, session)
-        result = dict()
-        for collection in collections:
-            # Term may have some sysnonyms within a project.
-            result[collection.id] = dict()
-            terms = _get_all_terms_in_collection(collection)
-            for term in terms:
-                result[collection.id][term.id] = term
-    return result
-
-
-def _find_project(project_id: str,
-                  settings: SearchSettings,
-                  session: Session) -> list[Project]:
-    where_expression = create_str_comparison_expression(field=Project.id,
-                                                        value=project_id,
-                                                        settings=settings)
-    statement = select(Project).where(where_expression)
-    results = session.exec(statement).all()
-    return results
-
-
-def find_project(project_id: str,
-                 settings: SearchSettings = SearchSettings()) -> dict[str: dict]:
-    """
-    Finds one or more projects.
-    The given `project_id` is searched according to the search type specified in the parameter `settings`,
-    which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
-    As a result, the function returns a dictionary that maps project ids to their context.
+    this function returns a dictionary that maps every term to their collection.
     If the provided `project_id` is not found, the function returns an empty dictionary.
-    
-    Behavior based on search type:
-    - `EXACT` or `REGEX`: returns 0 or 1 result.
-    - `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results.
 
     :param project_id: A project id to be found
     :type project_id: str
-    :param settings: The search settings
-    :type settings: SearchSettings
-    :returns: A dictionary that maps project ids to their context.
+    :returns: A dictionary that maps collection ids to a mapping of term ids and their corresponding Pydantic model instances.
     Returns an empty dictionary if no matches are found.
-    :rtype: dict[str, dict]
+    :rtype: dict[str, dict[str, type[BaseModel]]]
     """
-    with CMIP6PLUS_DB_CONNECTION.create_session() as session:
-        result = dict()
-        projects = _find_project(project_id, settings, session)
-        for project in projects:
-            result[project.id] = project.specs
+    result = dict()
+    if connection:=_get_project_connection(project_id):
+        with connection.create_session() as session:
+            collections = _get_all_collections_in_project(project_id, session)
+            for collection in collections:
+                # Term may have some sysnonyms within a project.
+                result[collection.id] = dict()
+                terms = _get_all_terms_in_collection(collection)
+                for term in terms:
+                    result[collection.id][term.id] = term
     return result
 
 
+def _find_project(project_id: str, session: Session) -> Project|None:
+    statement = select(Project).where(Project.id == project_id)
+    result = session.exec(statement).one_or_none()
+    return result
+
+
+def find_project(project_id: str) -> dict[str: dict]:
+    """
+    Finds one project.
+    This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
+    
+    :param project_id: A project id to be found
+    :type project_id: str
+    :returns: The specs of the project.
+    Returns an empty dictionary if no matches are found.
+    :rtype: dict
+    """
+    if connection:=_get_project_connection(project_id):
+        with connection.create_session() as session:
+            project = _find_project(project_id, session)
+            result = project.specs
+    else:
+        result = dict()
+    return result
+
+
+def get_all_projects() -> list[str]:
+    return ['cmip6plus'] # TODO: to be implemented
+
+
 if __name__ == "__main__":
-    print(find_collections_in_univers('cmip6plus', 'institution_i'))
+    from cmipld.api import SearchType
+    settings = SearchSettings(case_sensitive=False, type=SearchType.LIKE)
+    print(find_collections_in_project('cmip6plus', 'instiTution', settings))
