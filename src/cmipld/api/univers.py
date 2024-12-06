@@ -13,10 +13,10 @@ UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', Fals
 ###################################
 
 
-# Settings only apply on the term_id comparison.
 def _find_term_in_data_descriptor(data_descriptor_id: str,
                                   term_id: str, settings: SearchSettings,
                                   session: Session) -> list[UTerm]:
+    """Settings only apply on the term_id comparison."""
     where_expression = create_str_comparison_expression(field=UTerm.id,
                                                         value=term_id,
                                                         settings=settings)
@@ -36,7 +36,7 @@ def find_term_in_data_descriptor(data_descriptor_id: str,
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
     As a result, the function returns a dictionary that mapps term ids found to their corresponding Pydantic model instances.
-    If any of the provided IDs (`data_descriptor_id` or `term_id`) is not found, the function returns an empty dictionary.
+    If any of the provided ids (`data_descriptor_id` or `term_id`) is not found, the function returns an empty dictionary.
 
     Behavior based on search type:
     - `EXACT` or `REGEX`: returns 0 or 1 result.
@@ -48,7 +48,7 @@ def find_term_in_data_descriptor(data_descriptor_id: str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings
-    :returns: A dictionary that mapps term IDs found to their corresponding Pydantic model instances.
+    :returns: A dictionary that mapps term ids found to their corresponding Pydantic model instances.
     Returns an empty dictionary if no matches are found.
     :rtype: dict[str: type[BaseModel]]
     """
@@ -132,7 +132,7 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
     As a result, the function returns a dictionary that maps term ids to their corresponding Pydantic instances.
     If the provided `data_descriptor_id` is not found, the function returns an empty dictionary.
 
-    :param data_descriptor_id: The data descriptor id
+    :param data_descriptor_id: A data descriptor id
     :type data_descriptor_id: str
     :returns: a dictionary that maps term ids to their corresponding Pydantic instances.
     Returns an empty dictionary if no matches are found.
