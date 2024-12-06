@@ -124,37 +124,29 @@ def _find_data_descriptors_in_univers(data_descriptor_id,
     return results
 
 
-def get_all_terms_in_data_descriptor(data_descriptor_id: str,
-                                     settings: SearchSettings = SearchSettings()) \
-                                        -> dict[str, dict[str, type[BaseModel]]]:
+def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
+                                        -> dict[str, type[BaseModel]]:
     """
     Gets all the terms of the given data descriptor.
-    The given `data_descriptor_id` is searched according to the search type specified in the parameter `settings`,
-    which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
-    As a result, the function returns a dictionary that maps data descriptor ids to a mapping of term ids and their corresponding Pydantic instances.
+    This function performs an exact match on the `data_descriptor_id` and does **not** search for similar or related descriptors.
+    As a result, the function returns a dictionary that maps term ids to their corresponding Pydantic instances.
     If the provided `data_descriptor_id` is not found, the function returns an empty dictionary.
-
-    Behavior based on search type:
-    - `EXACT` or `REGEX`: returns 0 or 1 result.
-    - `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results.
 
     :param data_descriptor_id: The data descriptor id
     :type data_descriptor_id: str
-    :param settings: The search settings
-    :type settings: SearchSettings
-    :returns: a dictionary that maps data descriptor ids to a mapping of term ids to their corresponding Pydantic instances.
+    :returns: a dictionary that maps term ids to their corresponding Pydantic instances.
     Returns an empty dictionary if no matches are found.
-    :rtype: dict[str, dict[str, type[BaseModel]]]
+    :rtype: dict[str, type[BaseModel]]
     """
     result = dict()
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _find_data_descriptors_in_univers(data_descriptor_id,
-                                                             settings, session)
-        for data_descriptor in data_descriptors:
-            result[data_descriptor.id] = dict()
+                                                             SearchSettings(), session)
+        if data_descriptors:
+            data_descriptor = data_descriptors[0]
             terms = _get_all_terms_in_data_descriptor(data_descriptor)
             for term in terms:
-                result[data_descriptor.id][term.id] = term
+                result[term.id] = term
     return result
 
 
@@ -232,4 +224,4 @@ def get_all_terms_in_univers() -> dict[str, dict[str, type[BaseModel]]]:
 
 
 if __name__ == "__main__":
-    find_term_in_data_descriptor('institution', 'ipsl')
+    get_all_terms_in_data_descriptor('institution')
