@@ -14,7 +14,8 @@ UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', Fals
 
 
 def _find_term_in_data_descriptor(data_descriptor_id: str,
-                                  term_id: str, settings: SearchSettings,
+                                  term_id: str,
+                                  settings: SearchSettings,
                                   session: Session) -> list[UTerm]:
     """Settings only apply on the term_id comparison."""
     where_expression = create_str_comparison_expression(field=UTerm.id,
