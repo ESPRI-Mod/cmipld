@@ -13,10 +13,10 @@ UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', Fals
 ###################################
 
 
-def _find_term_in_data_descriptor(data_descriptor_id: str,
-                                  term_id: str,
-                                  settings: SearchSettings,
-                                  session: Session) -> list[UTerm]:
+def _find_terms_in_data_descriptor(data_descriptor_id: str,
+                                   term_id: str,
+                                   settings: SearchSettings,
+                                   session: Session) -> list[UTerm]:
     """Settings only apply on the term_id comparison."""
     where_expression = create_str_comparison_expression(field=UTerm.id,
                                                         value=term_id,
@@ -27,10 +27,10 @@ def _find_term_in_data_descriptor(data_descriptor_id: str,
     return results
 
 
-def find_term_in_data_descriptor(data_descriptor_id: str,
-                                 term_id: str,
-                                 settings: SearchSettings = SearchSettings()) \
-                                    -> dict[str: type[BaseModel]]:
+def find_terms_in_data_descriptor(data_descriptor_id: str,
+                                  term_id: str,
+                                  settings: SearchSettings = SearchSettings()) \
+                                     -> dict[str: type[BaseModel]]:
     """
     Finds one or more terms in the given data descriptor based on the specified search settings.
     This function performs an exact match on the `data_descriptor_id` and does **not** search for similar or related descriptors.
@@ -55,7 +55,7 @@ def find_term_in_data_descriptor(data_descriptor_id: str,
     """
     with UNIVERS_DB_CONNECTION.create_session() as session:
         result = dict()
-        terms = _find_term_in_data_descriptor(data_descriptor_id, term_id, settings, session)
+        terms = _find_terms_in_data_descriptor(data_descriptor_id, term_id, settings, session)
         if terms:
             term_class = get_pydantic_class(data_descriptor_id)
             for term in terms:
