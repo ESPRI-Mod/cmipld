@@ -3,9 +3,9 @@ from cmipld import get_pydantic_class
 from sqlmodel import Session, select
 from cmipld.api import SearchSettings, create_str_comparison_expression
 
-import cmipld.settings as settings
+import cmipld.settings as api_settings
 import cmipld.db as db
-from cmipld.db.models.project import Project, Collection
+from cmipld.db.models.project import Project, Collection, PTerm
 
 
 def _get_project_connection(project_id: str) -> db.DBConnection|None:
@@ -14,6 +14,56 @@ def _get_project_connection(project_id: str) -> db.DBConnection|None:
     # The following instructions are only temporary as long as a complet data managment will be implmented.
     return db.DBConnection(db.CMIP6PLUS_DB_FILE_PATH, 'cmip6plus', False)
     ###################################
+
+
+def _find_terms_in_project(term_id: str,
+                           settings: SearchSettings,
+                           session: Session) -> list[PTerm]:
+    where_expression = create_str_comparison_expression(field=PTerm.id,
+                                                        value=term_id,
+                                                        settings=settings)
+    statement = select(PTerm).where(where_expression)
+    results = session.exec(statement).all()
+    return results
+
+
+def find_terms_in_project(project_id: str,
+                          term_id: str,
+                          settings: SearchSettings = SearchSettings()) \
+                            -> dict[str, dict[str, type[BaseModel]]]:
+    """
+    Finds one or more terms of the univers.
+    This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
+    The given `term_id` is searched according to the search type specified in the parameter `settings`,
+    which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
+    As terms are unique within a collection but may have some synonyms within a project,
+    the result maps every term found to their collection.
+    If the provided `term_id` or `project_id` is not found, the function returns an empty dictionary.
+
+    Behavior based on search type:
+    - `EXACT` or `REGEX`: returns 0 or 1 result per data descriptor.
+    - `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results per data descriptor.
+
+    :param project_id: A project id to be found
+    :type project_id: str
+    :param term_id: A term id to be found
+    :type term_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings
+    :returns: A dictionary that maps collection ids to a mapping of term ids and their corresponding Pydantic model instances.
+    Returns an empty dictionary if no matches are found.
+    :rtype: dict[str, dict[str, type[BaseModel]]]
+    """
+    result = dict()
+    if connection:=_get_project_connection(project_id):
+        with connection.create_session() as session:
+            terms = _find_terms_in_project(term_id, settings, session)
+            for term in terms:
+                if term.collection.id not in result:
+                    result[term.collection.id] = dict()
+                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+                result[term.collection.id][term.id] = term_class(**term.specs)
+    return result
 
 
 def get_all_terms_in_collection(project_id: str,
@@ -105,7 +155,7 @@ def _get_all_collections_in_project(project_id: str, session: Session) -> list[C
 def _get_all_terms_in_collection(collection: Collection) -> list[type[BaseModel]]:
     result = list()
     for term in collection.terms:
-        term_class = get_pydantic_class(term.specs[settings.TERM_TYPE_JSON_KEY])
+        term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
         result.append(term_class(**term.specs))
     return result
 
@@ -189,5 +239,5 @@ def get_all_projects() -> dict[str: dict]:
 
 if __name__ == "__main__":
     from cmipld.api import SearchType
-    #settings = SearchSettings(case_sensitive=False, type=SearchType.LIKE)
-    print(get_all_terms_in_collection('cmip6plus', 'institution_id'))
+    search_settings = SearchSettings(case_sensitive=False, type=SearchType.LIKE)
+    print(find_terms_in_project('cmip6plus', 'iPsl', search_settings))
