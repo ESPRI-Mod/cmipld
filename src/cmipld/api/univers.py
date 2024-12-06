@@ -141,7 +141,8 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
     result = dict()
     with UNIVERS_DB_CONNECTION.create_session() as session:
         data_descriptors = _find_data_descriptors_in_univers(data_descriptor_id,
-                                                             SearchSettings(), session)
+                                                             SearchSettings(),
+                                                             session)
         if data_descriptors:
             data_descriptor = data_descriptors[0]
             terms = _get_all_terms_in_data_descriptor(data_descriptor)
