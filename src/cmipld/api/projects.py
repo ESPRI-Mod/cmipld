@@ -16,6 +16,60 @@ def _get_project_connection(project_id: str) -> db.DBConnection|None:
     ###################################
 
 
+def _find_term_in_collection(collection_id: str,
+                             term_id: str, settings: SearchSettings,
+                             session: Session) -> list[PTerm]:
+    """Settings only apply on the term_id comparison."""
+    where_expression = create_str_comparison_expression(field=PTerm.id,
+                                                        value=term_id,
+                                                        settings=settings)
+    statement = select(PTerm).join(Collection).where(Collection.id==collection_id,
+                                                     where_expression)
+    results = session.exec(statement).all()
+    return results
+
+
+def find_term_in_collection(project_id:str,
+                            collection_id: str,
+                            term_id: str,
+                            settings: SearchSettings = SearchSettings()) \
+                                -> dict[str: type[BaseModel]]:
+    """
+    Finds one or more terms in the given collection based on the specified search settings.
+    This function performs an exact match on the `project_id` and `collection_id`, and does **not** search for similar or related projects and collections.
+    If the provided `project_id` or `collection_id` is not found, the function returns an empty dictionary.
+    The given `term_id` is searched according to the search type specified in the parameter `settings`,
+    which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
+    As a result, the function returns a dictionary that mapps term ids found to their corresponding Pydantic model instances.
+    If any of the provided ids is not found, the function returns an empty dictionary.
+
+    Behavior based on search type:
+    - `EXACT` or `REGEX`: returns 0 or 1 result.
+    - `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results.
+
+    :param project_id: A project id to be found
+    :type project_id: str
+    :param collection_id: A collection id to be found
+    :type collection_id: str
+    :param term_id: A term id to be found
+    :type term_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings
+    :returns: A dictionary that mapps term ids found to their corresponding Pydantic model instances.
+    Returns an empty dictionary if no matches are found.
+    :rtype: dict[str: type[BaseModel]]
+    """
+    result = dict()
+    if connection:=_get_project_connection(project_id):
+        with connection.create_session() as session:
+            terms = _find_term_in_collection(collection_id, term_id, settings, session)
+            if terms:
+                for term in terms:
+                    term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+                    result[term.id] = term_class(**term.specs)
+    return result
+
+
 def _find_terms_in_project(term_id: str,
                            settings: SearchSettings,
                            session: Session) -> list[PTerm]:
@@ -38,7 +92,7 @@ def find_terms_in_project(project_id: str,
     which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
     As terms are unique within a collection but may have some synonyms within a project,
     the result maps every term found to their collection.
-    If the provided `term_id` or `project_id` is not found, the function returns an empty dictionary.
+    If any of the provided ids is not found, the function returns an empty dictionary.
 
     Behavior based on search type:
     - `EXACT` or `REGEX`: returns 0 or 1 result per data descriptor.
@@ -72,7 +126,7 @@ def get_all_terms_in_collection(project_id: str,
     """
     Gets all the terms of the given collection.
     This function performs an exact match on the `project_id` and `collection_id`, and does **not** search for similar or related projects and collections.
-    If the provided `project_id` or `collection_id` is not found, the function returns an empty dictionary.
+    If any of the provided ids is not found, the function returns an empty dictionary.
 
     :param project_id: A project id to be found
     :type project_id: str
@@ -118,7 +172,7 @@ def find_collections_in_project(project_id: str,
     The given `collection_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
     As a result, the function returns a dictionary that maps collection ids to their context.
-    If the provided `collection_id` or `project_id` is not found, the function returns an empty dictionary.
+    If any of the provided ids is not found, the function returns an empty dictionary.
     
     Behavior based on search type:
     - `EXACT` or `REGEX`: returns 0 or 1 result.
@@ -240,4 +294,4 @@ def get_all_projects() -> dict[str: dict]:
 if __name__ == "__main__":
     from cmipld.api import SearchType
     search_settings = SearchSettings(case_sensitive=False, type=SearchType.LIKE)
-    print(find_terms_in_project('cmip6plus', 'iPsl', search_settings))
+    print(find_term_in_collection('cmip6plus', 'institution_id', 'Psl', search_settings))
