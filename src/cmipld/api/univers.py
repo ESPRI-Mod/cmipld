@@ -35,13 +35,13 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     Finds one or more terms in the given data descriptor based on the specified search settings.
     This function performs an exact match on the `data_descriptor_id` and does **not** search for similar or related descriptors.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
-    which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
+    which allows a flexible matching (e.g., `LIKE` may return multiple results).
     As a result, the function returns a dictionary that mapps term ids found to their corresponding Pydantic model instances.
     If any of the provided ids (`data_descriptor_id` or `term_id`) is not found, the function returns an empty dictionary.
 
     Behavior based on search type:
-    - `EXACT` or `REGEX`: returns 0 or 1 result.
-    - `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results.
+    - `EXACT`: returns 0 or 1 result.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results.
 
     :param data_descriptor_id: A data descriptor id
     :type data_descriptor_id: str
@@ -79,14 +79,14 @@ def find_terms_in_univers(term_id: str,
     """
     Finds one or more terms of the univers.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
-    which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
+    which allows a flexible matching (e.g., `LIKE` may return multiple results).
     As terms are unique within a data descriptor but may have some synonyms within the univers,
     the result maps every term found to their data descriptor.
     If the provided `term_id` is not found, the function returns an empty dictionary.
 
     Behavior based on search type:
-    - `EXACT` or `REGEX`: returns 0 or 1 result per data descriptor.
-    - `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results per data descriptor.
+    - `EXACT`: returns 0 or 1 result per data descriptor.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results per data descriptor.
 
     :param term_id: A term id to be found
     :type term_id: str
@@ -158,13 +158,13 @@ def find_data_descriptors_in_univers(data_descriptor_id: str,
     """
     Finds one or more data descriptor of the univers.
     The given `data_descriptor_id` is searched according to the search type specified in the parameter `settings`,
-    which allows a flexible matching (e.g., `LIKE`, `STARTS_WITH` and `ENDS_WITH` may return multiple results).
+    which allows a flexible matching (e.g., `LIKE` may return multiple results).
     As a result, the function returns a dictionary that maps data descriptor ids to their context.
     If the provided `data_descriptor_id` is not found, the function returns an empty dictionary.
     
     Behavior based on search type:
-    - `EXACT` or `REGEX`: returns 0 or 1 result.
-    - `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results.
+    - `EXACT`: returns 0 or 1 result.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: may return multiple results.
 
     :param data_descriptor_id: A data descriptor id to be found
     :type data_descriptor_id: str
