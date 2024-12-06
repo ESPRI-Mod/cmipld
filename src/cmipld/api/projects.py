@@ -16,6 +16,37 @@ def _get_project_connection(project_id: str) -> db.DBConnection|None:
     ###################################
 
 
+def get_all_terms_in_collection(project_id: str,
+                                collection_id: str)\
+                                   -> dict[str, type[BaseModel]]:
+    """
+    Gets all the terms of the given collection.
+    This function performs an exact match on the `project_id` and `collection_id`, and does **not** search for similar or related projects and collections.
+    If the provided `project_id` or `collection_id` is not found, the function returns an empty dictionary.
+
+    :param project_id: A project id to be found
+    :type project_id: str
+    :param collection_id: A collection id to be found
+    :type collection_id: str
+    :returns: a dictionary that maps term ids to their corresponding Pydantic instances.
+    Returns an empty dictionary if no matches are found.
+    :rtype: dict[str, type[BaseModel]]
+    """
+    result = dict()
+    if connection:=_get_project_connection(project_id):
+        with connection.create_session() as session:
+            collections = _find_collections_in_project(project_id,
+                                                       collection_id,
+                                                       SearchSettings(),
+                                                       session)
+            if collections:
+                collection = collections[0]
+                terms = _get_all_terms_in_collection(collection)
+                for term in terms:
+                    result[term.id] = term
+    return result
+
+
 def _find_collections_in_project(project_id: str,
                                  collection_id,
                                  settings, session) -> list[Collection]:
@@ -132,7 +163,7 @@ def _find_project(project_id: str, session: Session) -> Project|None:
     return result
 
 
-def find_project(project_id: str) -> dict[str: dict]:
+def find_project(project_id: str) -> dict:
     """
     Finds one project.
     This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
@@ -152,11 +183,11 @@ def find_project(project_id: str) -> dict[str: dict]:
     return result
 
 
-def get_all_projects() -> list[str]:
+def get_all_projects() -> dict[str: dict]:
     return ['cmip6plus'] # TODO: to be implemented
 
 
 if __name__ == "__main__":
     from cmipld.api import SearchType
-    settings = SearchSettings(case_sensitive=False, type=SearchType.LIKE)
-    print(find_collections_in_project('cmip6plus', 'instiTution', settings))
+    #settings = SearchSettings(case_sensitive=False, type=SearchType.LIKE)
+    print(get_all_terms_in_collection('cmip6plus', 'institution_id'))
