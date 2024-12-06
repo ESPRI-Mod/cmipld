@@ -24,7 +24,7 @@ def test_get_terms_in_data_descriptor() -> None:
 
 def test_find_term_in_data_descriptor() -> None:
     for item in _SOME_TERM_REQUESTS:
-        univers.find_term_in_data_descriptor(**item)
+        univers.find_terms_in_data_descriptor(**item)
 
 
 def test_find_terms_in_univers() -> None:
