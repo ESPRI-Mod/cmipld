@@ -124,7 +124,18 @@ def valid_term_in_collection(value: str,
                               f'in collection {collection_id}'
                         raise RuntimeError(msg) from e
                 else:
-                    pass
+                    collection = _find_collections_in_project(collection_id,
+                                                              session,
+                                                              None)
+                    if collection:
+                        for term in collection.terms:
+                            is_valided = _valid_term(value, term, session)
+                            if is_valided:
+                                break
+                        result = is_valided
+                    else:
+                        msg = f'unable to find collection {collection_id}'
+                        raise ValueError(msg)
                 return result
         else:
             raise ValueError(f'unable to find project {project_id}')
@@ -445,4 +456,5 @@ def get_all_projects() -> dict[str: dict]:
 
 
 if __name__ == "__main__":
-    print(valid_term_in_collection('20241206-2024120', 'cmip6plus', 'time_range', 'daily'))
+    valid_term_in_collection('20241206-20241207', 'cmip6plus', 'time_range')
+    valid_term_in_collection('IPSL', 'cmip6plus', 'institution_id')
