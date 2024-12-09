@@ -18,7 +18,7 @@ CONTEXT_JSON_KEY = "@context"
 TERM_ID_JSON_KEY = 'id'
 PATTERN_JSON_KEY = 'regex'
 TERM_TYPE_JSON_KEY = 'type'
-DRS_SPECS_JSON_KEY = 'drs_specs'
+DRS_SPECS_JSON_KEY = 'drs_name'
 
 logging.basicConfig(level=LOG_LEVEL, format=LOG_FORMAT, handlers=LOG_HANDLERS)
 
