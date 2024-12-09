@@ -5,8 +5,8 @@ import pytest
 import cmipld.api.univers as univers
 from cmipld.api import SearchSettings, SearchType
 
-_SOME_DATA_DESCRIPTOR_IDS = ('institution', 'product', 'variable')
-_SOME_TERM_IDS = ('ipsl', 'observations', 'airmass')
+_SOME_DATA_DESCRIPTOR_IDS = ['institution', 'product', 'variable']
+_SOME_TERM_IDS = ['ipsl', 'observations', 'airmass']
 _SETTINGS = SearchSettings(type=SearchType.LIKE)
 
 
