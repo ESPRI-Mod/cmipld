@@ -124,7 +124,7 @@ def valid_term_in_collection(value: str,
                               f'in collection {collection_id}'
                         raise RuntimeError(msg) from e
                 else:
-                    pass # TODO
+                    pass
                 return result
         else:
             raise ValueError(f'unable to find project {project_id}')
@@ -278,8 +278,7 @@ def get_all_terms_in_collection(project_id: str,
     result = None
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
-            collection = _find_collections_in_project(project_id,
-                                                      collection_id,
+            collection = _find_collections_in_project(collection_id,
                                                       session,
                                                       None)
             if collection:
@@ -290,14 +289,14 @@ def get_all_terms_in_collection(project_id: str,
     return result
 
 
-def _find_collections_in_project(project_id: str,
-                                 collection_id: str,
+def _find_collections_in_project(collection_id: str,
                                  session: Session,
-                                 settings: SearchSettings|None) -> Collection|list[Collection]|None:
+                                 settings: SearchSettings|None) \
+                                    -> Collection|list[Collection]|None:
     where_exp = create_str_comparison_expression(field=Collection.id,
                                                  value=collection_id,
                                                  settings=settings)
-    statement = select(Collection).join(Project).where(Project.id == project_id, where_exp)
+    statement = select(Collection).where(where_exp)
     results = session.exec(statement)
     if settings is None or SearchType.EXACT == settings.type:
         # As we compare id, it can't be more than one result.
@@ -337,8 +336,7 @@ def find_collections_in_project(project_id: str,
     result = None
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
-            collections = _find_collections_in_project(project_id,
-                                                       collection_id,
+            collections = _find_collections_in_project(collection_id,
                                                        session,
                                                        settings)
             if collections:
@@ -351,9 +349,8 @@ def find_collections_in_project(project_id: str,
     return result
 
 
-def _get_all_collections_in_project(project_id: str, session: Session) -> list[Collection]|None:
-    statement = select(Project).where(Project.id == project_id)
-    project = session.exec(statement).one_or_none()
+def _get_all_collections_in_project(session: Session) -> list[Collection]|None:
+    project = session.get(Project, api_settings.SQLITE_FIRST_PK)
     return project.collections if project else None
 
 
@@ -372,7 +369,7 @@ def get_all_collections_in_project(project_id: str) -> dict[str, dict]|None:
     result = None
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
-            collections = _get_all_collections_in_project(project_id, session)
+            collections = _get_all_collections_in_project(session)
             if collections:
                 result = dict()
                 for collection in collections:
@@ -405,7 +402,7 @@ def get_all_terms_in_project(project_id: str) -> dict[str, dict[str, BaseModel]]
     result = None
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
-            collections = _get_all_collections_in_project(project_id, session)
+            collections = _get_all_collections_in_project(session)
             if collections:
                 result = dict()
                 for collection in collections:
@@ -414,12 +411,6 @@ def get_all_terms_in_project(project_id: str) -> dict[str, dict[str, BaseModel]]
                     terms = _get_all_terms_in_collection(collection)
                     for term in terms:
                         result[collection.id][term.id] = term
-    return result
-
-
-def _find_project(project_id: str, session: Session) -> Project|None:
-    statement = select(Project).where(Project.id == project_id)
-    result = session.exec(statement).one_or_none()
     return result
 
 
@@ -438,9 +429,8 @@ def find_project(project_id: str) -> dict|None:
     result = None
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
-            project = _find_project(project_id, session)
-            if project:
-                result = project.specs
+            project = session.get(Project, api_settings.SQLITE_FIRST_PK)
+            result = project.specs if project else None
     return result
 
 
