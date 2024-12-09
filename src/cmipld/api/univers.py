@@ -47,7 +47,7 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
 
     Behavior based on search type:
     - `EXACT` and absence of `settings`: returns None or a Pydantic model instance.
-    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns None or a dictionary that mapps term ids found
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns None or a dictionary that maps term ids found
     to their corresponding Pydantic model instances.
 
     :param data_descriptor_id: A data descriptor id
@@ -56,7 +56,7 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: a Pydantic model instance or a dictionary that mapps term ids found to their corresponding Pydantic model instances.
+    :returns: a Pydantic model instance or a dictionary that maps term ids found to their corresponding Pydantic model instances.
     Returns None if no matches are found.
     :rtype: type[BaseModel]|dict[str: type[BaseModel]]|None
     """
