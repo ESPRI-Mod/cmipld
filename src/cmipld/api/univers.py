@@ -46,7 +46,7 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     If any of the provided ids (`data_descriptor_id` or `term_id`) is not found, the function returns None.
 
     Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns None or a Pydantic model instance.
+    - `EXACT` and absence of `settings`: returns None or a Pydantic model term instance.
     - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns None or a dictionary that maps term ids found
     to their corresponding Pydantic model instances.
 
@@ -88,7 +88,9 @@ def _find_terms_in_univers(term_id: str,
 
 def find_terms_in_univers(term_id: str,
                           settings: SearchSettings|None) \
-                            -> dict[str, dict[str, type[BaseModel]]]|None:
+                            -> dict[str, type[BaseModel]]|\
+                               dict[str, dict[str, type[BaseModel]]]|\
+                               None:
     """
     Finds one or more terms of the univers.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
@@ -99,7 +101,8 @@ def find_terms_in_univers(term_id: str,
     If the provided `term_id` is not found, the function returns None.
 
     Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns None or a Pydantic model instance.
+    - `EXACT` and absence of `settings`: returns None or a dictionary that maps
+      data descriptor ids to a Pydantic model term instance.
     - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns None or a dictionary that maps
       data descriptor ids to a mapping of term ids and their corresponding Pydantic model instances.
 
@@ -107,7 +110,9 @@ def find_terms_in_univers(term_id: str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A dictionary that maps data descriptor ids to a mapping of term ids and their corresponding Pydantic model instances.
+    :returns: A dictionary that maps data descriptor ids to a Pydantic model term instance
+    or a dictionary that maps data descriptor ids
+    to a mapping of term ids and their corresponding Pydantic model instances.
     Returns None if no matches are found.
     :rtype: dict[str, dict[str, type[BaseModel]]]|None
     """
@@ -116,9 +121,12 @@ def find_terms_in_univers(term_id: str,
         if terms:
             result = dict()
             for term in terms:
+                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+                if settings is None or SearchType.EXACT == settings.type:
+                    result[term.data_descriptor.id] = term_class(**term.specs)
+            else:
                 if term.data_descriptor.id not in result:
                     result[term.data_descriptor.id] = dict()
-                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
                 result[term.data_descriptor.id][term.id] = term_class(**term.specs)
         else:
             result = None
