@@ -5,6 +5,17 @@ from cmipld.api import SearchSettings, create_str_comparison_expression, SearchT
 import cmipld.settings as api_settings
 import cmipld.db as db
 from cmipld.db.models.project import Project, Collection, PTerm
+from cmipld.db.models.mixins import TermKind
+import re
+from cmipld.api.models import GenericTermComposite
+import cmipld.api.univers as univers
+from cmipld.db.models.univers import UTerm
+
+############## DEBUG ##############
+# TODO: to be deleted.
+# The following instructions are only temporary as long as a complet data managment will be implmented.
+UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', False)
+###################################
 
 
 def _get_project_connection(project_id: str) -> db.DBConnection|None:
@@ -13,6 +24,112 @@ def _get_project_connection(project_id: str) -> db.DBConnection|None:
     # The following instructions are only temporary as long as a complet data managment will be implmented.
     return db.DBConnection(db.CMIP6PLUS_DB_FILE_PATH, 'cmip6plus', False)
     ###################################
+
+
+def _resolve_term(term_id: str, term_type: str, project_session: Session) -> UTerm|PTerm:
+    '''First find the term in the univers than the current project'''
+    result = None
+    with UNIVERS_DB_CONNECTION.create_session() as univers_session:
+        uterm: UTerm = univers._find_terms_in_data_descriptor(data_descriptor_id=term_type,
+                                                              term_id=term_id,
+                                                              session=univers_session,
+                                                              settings=None)
+        if uterm:
+            result = uterm
+        else:
+            pterm:PTerm = _find_terms_in_collection(collection_id=term_type,
+                                                    term_id=term_id,
+                                                    session=project_session,
+                                                    settings=None)
+            result = pterm
+    return result
+
+
+# Return why (as Exception?)
+def _valid_term(value: str, term: UTerm|PTerm, project_session: Session) -> bool:
+    match term.kind:
+        case TermKind.PLAIN:
+            result = term.specs[api_settings.DRS_SPECS_JSON_KEY] == value
+        case TermKind.PATTERN:
+            # OPTIM: Pattern can be compiled and stored for further matching.
+            pattern_match = re.match(term.specs[api_settings.PATTERN_JSON_KEY], value)
+            result = pattern_match is not None
+        case TermKind.COMPOSITE:
+            composite = GenericTermComposite(**term.specs)
+            if composite.separator:
+                if composite.separator in value:
+                    splits = value.split(composite.separator)
+                    if len(splits) == len(composite.parts): # TODO: support is_required!!!
+                        result = True
+                        for index in range(0, len(splits)):
+                            given_value = splits[index]
+                            referenced_id = composite.parts[index].id
+                            referenced_type = composite.parts[index].type
+                            resolved_term = _resolve_term(referenced_id,
+                                                          referenced_type,
+                                                          project_session)
+                            if resolved_term:
+                                is_valid = _valid_term(given_value,
+                                                       resolved_term,
+                                                       project_session)
+                                if is_valid:
+                                    continue
+                                else:
+                                    result = False
+                                    break
+                            else:
+                                msg = f'unable to find the term {referenced_id} ' + \
+                                      f'in {referenced_type}'
+                                raise RuntimeError(msg)
+                        return result
+                    else:
+                        result = False
+                else:
+                    result = False
+            else:
+                raise NotImplementedError(f'unsupported separatorless term composite {term.id} ' +
+                                          f'in collection {term.collection.id}')
+        case _:
+            raise NotImplementedError(f'unsupported term kind {term.kind}')
+    return result
+
+
+def valid_term_in_collection(value: str,
+                             project_id: str,
+                             collection_id: str,
+                             term_id: str|None = None) \
+                               -> bool:
+    """
+    TODO
+    raise ValueError
+    """
+    if not value:
+        raise ValueError('value should be set')
+    if value:= value.strip():
+        if connection:=_get_project_connection(project_id):
+            with connection.create_session() as session:
+                if term_id:
+                    try:
+                        term: PTerm = _find_terms_in_collection(collection_id,
+                                                                term_id,
+                                                                session,
+                                                                None)
+                    except Exception:
+                        raise ValueError(f'unable to find term {term_id} ' +
+                                         f'in collection {collection_id}')
+                    try:
+                        result = _valid_term(value, term, session)
+                    except Exception as e:
+                        msg = f'unable to valid term {term_id} ' +\
+                              f'in collection {collection_id}'
+                        raise RuntimeError(msg) from e
+                else:
+                    pass # TODO
+                return result
+        else:
+            raise ValueError(f'unable to find project {project_id}')
+    else:
+        raise ValueError('value should not be empty')
 
 
 def _find_terms_in_collection(collection_id: str,
@@ -338,5 +455,4 @@ def get_all_projects() -> dict[str: dict]:
 
 
 if __name__ == "__main__":
-    search_settings = SearchSettings(case_sensitive=False, type=SearchType.LIKE)
-    print(find_terms_in_collection('cmip6plus', 'institution_id', 'Psl', search_settings))
+    print(valid_term_in_collection('20241206-2024120', 'cmip6plus', 'time_range', 'daily'))
