@@ -27,6 +27,7 @@ def create_str_comparison_expression(field: str,
     So the case sensitive LIKE is implemented with REGEX.
     The i versions of SQLAlchemy operators (icontains, etc.) are not usefull
     (but other dbs than SQLite should use them).
+    If the provided `settings` is None, this functions returns an exact search expression.
     '''
     does_wild_cards_in_value_have_to_be_interpreted = False
     # Shortcut.
