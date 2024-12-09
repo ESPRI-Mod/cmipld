@@ -124,10 +124,10 @@ def find_terms_in_univers(term_id: str,
                 term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
                 if settings is None or SearchType.EXACT == settings.type:
                     result[term.data_descriptor.id] = term_class(**term.specs)
-            else:
-                if term.data_descriptor.id not in result:
-                    result[term.data_descriptor.id] = dict()
-                result[term.data_descriptor.id][term.id] = term_class(**term.specs)
+                else:
+                    if term.data_descriptor.id not in result:
+                        result[term.data_descriptor.id] = dict()
+                    result[term.data_descriptor.id][term.id] = term_class(**term.specs)
         else:
             result = None
     return result
@@ -268,4 +268,4 @@ def get_all_terms_in_univers() -> dict[str, dict[str, BaseModel]]:
 
 
 if __name__ == "__main__":
-    print(find_terms_in_data_descriptor('institution', 'ipsl', SearchSettings(type=SearchType.LIKE)))
+    print(find_terms_in_univers('ipsl'))
