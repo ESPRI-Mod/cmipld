@@ -37,7 +37,7 @@ def _find_terms_in_collection(collection_id: str,
 def find_terms_in_collection(project_id:str,
                              collection_id: str,
                              term_id: str,
-                             settings: SearchSettings|None) \
+                             settings: SearchSettings|None = None) \
                                 -> BaseModel|dict[str: BaseModel]|None:
     """
     Finds one or more terms, based on the specified search settings, in the given collection of a project.
@@ -93,7 +93,7 @@ def _find_terms_in_project(term_id: str,
 
 def find_terms_in_project(project_id: str,
                           term_id: str,
-                          settings: SearchSettings|None) \
+                          settings: SearchSettings|None = None) \
                             -> dict[str, BaseModel]|\
                                dict[str, dict[str, BaseModel]]|\
                                None:
