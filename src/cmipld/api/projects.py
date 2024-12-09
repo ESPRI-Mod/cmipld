@@ -94,6 +94,27 @@ def _valid_term(value: str, term: UTerm|PTerm, project_session: Session) -> bool
     return result
 
 
+def _valid_plain_term(value: str,
+                      collection_id: str,
+                      term_id: str,
+                      session: Session) -> bool:
+    try:
+        term: PTerm = _find_terms_in_collection(collection_id,
+                                                term_id,
+                                                session,
+                                                None)
+    except Exception:
+        raise ValueError(f'unable to find term {term_id} ' +
+                         f'in collection {collection_id}')
+    try:
+        result = _valid_term(value, term, session)
+    except Exception as e:
+        msg = f'unable to valid term {term_id} ' +\
+              f'in collection {collection_id}'
+        raise RuntimeError(msg) from e
+    return result
+
+
 def valid_term_in_collection(value: str,
                              project_id: str,
                              collection_id: str,
@@ -109,33 +130,26 @@ def valid_term_in_collection(value: str,
         if connection:=_get_project_connection(project_id):
             with connection.create_session() as session:
                 if term_id:
-                    try:
-                        term: PTerm = _find_terms_in_collection(collection_id,
-                                                                term_id,
-                                                                session,
-                                                                None)
-                    except Exception:
-                        raise ValueError(f'unable to find term {term_id} ' +
-                                         f'in collection {collection_id}')
-                    try:
-                        result = _valid_term(value, term, session)
-                    except Exception as e:
-                        msg = f'unable to valid term {term_id} ' +\
-                              f'in collection {collection_id}'
-                        raise RuntimeError(msg) from e
+                    result = _valid_plain_term(value, collection_id,
+                                               term_id, session)
                 else:
                     collection = _find_collections_in_project(collection_id,
                                                               session,
                                                               None)
-                    if collection:
-                        for term in collection.terms:
-                            is_valided = _valid_term(value, term, session)
-                            if is_valided:
-                                break
-                        result = is_valided
-                    else:
-                        msg = f'unable to find collection {collection_id}'
-                        raise ValueError(msg)
+                    match collection.term_kind:
+                        case TermKind.PLAIN:
+                            result = _valid_plain_term(value, collection_id,
+                                                       value, session)
+                        case TermKind.PATTERN | TermKind.COMPOSITE:
+                            if collection:
+                                for term in collection.terms:
+                                    is_valided = _valid_term(value, term, session)
+                                    if is_valided:
+                                        break
+                                result = is_valided
+                            else:
+                                msg = f'unable to find collection {collection_id}'
+                                raise ValueError(msg)
                 return result
         else:
             raise ValueError(f'unable to find project {project_id}')
@@ -456,5 +470,6 @@ def get_all_projects() -> dict[str: dict]:
 
 
 if __name__ == "__main__":
-    valid_term_in_collection('20241206-20241207', 'cmip6plus', 'time_range')
-    valid_term_in_collection('IPSL', 'cmip6plus', 'institution_id')
+    #valid_term_in_collection('20241206-20241207', 'cmip6plus', 'time_range')
+    #valid_term_in_collection('IPSL', 'cmip6plus', 'institution_id')
+    print(valid_term_in_collection('IPSL', 'cmip6plus', 'institution_id', 'ipsl'))
