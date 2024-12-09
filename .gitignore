@@ -17,3 +17,6 @@ pdm.lock
 .vscode
 tmp*
 .cache
+CHANGELOG.md
+.mise.toml
+.mise.toml
