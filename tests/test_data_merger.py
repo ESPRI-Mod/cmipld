@@ -120,7 +120,7 @@ def test_local_project_local_universe():
                     term = JsonLdResource(uri=str(term_uri))
                     mdm = DataMerger(data= term,
                                      allowed_base_uris={"https://espri-mod.github.io/mip-cmor-tables/"},
-                                     locally_available={"https://espri-mod.github.io/mip-cmor-tables":".cache/repos/mip-cmor-tables","https://espri-mod.github.io/CMIP6Plus_CVs":".cache/repos/CMIP6Plus_CVs"})
+                                     locally_available={"https://espri-mod.github.io/mip-cmor-tables":".cache/repos/mip-cmor-tables","https://  espri-mod.github.io/CMIP6Plus_CVs":".cache/repos/CMIP6Plus_CVs"})
 
                     res[term_uri] = mdm.merge_linked_json()[-1]
                     nb=nb+1

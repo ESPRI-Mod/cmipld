@@ -58,7 +58,6 @@ class DataMerger:
             for local_repo in self.locally_available.keys():
                 if next_id.startswith(local_repo):
                     next_id = next_id.replace(local_repo,self.locally_available[local_repo])
-                    print("OLA")
             next_data_instance = JsonLdResource(uri=next_id)
             merged_json_data = merge_dicts([current_data.json], [next_data_instance.json])
             next_data_instance.json = merged_json_data

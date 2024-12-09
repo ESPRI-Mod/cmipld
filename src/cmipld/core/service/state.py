@@ -1,9 +1,15 @@
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 from cmipld.core.repo_fetcher import RepoFetcher
 from cmipld.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings
-from cmipld.db import DBConnection 
+from cmipld.db import DBConnection
+from cmipld.db.models.project import Project
+from cmipld.db.models.univers import DataDescriptor, Univers, univers_create_db 
+from cmipld.db.univers_ingestion import ingest_metadata_universe
+from sqlalchemy import text
+from sqlmodel import select
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +22,7 @@ class BaseState:
         self.rf = RepoFetcher()
         
         self.db_path = db_path
-        self.db_connection = DBConnection(db_file_path= Path(self.db_path)) if self.db_path is not None else None 
+        self.db_connection = None
 
         self.github_version = None
         self.local_version = None
@@ -28,7 +34,7 @@ class BaseState:
             self.github_version = self.rf.get_github_version(owner, repo, self.branch)
             logger.info(f"Latest GitHub commit: {self.github_version}")
         except Exception as e:
-            logger.exception(f"Failed to fetch GitHub version: {e}")
+            logger.exception(f"Failed to fetch GitHub version: {e} ,for {owner},{repo},{self.branch}")
 
         if self.local_path:
             try:
@@ -36,6 +42,9 @@ class BaseState:
                 logger.info(f"Local repo commit: {self.local_version}")
             except Exception as e:
                 logger.exception(f"Failed to fetch local repo version: {e}")
+        
+        
+
 
     def check_sync_status(self):
         self.fetch_versions()
@@ -49,17 +58,50 @@ class BaseState:
         if self.github_version and self.github_version != self.local_version:
             owner, repo = self.github_repo.lstrip("https://github.com/").split("/")
             self.rf.clone_repository(owner, repo, self.branch)
-            self.fetch_versions()
+            #self.fetch_versions()
+
+        if self.local_version != self.db_version:
+            # delete and redo the DB? 
+            pass
 
 class StateUniverse(BaseState):
     def __init__(self, settings: UniverseSettings):
         super().__init__(**settings.model_dump())
+
+    def fetch_versions(self):
+        super().fetch_versions()
+        if self.db_path:
+            if not os.path.exists(self.db_path):
+                self.db_version = None
+            else:
+                self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
+                with self.db_connection.create_session() as session:
+                    self.db_version = session.exec(select(Univers.git_hash)).one()
+                    
+        else:
+            self.db_version = None
+
 
 class StateProject(BaseState):
     def __init__(self, settings: ProjectSettings):
         mdict = settings.model_dump()
         self.project_name = mdict.pop("project_name")
         super().__init__(**mdict)
+
+    def fetch_versions(self):
+        super().fetch_versions()
+        if self.db_path:
+            if not os.path.exists(self.db_path):
+                self.db_version = None
+            else:
+                self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
+                with self.db_connection.create_session() as session:
+                    self.db_version = session.exec(select(Project.git_hash)).one()
+                    
+        else:
+            self.db_version = None
+
+
         
 
 class StateService:
@@ -76,6 +118,7 @@ class StateService:
         self.universe.sync()
         for project in self.projects.values():
             project.sync()
+
     # def find_version_differences(self):
     #     summary = self.get_state_summary()
     #     if not summary["universe"]["github_sync"]:
@@ -107,10 +150,12 @@ if __name__ == "__main__":
     state_service = StateService(service_settings)
     state_service.get_state_summary()
 
-        # Synchronize all
+    # Synchronize all
     state_service.synchronize_all()
 
-    pprint(state_service.universe)
+    pprint(state_service.universe.github_version)
+    pprint(state_service.universe.local_version)
+    pprint(state_service.universe.db_version)
 
     
     # Check for differences

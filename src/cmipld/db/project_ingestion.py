@@ -1,19 +1,37 @@
 import logging
 from pathlib import Path
 
+from cmipld.core.data_handler import JsonLdResource
+from cmipld.core.service.data_merger import DataMerger
+from cmipld.db.models.mixins import TermKind
 from pydantic import BaseModel
 
 import cmipld.db as db
 import cmipld.settings as settings
 from cmipld import get_pydantic_class
-from cmipld.db import items_of_interest, read_json_file
+from cmipld.db import DBConnection, items_of_interest, read_json_file
 from cmipld.db.models.project import Collection, Project, PTerm
 import cmipld.db.univers_ingestion as univers_ingestion
 
 
 _LOGGER = logging.getLogger("project_ingestion")
 
+def infer_term_kind(json_specs: dict) -> TermKind:
+    if settings.PATTERN_JSON_KEY in json_specs:
+        return TermKind.PATTERN
+    elif settings.COMPOSITE_JSON_KEY in json_specs:
+        return TermKind.COMPOSITE
+    else:
+        return TermKind.PLAIN
 
+
+def ingest_metadata_project(connection:DBConnection,git_hash):
+    with connection.create_session() as session:
+        universe = Project(id=str(connection.file_path.stem), git_hash=git_hash,specs={})
+        session.add(universe)    
+        session.commit()
+
+###############################
 def get_data_descriptor_id_from_context(collection_context: dict) -> str:
     data_descriptor_url = collection_context[settings.CONTEXT_JSON_KEY][settings.DATA_DESCRIPTOR_JSON_KEY]
     return Path(data_descriptor_url).name
@@ -33,6 +51,116 @@ def ingest_collection(collection_dir_path: Path,
                       project: Project,
                       project_db_session,
                       univers_db_session) -> None:
+
+
+    collection_id = collection_dir_path.name
+    collection_context_file_path = collection_dir_path.joinpath(settings.CONTEXT_FILENAME)
+    try:
+        collection_context = read_json_file(collection_context_file_path)
+        data_descriptor_id = get_data_descriptor_id_from_context(collection_context)
+    except Exception as e:
+        msg = f'Unable to read project context file {collection_context_file_path}. Abort.'
+        _LOGGER.fatal(msg)
+        raise RuntimeError(msg) from e
+    # [KEEP]
+    collection = Collection(
+        id=collection_id,
+        context=collection_context,
+        project=project,
+        data_descriptor_id=data_descriptor_id,
+        term_kind="") # TODO find term_kind here ? 
+
+    project_db_session.add(collection)
+    for term_file_path in collection_dir_path.iterdir():
+        _LOGGER.info(f"found term path : {term_file_path}")
+        if term_file_path.is_file() and term_file_path.suffix==".json": 
+            try:
+                json_specs = DataMerger(data=JsonLdResource(uri =str(term_file_path)),
+                                        locally_available={"https://espri-mod.github.io/mip-cmor-tables":".cache/repos/mip-cmor-tables"}).merge_linked_json()[-1]
+                term_kind = infer_term_kind(json_specs)
+                term_id = json_specs["id"]
+
+            except Exception as e:
+                _LOGGER.error(f'Unable to read term {term_file_path}. Skip.\n{str(e)}')
+                continue
+            # [KEEP]
+            try:
+                term = PTerm(
+                    id=term_id,
+                    specs=json_specs,
+                    collection=collection,
+                    kind=term_kind,
+                )
+                project_db_session.add(term)
+            except Exception as e:
+                _LOGGER.error(
+                    f"fail to find term {term_id} in data descriptor {data_descriptor_id} "
+                    + f"for the collection {collection_id} of the project {project.id}. Skip {term_id}.\n{str(e)}"
+                )
+                continue
+
+def ingest_project(project_dir_path: Path,
+                   project_db_file_path: Path,
+                   univers_db_file_path: Path):
+    try:
+        project_connection = db.DBConnection(project_db_file_path)
+    except Exception as e:
+        msg = f'Unable to read project SQLite file at {project_db_file_path}. Abort.'
+        _LOGGER.fatal(msg)
+        raise RuntimeError(msg) from e
+    try:
+        univers_connection = db.DBConnection(univers_db_file_path)
+    except Exception as e:
+        msg = f'Unable to read univers SQLite file at {univers_db_file_path}. Abort.'
+        _LOGGER.fatal(msg)
+        raise RuntimeError(msg) from e
+    
+    with project_connection.create_session() as project_db_session,\
+         univers_connection.create_session() as univers_db_session:
+        try:
+            project_specs_file_path = project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)
+            project_json_specs = read_json_file(project_specs_file_path)
+            project_id = project_json_specs[settings.PROJECT_ID_JSON_KEY]
+        except Exception as e:
+            msg = f'Unable to read project specs file  {project_specs_file_path}. Abort.'
+            _LOGGER.fatal(msg)
+            raise RuntimeError(msg) from e
+        
+        # [KEEP]
+        project = Project(id=project_id, specs=project_json_specs,git_hash="")
+        project_db_session.add(project)
+        
+
+        for collection_dir_path in project_dir_path.iterdir():
+            if collection_dir_path.is_dir() and (collection_dir_path / "000_context.jsonld").exists(): #TODO maybe put that in settings
+                _LOGGER.info(f"found collection dir : {collection_dir_path}")
+                try:
+                    ingest_collection(collection_dir_path,
+                                      project,
+                                      project_db_session,
+                                      univers_db_session)
+                except Exception as e:
+                    msg = f'Unexpected error while ingesting collection {collection_dir_path}. Abort.'
+                    _LOGGER.fatal(msg)
+                    raise RuntimeError(msg) from e
+        project_db_session.commit()
+
+
+
+
+
+
+
+
+
+
+
+################################################
+
+def ingest_collection2(collection_dir_path: Path,
+                      project: Project,
+                      project_db_session,
+                      univers_db_session) -> None:
     
     collection_id = collection_dir_path.name
     collection_context_file_path = collection_dir_path.joinpath(settings.CONTEXT_FILENAME)
@@ -49,8 +177,8 @@ def ingest_collection(collection_dir_path: Path,
         context=collection_context,
         project=project,
         data_descriptor_id=data_descriptor_id)
-    project_db_session.add(collection)
     
+
     for term_file_path in items_of_interest(dir_path=collection_dir_path,
                                             glob_inclusion_pattern='*.json',
                                             exclude_prefixes=settings.SKIPED_FILE_DIR_NAME_PREFIXES,
@@ -95,7 +223,7 @@ def ingest_collection(collection_dir_path: Path,
             continue
 
 
-def ingest_project(project_dir_path: Path,
+def ingest_project2(project_dir_path: Path,
                    project_db_file_path: Path,
                    univers_db_file_path: Path):
     try:

@@ -159,13 +159,12 @@ class RepoFetcher:
     def get_local_repo_version(self, repo_path: str, branch: Optional[str] = "main"):
         """ Check the version of the local repository by fetching the latest commit hash. """
         # repo_path = os.path.join(self.repo_dir, repo)
-        # print(repo_path)
-        
         if os.path.exists(repo_path):
+            print("EXIST")
             command = ["git", "-C", repo_path]
             if branch:
                 command.extend(["switch", branch])
-        
+            print(command) 
             # Ensure we are on the correct branch
             subprocess.run(command)
             
