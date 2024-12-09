@@ -1,8 +1,7 @@
 from pydantic import BaseModel
 from cmipld import get_pydantic_class
 from sqlmodel import Session, select
-from cmipld.api import SearchSettings, create_str_comparison_expression
-
+from cmipld.api import SearchSettings, create_str_comparison_expression, SearchType
 import cmipld.settings as api_settings
 import cmipld.db as db
 from cmipld.db.models.project import Project, Collection, PTerm
@@ -339,6 +338,5 @@ def get_all_projects() -> dict[str: dict]:
 
 
 if __name__ == "__main__":
-    from cmipld.api import SearchType
     search_settings = SearchSettings(case_sensitive=False, type=SearchType.LIKE)
     print(find_terms_in_collection('cmip6plus', 'institution_id', 'Psl', search_settings))
