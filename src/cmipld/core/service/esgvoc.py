@@ -8,8 +8,13 @@ from cmipld.db.models.project import project_create_db
 from cmipld.db.models.univers import univers_create_db
 from cmipld.db.univers_ingestion import ingest_metadata_universe, ingest_univers
 from cmipld.db.project_ingestion import ingest_metadata_project, ingest_project
+from rich.logging import RichHandler
+from rich.console import Console
 
 _LOGGER = logging.getLogger(__name__)
+
+rich_handler = RichHandler(rich_tracebacks=True)
+_LOGGER.addHandler(rich_handler)
 
 def reset_init_all():
     settings_path = "src/cmipld/core/service/settings.toml"
@@ -31,7 +36,7 @@ def init():
     state_service = StateService(service_settings)
     state_service.get_state_summary()
     state_service.synchronize_all()
-
+    
     # create DB if present in setting and not in described path
     if service_settings.universe.db_path is not None:
         if not os.path.exists(service_settings.universe.db_path):
@@ -57,13 +62,26 @@ def init():
             ingest_project(Path(proj_setting.local_path),
                            Path(proj_setting.db_path),
                            Path(state_service.universe.db_path))
+    state_table = state_service.table()
+    _LOGGER.info(Console(record=True).print(state_table))
 
+
+
+
+def test_api():
+    from cmipld.api.univers import get_all_terms_in_univers,get_all_terms_in_data_descriptor,get_all_data_descriptors_in_univers
+
+    all_terms_universe = get_all_terms_in_univers()
+    print()
+    print(all_terms_universe)
 
 
 if __name__ == "__main__":
+    _LOGGER.setLevel(logging.INFO)
     reset_init_all()
     init()
-
+    
+    #test_api()
     
 
 

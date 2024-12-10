@@ -8,6 +8,7 @@ from cmipld.db import DBConnection
 from cmipld.db.models.project import Project
 from cmipld.db.models.univers import DataDescriptor, Univers, univers_create_db 
 from cmipld.db.univers_ingestion import ingest_metadata_universe
+from rich.table import Table
 from sqlalchemy import text
 from sqlmodel import select
 
@@ -32,14 +33,14 @@ class BaseState:
         try:
             owner, repo = self.github_repo.lstrip("https://github.com/").split("/")
             self.github_version = self.rf.get_github_version(owner, repo, self.branch)
-            logger.info(f"Latest GitHub commit: {self.github_version}")
+            logger.debug(f"Latest GitHub commit: {self.github_version}")
         except Exception as e:
             logger.exception(f"Failed to fetch GitHub version: {e} ,for {owner},{repo},{self.branch}")
 
         if self.local_path:
             try:
                 self.local_version = self.rf.get_local_repo_version(self.local_path, self.branch)
-                logger.info(f"Local repo commit: {self.local_version}")
+                logger.debug(f"Local repo commit: {self.local_version}")
             except Exception as e:
                 logger.exception(f"Failed to fetch local repo version: {e}")
         
@@ -118,6 +119,17 @@ class StateService:
         self.universe.sync()
         for project in self.projects.values():
             project.sync()
+    def table(self):
+        table = Table(show_header=False, show_lines=True)
+        table.add_row("","Remote github repo","Local repository","Cache Database")
+        table.add_row("Universe path",self.universe.github_repo,self.universe.local_path,self.universe.db_path)
+        table.add_row("Version",self.universe.github_version,self.universe.github_version,self.universe.db_version)
+        for proj_name,proj in self.projects.items():
+
+            table.add_row("","Remote github repo","Local repository","Cache Database")
+            table.add_row(f"{proj_name} path",proj.github_repo,proj.local_path,proj.db_path)
+            table.add_row("Version",proj.github_version,proj.github_version,proj.db_version)
+        return table
 
     # def find_version_differences(self):
     #     summary = self.get_state_summary()
