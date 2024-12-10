@@ -1,5 +1,5 @@
+import logging
 import os
-from os.path import exists
 from pathlib import Path
 from cmipld.core.service.settings import ServiceSettings
 from cmipld.core.service.state import StateService
@@ -8,6 +8,8 @@ from cmipld.db.models.project import project_create_db
 from cmipld.db.models.univers import univers_create_db
 from cmipld.db.univers_ingestion import ingest_metadata_universe, ingest_univers
 from cmipld.db.project_ingestion import ingest_metadata_project, ingest_project
+
+_LOGGER = logging.getLogger(__name__)
 
 def reset_init_all():
     settings_path = "src/cmipld/core/service/settings.toml"
@@ -18,9 +20,10 @@ def reset_init_all():
     for _, proj in service_settings.projects.items():    
         if (proj.db_path) and os.path.exists(proj.db_path):
             os.remove(proj.db_path)
-        
+
 
 def init():
+    
     settings_path = "src/cmipld/core/service/settings.toml"
     service_settings = ServiceSettings.load_from_file(settings_path)
 
@@ -42,7 +45,7 @@ def init():
 
     for name,proj_setting in service_settings.projects.items():
 
-        # create DB if present in setting
+        # create project DB if present in setting
         if proj_setting.db_path is not None:
             if not os.path.exists(proj_setting.db_path):
                 os.makedirs(Path(proj_setting.db_path).parent,exist_ok=True)

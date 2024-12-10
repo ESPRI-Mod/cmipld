@@ -72,7 +72,7 @@ def ingest_collection(collection_dir_path: Path,
 
     project_db_session.add(collection)
     for term_file_path in collection_dir_path.iterdir():
-        _LOGGER.info(f"found term path : {term_file_path}")
+        _LOGGER.debug(f"found term path : {term_file_path}")
         if term_file_path.is_file() and term_file_path.suffix==".json": 
             try:
                 json_specs = DataMerger(data=JsonLdResource(uri =str(term_file_path)),
@@ -81,7 +81,7 @@ def ingest_collection(collection_dir_path: Path,
                 term_id = json_specs["id"]
 
             except Exception as e:
-                _LOGGER.error(f'Unable to read term {term_file_path}. Skip.\n{str(e)}')
+                _LOGGER.warning(f'Unable to read term {term_file_path}. Skip.\n{str(e)}')
                 continue
             # [KEEP]
             try:
@@ -133,7 +133,7 @@ def ingest_project(project_dir_path: Path,
 
         for collection_dir_path in project_dir_path.iterdir():
             if collection_dir_path.is_dir() and (collection_dir_path / "000_context.jsonld").exists(): #TODO maybe put that in settings
-                _LOGGER.info(f"found collection dir : {collection_dir_path}")
+                _LOGGER.debug(f"found collection dir : {collection_dir_path}")
                 try:
                     ingest_collection(collection_dir_path,
                                       project,

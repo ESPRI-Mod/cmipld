@@ -39,7 +39,7 @@ def load_settings() -> ServiceSettings:
 
 def save_settings(settings: ServiceSettings):
     """Save the settings to the TOML file."""
-    settings.save_to_file(SETTINGS_FILE)
+    settings.save_to_file(str(SETTINGS_FILE))
 
 def get_nested_value(settings_dict: dict, key_path: str):
     """Navigate through nested dictionary keys using dot-separated key paths."""
@@ -73,7 +73,7 @@ def config(key: str |None = typer.Argument(None), value: str|None = typer.Argume
         # No key provided, print all settings
         # typer.echo(settings.model_dump())
         syntax = Syntax(toml.dumps(settings.model_dump()), "toml")
-        print(syntax) 
+        #print(syntax) 
         return
     if value is None:
         # Key provided but no value, print the specific key's value

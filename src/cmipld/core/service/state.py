@@ -153,9 +153,9 @@ if __name__ == "__main__":
     # Synchronize all
     state_service.synchronize_all()
 
-    pprint(state_service.universe.github_version)
-    pprint(state_service.universe.local_version)
-    pprint(state_service.universe.db_version)
+    # pprint(state_service.universe.github_version)
+    # pprint(state_service.universe.local_version)
+    # pprint(state_service.universe.db_version)
 
     
     # Check for differences

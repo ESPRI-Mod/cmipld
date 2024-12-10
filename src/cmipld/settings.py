@@ -5,7 +5,7 @@ from pathlib import Path
 
 LOG_HANDLERS = [logging.StreamHandler(sys.stdout)]
 LOG_FORMAT = "[%(name)s][%(levelname)s] %(message)s"
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 
 DIRNAME_AND_FILENAME_SEPARATOR = "_"
 

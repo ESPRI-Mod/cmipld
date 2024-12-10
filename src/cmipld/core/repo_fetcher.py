@@ -3,6 +3,37 @@ from _pytest.pytester import subprocess
 import requests
 from pydantic import BaseModel, ValidationError
 from typing import List, Dict, Any, Optional
+from contextlib import contextmanager
+import logging
+import sys
+
+_LOGGER = logging.getLogger(__name__)
+
+@contextmanager
+def redirect_stdout_to_log(level=logging.INFO):
+    """
+    Redirect stdout to the global _LOGGER temporarily.
+    """
+    class StreamToLogger:
+        def __init__(self, log_level):
+            self.log_level = log_level
+
+        def write(self, message):
+            if message.strip():  # Avoid logging empty lines
+                _LOGGER.debug(self.log_level, message.strip())
+
+        def flush(self):
+            pass  # No-op for compatibility
+
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    sys.stdout = StreamToLogger(level)
+    sys.stderr = StreamToLogger(level)
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
 
 
 class GitHubRepository(BaseModel):
@@ -135,21 +166,22 @@ class RepoFetcher:
         command = ["git", "clone", repo_url, f"{self.repo_dir}/{repo}"]
         if branch:
             command.extend(["--branch", branch])
-        
-        try:
-            subprocess.run(command, check=True)
-            print(f"Repository cloned successfully into {self.repo_dir}/{repo}")
-        except subprocess.CalledProcessError as e:
+        with redirect_stdout_to_log():
+
             try:
-                current_work_dir = os.getcwd()
-                os.chdir(f"{self.repo_dir}/{repo}")
-                command = ["git", "pull"]
                 subprocess.run(command, check=True)
-                os.chdir(current_work_dir)
+                _LOGGER.debug(f"Repository cloned successfully into {self.repo_dir}/{repo}")
+            except subprocess.CalledProcessError as e:
+                try:
+                    current_work_dir = os.getcwd()
+                    os.chdir(f"{self.repo_dir}/{repo}")
+                    command = ["git", "pull"]
+                    subprocess.run(command, check=True)
+                    os.chdir(current_work_dir)
 
 
-            except Exception as e:
-                raise Exception(f"Failed to clone repository: {e}")
+                except Exception as e:
+                    raise Exception(f"Failed to clone repository: {e}")
 
     def get_github_version(self, owner: str, repo: str, branch: str ="main"):
         """ Fetch the latest commit version (or any other versioning scheme) from GitHub. """
@@ -160,16 +192,20 @@ class RepoFetcher:
         """ Check the version of the local repository by fetching the latest commit hash. """
         # repo_path = os.path.join(self.repo_dir, repo)
         if os.path.exists(repo_path):
-            print("EXIST")
+            #print("EXIST")
             command = ["git", "-C", repo_path]
             if branch:
                 command.extend(["switch", branch])
-            print(command) 
             # Ensure we are on the correct branch
-            subprocess.run(command)
-            
-            # Get the latest commit hash (SHA) from the local repository
-            commit_hash = subprocess.check_output(["git", "-C", repo_path, "rev-parse", "HEAD"]).strip().decode()
+            with redirect_stdout_to_log():
+                subprocess.run(command,
+                                stdout=subprocess.PIPE,  # Capture stdout
+                                stderr=subprocess.PIPE,  # Capture stderr
+                                text=True)                # Decode output as text
+                # Get the latest commit hash (SHA) from the local repository
+                commit_hash = subprocess.check_output(["git", "-C", repo_path, "rev-parse", "HEAD"],
+                                                      stderr=subprocess.PIPE,
+                                                      text=True).strip()
             return commit_hash
         return None
 

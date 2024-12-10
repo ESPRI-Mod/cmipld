@@ -43,9 +43,8 @@ class DataMerger:
         """Fetch and merge data recursively, returning a list of progressively merged Data json instances."""
         result_list = [self.data.json]  # Start with the original json object
         visited = set(self.data.uri)  # Track visited URIs to prevent cycles
-
         current_data = self.data
-        print(current_data.expanded)
+        #print(current_data.expanded)
 
         while True:
             next_id = self._get_next_id(current_data.expanded[0])

@@ -11,8 +11,7 @@ import cmipld.db
 
 from cmipld.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
 mapping = DATA_DESCRIPTOR_CLASS_MAPPING
 
@@ -23,7 +22,7 @@ def unified_document_loader(uri: str) -> Dict:
         if response.status_code == 200:
             return response.json()
         else:
-            logger.error(f"Failed to fetch remote document: {response.status_code} - {response.text}")
+            _LOGGER.error(f"Failed to fetch remote document: {response.status_code} - {response.text}")
             return {}
     else:
         with open(uri, "r") as f:
@@ -52,13 +51,13 @@ class JsonLdResource(BaseModel):
     @cached_property
     def json(self) -> Dict:
         """Fetch the original JSON data."""
-        logger.info(f"Fetching JSON data from {self.uri}")
+        _LOGGER.debug(f"Fetching JSON data from {self.uri}")
         return unified_document_loader(self.uri)
 
     @cached_property
     def expanded(self) -> Any:
         """Expand the JSON-LD data."""
-        logger.info(f"Expanding JSON-LD data for {self.uri}")
+        _LOGGER.debug(f"Expanding JSON-LD data for {self.uri}")
         return jsonld.expand(self.uri, options={"base": self.uri})
     
     @cached_property
@@ -71,20 +70,20 @@ class JsonLdResource(BaseModel):
         context_value = context_data.json
         if isinstance(context_value, str):
             # It's a URI, fetch it
-            logger.info(f"Fetching context from URI: {context_value}")
+            _LOGGER.info(f"Fetching context from URI: {context_value}")
             return unified_document_loader(context_value)
         elif isinstance(context_value, dict):
             # Embedded context
-            logger.info("Using embedded context.")
+            _LOGGER.info("Using embedded context.")
             return context_value
         else:
-            logger.warning("No valid '@context' found.")
+            _LOGGER.warning("No valid '@context' found.")
             return {}
 
     @cached_property
     def normalized(self) -> str:
         """Normalize the JSON-LD data."""
-        logger.info(f"Normalizing JSON-LD data for {self.uri}")
+        _LOGGER.info(f"Normalizing JSON-LD data for {self.uri}")
         return jsonld.normalize(
             self.uri, options={"algorithm": "URDNA2015", "format": "application/n-quads"}
         )
@@ -92,12 +91,12 @@ class JsonLdResource(BaseModel):
     @cached_property
     def python(self) -> Optional[Any]:
         """Map the data to a Pydantic model based on URI."""
-        logger.info(f"Mapping data to a Pydantic model for {self.uri}")
+        _LOGGER.info(f"Mapping data to a Pydantic model for {self.uri}")
         model_key = self._extract_model_key(self.uri)
         if model_key and model_key in mapping:
             model = mapping[model_key]
             return model(**self.json)
-        logger.warning(f"No matching model found for key: {model_key}")
+        _LOGGER.warning(f"No matching model found for key: {model_key}")
         return None
 
     def _extract_model_key(self, uri: str) -> Optional[str]:

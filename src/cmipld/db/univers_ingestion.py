@@ -12,7 +12,7 @@ from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.univers import DataDescriptor, UTerm, Univers
 from cmipld.db.models.univers import univers_create_db
 
-_LOGGER = logging.getLogger("univers_ingestion")
+_LOGGER = logging.getLogger(__name__)
 
 def infer_term_kind(json_specs: dict) -> TermKind:
     if settings.PATTERN_JSON_KEY in json_specs:
@@ -58,17 +58,16 @@ def ingest_data_descriptor(data_descriptor_path: Path,
     except Exception as e:
         msg = f'Unable to read the context file {context_file_path} of data descriptor \
                {data_descriptor_id}. Skip.\n{str(e)}'
-        _LOGGER.error(msg)
+        _LOGGER.warning(msg)
         return        
 
 
     with connection.create_session() as session:
-        # [KEEP]
         data_descriptor = DataDescriptor(id=data_descriptor_id, context=context, term_kind=TermKind.PLAIN)
         session.add(data_descriptor)
-        _LOGGER.info(f"add data_descriptor : {data_descriptor_id}")
+        _LOGGER.debug(f"add data_descriptor : {data_descriptor_id}")
         for term_file_path in data_descriptor_path.iterdir():
-            _LOGGER.info(f"found term path : {term_file_path} , {term_file_path.suffix}")
+            _LOGGER.debug(f"found term path : {term_file_path} , {term_file_path.suffix}")
             if term_file_path.is_file() and term_file_path.suffix == ".json":
                 try:
                     json_specs=DataMerger(data=JsonLdResource(uri=str(term_file_path)),
@@ -77,10 +76,10 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                     term_id = json_specs["id"]
 
                 except Exception as e:
-                    _LOGGER.error(f'Unable to read term {term_file_path}. Skip.\n{str(e)}')
+                    _LOGGER.warning(f'Unable to read term {term_file_path}. Skip.\n{str(e)}')
                     continue
                 if term_id and json_specs and data_descriptor and term_kind:
-                    _LOGGER.info("adding {term_id}")
+                    _LOGGER.debug("adding {term_id}")
                     term = UTerm(
                         id=term_id,
                         specs=json_specs,
