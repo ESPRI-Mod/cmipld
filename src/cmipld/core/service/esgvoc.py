@@ -63,7 +63,9 @@ def init():
                            Path(proj_setting.db_path),
                            Path(state_service.universe.db_path))
     state_table = state_service.table()
-    _LOGGER.info(Console(record=True).print(state_table))
+    console = Console(record=True,width=200)
+    console.print(state_table)
+    #_LOGGER.info("\n"+console.export_text())
 
 
 
@@ -80,7 +82,7 @@ if __name__ == "__main__":
     _LOGGER.setLevel(logging.INFO)
     reset_init_all()
     init()
-    
+    print("END")
     #test_api()
     
 

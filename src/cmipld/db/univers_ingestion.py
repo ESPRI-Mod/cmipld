@@ -76,7 +76,7 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                     term_id = json_specs["id"]
 
                 except Exception as e:
-                    _LOGGER.warning(f'Unable to read term {term_file_path}. Skip.\n{str(e)}')
+                    _LOGGER.warning(f'Unable to read term {term_file_path} for datadescriptor {data_descriptor_path}. Skip.\n{str(e)}')
                     continue
                 if term_id and json_specs and data_descriptor and term_kind:
                     _LOGGER.debug("adding {term_id}")

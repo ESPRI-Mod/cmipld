@@ -73,7 +73,7 @@ def config(key: str |None = typer.Argument(None), value: str|None = typer.Argume
         # No key provided, print all settings
         # typer.echo(settings.model_dump())
         syntax = Syntax(toml.dumps(settings.model_dump()), "toml")
-        #print(syntax) 
+        typer.echo(syntax) 
         return
     if value is None:
         # Key provided but no value, print the specific key's value
