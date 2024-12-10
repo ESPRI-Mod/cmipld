@@ -27,7 +27,7 @@ def _get_project_connection(project_id: str) -> db.DBConnection|None:
 
 
 def _resolve_term(term_id: str, term_type: str, project_session: Session) -> UTerm|PTerm:
-    '''First find the term in the univers than the current project'''
+    '''First find the term in the univers than in the current project'''
     result = None
     with UNIVERS_DB_CONNECTION.create_session() as univers_session:
         uterm: UTerm = univers._find_terms_in_data_descriptor(data_descriptor_id=term_type,
@@ -45,6 +45,45 @@ def _resolve_term(term_id: str, term_type: str, project_session: Session) -> UTe
     return result
 
 
+def _valid_term_composite(value: str,
+                          term: UTerm|PTerm,
+                          project_session: Session) -> bool:
+    composite = GenericTermComposite(**term.specs)
+    if composite.separator:
+        if composite.separator in value:
+            splits = value.split(composite.separator)
+            if len(splits) == len(composite.parts): # TODO: support is_required!!!
+                result = True
+                for index in range(0, len(splits)):
+                    given_value = splits[index]
+                    referenced_id = composite.parts[index].id
+                    referenced_type = composite.parts[index].type
+                    resolved_term = _resolve_term(referenced_id,
+                                                  referenced_type,
+                                                  project_session)
+                    if resolved_term:
+                        is_valid = _valid_term(given_value,
+                                               resolved_term,
+                                               project_session)
+                        if is_valid:
+                            continue
+                        else:
+                            result = False
+                            break
+                    else:
+                        msg = f'unable to find the term {referenced_id} ' + \
+                              f'in {referenced_type}'
+                        raise RuntimeError(msg)
+            else:
+                result = False
+        else:
+            result = False
+    else:
+        raise NotImplementedError(f'unsupported separatorless term composite {term.id} ' +
+                                  f'in collection {term.collection.id}')
+    return result
+
+
 # Return why (as Exception?)
 def _valid_term(value: str, term: UTerm|PTerm, project_session: Session) -> bool:
     match term.kind:
@@ -55,40 +94,7 @@ def _valid_term(value: str, term: UTerm|PTerm, project_session: Session) -> bool
             pattern_match = re.match(term.specs[api_settings.PATTERN_JSON_KEY], value)
             result = pattern_match is not None
         case TermKind.COMPOSITE:
-            composite = GenericTermComposite(**term.specs)
-            if composite.separator:
-                if composite.separator in value:
-                    splits = value.split(composite.separator)
-                    if len(splits) == len(composite.parts): # TODO: support is_required!!!
-                        result = True
-                        for index in range(0, len(splits)):
-                            given_value = splits[index]
-                            referenced_id = composite.parts[index].id
-                            referenced_type = composite.parts[index].type
-                            resolved_term = _resolve_term(referenced_id,
-                                                          referenced_type,
-                                                          project_session)
-                            if resolved_term:
-                                is_valid = _valid_term(given_value,
-                                                       resolved_term,
-                                                       project_session)
-                                if is_valid:
-                                    continue
-                                else:
-                                    result = False
-                                    break
-                            else:
-                                msg = f'unable to find the term {referenced_id} ' + \
-                                      f'in {referenced_type}'
-                                raise RuntimeError(msg)
-                        return result
-                    else:
-                        result = False
-                else:
-                    result = False
-            else:
-                raise NotImplementedError(f'unsupported separatorless term composite {term.id} ' +
-                                          f'in collection {term.collection.id}')
+            _valid_term_composite(value, term, project_session)
         case _:
             raise NotImplementedError(f'unsupported term kind {term.kind}')
     return result
@@ -136,6 +142,7 @@ def valid_term_in_collection(value: str,
                     collection = _find_collections_in_project(collection_id,
                                                               session,
                                                               None)
+                    # TODO: untested
                     match collection.term_kind:
                         case TermKind.PLAIN:
                             result = _valid_plain_term(value, collection_id,
