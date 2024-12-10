@@ -45,6 +45,8 @@ def _resolve_term(term_id: str, term_type: str, project_session: Session) -> UTe
     return result
 
 
+# TODO: support optionality of parts of composite.
+# It is backtrack possible for more than one missing parts.
 def _valid_term_composite(value: str,
                           term: UTerm|PTerm,
                           project_session: Session) -> bool:
@@ -52,7 +54,7 @@ def _valid_term_composite(value: str,
     if composite.separator:
         if composite.separator in value:
             splits = value.split(composite.separator)
-            if len(splits) == len(composite.parts): # TODO: support is_required!!!
+            if len(splits) == len(composite.parts):
                 result = True
                 for index in range(0, len(splits)):
                     given_value = splits[index]
