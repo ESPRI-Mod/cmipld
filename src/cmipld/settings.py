@@ -16,6 +16,7 @@ PROJECT_ID_JSON_KEY = "project_id"
 CONTEXT_FILENAME = "000_context.jsonld"
 CONTEXT_JSON_KEY = "@context"
 TERM_ID_JSON_KEY = 'id'
+COMPOSITE_JSON_KEY = 'parts'
 PATTERN_JSON_KEY = 'regex'
 TERM_TYPE_JSON_KEY = 'type'
 DRS_SPECS_JSON_KEY = 'drs_name'
