@@ -20,7 +20,7 @@ from cmipld.db.models.univers import UTerm
 
 ############## DEBUG ##############
 # TODO: to be deleted.
-# The following instructions are only temporary as long as a complet data managment will be implmented.
+# The following instructions are only temporary as long as a complete data management will be implemented.
 UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', False)
 ###################################
 
@@ -28,7 +28,7 @@ UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', Fals
 def _get_project_connection(project_id: str) -> db.DBConnection|None:
     ############## DEBUG ##############
     # TODO: to be deleted.
-    # The following instructions are only temporary as long as a complet data managment will be implmented.
+    # The following instructions are only temporary as long as a complete data management will be implemented.
     return db.DBConnection(db.CMIP6PLUS_DB_FILE_PATH, 'cmip6plus', False)
     ###################################
 
@@ -89,7 +89,7 @@ def _valid_value_for_term_composite(value: str,
         else:
             result.append(create_term_error(value, term))
     else:
-        raise NotImplementedError(f'unsupported separatorless term composite {term.id} ' +
+        raise NotImplementedError(f'unsupported separator less term composite {term.id} ' +
                                   f'in collection {term.collection.id}')
     return result
 
@@ -165,7 +165,7 @@ def valid_term_in_collection(value: str,
     If any of the provided ids (`project_id`, `collection_id` or `term_id`) is not found,
     the function raises a ValueError.
 
-    :param value: A value to be valided
+    :param value: A value to be validated
     :type value: str
     :param project_id: A project id
     :type project_id: str
@@ -484,7 +484,7 @@ def get_all_terms_in_project(project_id: str) -> dict[str, dict[str, BaseModel]]
             if collections:
                 result = dict()
                 for collection in collections:
-                    # Term may have some sysnonyms within a project.
+                    # Term may have some synonyms within a project.
                     result[collection.id] = dict()
                     terms = _get_all_terms_in_collection(collection)
                     for term in terms:

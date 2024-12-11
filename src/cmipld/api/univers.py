@@ -259,7 +259,7 @@ def get_all_terms_in_univers() -> dict[str, dict[str, BaseModel]]:
         data_descriptors = _get_all_data_descriptors_in_univers(session)
         result = dict()
         for data_descriptor in data_descriptors:
-            # Term may have some sysnonyms within the whole univers.
+            # Term may have some synonyms within the whole univers.
             result[data_descriptor.id] = dict()
             terms = _get_all_terms_in_data_descriptor(data_descriptor)
             for term in terms:
