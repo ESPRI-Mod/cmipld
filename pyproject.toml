@@ -34,6 +34,7 @@ dev-dependencies = [
 ev = { cmd = "python src/cmipld/cli/main.py" }
 evc = { cmd = "python src/cmipld/cli/main.py config" }
 evcp = { cmd = "python src/cmipld/cli/main.py config projects." }
+evg = { cmd = "python src/cmipld/cli/main.py get" }
 
 [tool.hatch.metadata]
 allow-direct-references = true
