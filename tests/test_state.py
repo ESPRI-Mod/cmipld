@@ -3,7 +3,6 @@ import pytest
 from unittest.mock import MagicMock
 from cmipld.core.service.state import StateService
 from cmipld.core.service.settings import ServiceSettings, UniverseSettings, ProjectSettings
-from pprint import pprint
 
 @pytest.fixture
 def mock_repo_fetcher(mocker):

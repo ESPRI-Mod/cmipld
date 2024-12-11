@@ -1,9 +1,8 @@
 
-from logging import info
 from pathlib import Path
 from typing import Any
 from cmipld.api.projects import get_all_projects
-from cmipld.api.universd import find_data_descriptors_in_universe, find_terms_in_data_descriptor, find_terms_in_universe, get_all_data_descriptors_in_universe, get_all_terms_in_data_descriptor
+from cmipld.api.universe import find_terms_in_data_descriptor, find_terms_in_universe, get_all_data_descriptors_in_universe, get_all_terms_in_data_descriptor
 from cmipld.core.service.settings import ProjectSettings, ServiceSettings, UniverseSettings
 from pydantic import BaseModel
 from rich.table import Table

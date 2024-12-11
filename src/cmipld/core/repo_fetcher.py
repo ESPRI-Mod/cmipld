@@ -2,7 +2,7 @@ import os
 from _pytest.pytester import subprocess
 import requests
 from pydantic import BaseModel, ValidationError
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from contextlib import contextmanager
 import logging
 import sys
@@ -171,7 +171,7 @@ class RepoFetcher:
             try:
                 subprocess.run(command, check=True)
                 _LOGGER.debug(f"Repository cloned successfully into {self.repo_dir}/{repo}")
-            except subprocess.CalledProcessError as e:
+            except subprocess.CalledProcessError:
                 try:
                     current_work_dir = os.getcwd()
                     os.chdir(f"{self.repo_dir}/{repo}")

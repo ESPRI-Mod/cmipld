@@ -6,10 +6,8 @@ from cmipld.core.repo_fetcher import RepoFetcher
 from cmipld.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings
 from cmipld.db import DBConnection
 from cmipld.db.models.project import Project
-from cmipld.db.models.universe import DataDescriptor, Universe, universe_create_db 
-from cmipld.db.universe_ingestion import ingest_metadata_universe
+from cmipld.db.models.universe import Universe 
 from rich.table import Table
-from sqlalchemy import text
 from sqlmodel import select
 
 logger = logging.getLogger(__name__)
@@ -154,7 +152,6 @@ class StateService:
 
 
 if __name__ == "__main__":
-    from pprint import pprint 
     # Load settings from file
     service_settings = ServiceSettings.load_from_file("src/cmipld/core/service/settings.toml")
     

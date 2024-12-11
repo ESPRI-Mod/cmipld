@@ -71,7 +71,7 @@ def init():
 
 
 def test_api():
-    from cmipld.api.universe import get_all_terms_in_universe,get_all_terms_in_data_descriptor,get_all_data_descriptors_in_universe
+    from cmipld.api.universe import get_all_terms_in_universe
 
     all_terms_universe = get_all_terms_in_universe()
     print()

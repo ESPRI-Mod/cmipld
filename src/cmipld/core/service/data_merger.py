@@ -1,7 +1,6 @@
 
 from typing import Dict, List, Set
 from cmipld.core.data_handler import JsonLdResource
-import pyld
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -69,7 +68,6 @@ class DataMerger:
 
 if __name__ == "__main__":
     import warnings
-    from pprint import pprint
     warnings.simplefilter("ignore")
 
     # test from institution_id ipsl exapnd and merge with institution ipsl

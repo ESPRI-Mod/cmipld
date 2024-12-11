@@ -7,7 +7,6 @@ from typing import Any, Optional, Dict
 import requests
 from pyld import jsonld
 from pydantic import BaseModel, model_validator, ConfigDict
-import cmipld.db
 
 from cmipld.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
 # Configure logging

@@ -93,7 +93,7 @@ def config(key: str |None = typer.Argument(None), value: str|None = typer.Argume
     # Modify the key's value
     try :
         selected_value = get_nested_value(json.loads(settings.model_dump_json()),key)
-    except Exception as e:
+    except Exception:
         key = "projects."+key
     try : 
         selected_value = get_nested_value(json.loads(settings.model_dump_json()),key)
