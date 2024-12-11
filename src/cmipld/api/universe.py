@@ -1,3 +1,4 @@
+from typing import cast
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -61,15 +62,16 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     :rtype: BaseModel|dict[str: BaseModel]|None
     """
     with UNIVERSE_DB_CONNECTION.create_session() as session:
-        result = None
         terms = _find_terms_in_data_descriptor(data_descriptor_id, term_id, session, settings)
+        result:BaseModel|dict[str: BaseModel]|None = None
         if terms:
             if settings is None or SearchType.EXACT == settings.type:
-                term_class = get_pydantic_class(terms.specs[api_settings.TERM_TYPE_JSON_KEY])
-                result = term_class(**terms.specs)
+                term = cast(UTerm, terms)
+                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+                result = term_class(**term.specs)
             else:
                 result = dict()
-                for term in terms:
+                for term in cast(list[UTerm], terms):
                     term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
                     result[term.id] = term_class(**term.specs)
     return result
