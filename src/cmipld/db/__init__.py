@@ -78,12 +78,12 @@ class DBConnection:
 
 from cmipld.settings import ROOT_DIR_PATH  # noqa
 
-UNIVERS_DIR_NAME = 'mip-cmor-tables'
-CMIP6PLUS_DIR_NAME = 'CMIP6Plus_CVs'
+UNIVERS_DIR_NAME = '.cache/repos/mip-cmor-tables'
+CMIP6PLUS_DIR_NAME = '.cache/repos/CMIP6Plus_CVs'
 
 UNIVERS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(UNIVERS_DIR_NAME)
 CMIP6PLUS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(CMIP6PLUS_DIR_NAME)
 
-UNIVERS_DB_FILE_PATH = Path('univers.sqlite')
-CMIP6PLUS_DB_FILE_PATH = Path('projects.sqlite')
+UNIVERS_DB_FILE_PATH = Path('.cache/dbs/univers.sqlite')
+CMIP6PLUS_DB_FILE_PATH = Path('.cache/dbs/projects.sqlite')
 ###################################
