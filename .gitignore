@@ -9,8 +9,7 @@ mip-cmor-tables/
 sb.py
 # venv
 .venv
-uv.lock
-pdm.lock
+*.lock
 *.sqlite
 .pdm-python
 .DS_Store
