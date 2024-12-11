@@ -5,8 +5,8 @@ from cmipld.core.service.settings import ServiceSettings
 from cmipld.core.service.state import StateService
 from cmipld.db import DBConnection
 from cmipld.db.models.project import project_create_db
-from cmipld.db.models.univers import univers_create_db
-from cmipld.db.univers_ingestion import ingest_metadata_universe, ingest_univers
+from cmipld.db.models.universe import universe_create_db
+from cmipld.db.universe_ingestion import ingest_metadata_universe, ingest_universe
 from cmipld.db.project_ingestion import ingest_metadata_project, ingest_project
 from rich.logging import RichHandler
 from rich.console import Console
@@ -41,12 +41,12 @@ def init():
     if service_settings.universe.db_path is not None:
         if not os.path.exists(service_settings.universe.db_path):
             os.makedirs(Path(service_settings.universe.db_path).parent,exist_ok=True)
-        univers_create_db(Path(service_settings.universe.db_path))
+        universe_create_db(Path(service_settings.universe.db_path))
         ingest_metadata_universe(DBConnection(Path(service_settings.universe.db_path)),state_service.universe.local_version) 
     state_service.universe.fetch_versions()
     
     if state_service.universe.db_path and state_service.universe.local_path :
-        ingest_univers(Path(state_service.universe.local_path),Path(state_service.universe.db_path))
+        ingest_universe(Path(state_service.universe.local_path),Path(state_service.universe.db_path))
 
     for name,proj_setting in service_settings.projects.items():
 
@@ -71,9 +71,9 @@ def init():
 
 
 def test_api():
-    from cmipld.api.univers import get_all_terms_in_univers,get_all_terms_in_data_descriptor,get_all_data_descriptors_in_univers
+    from cmipld.api.universe import get_all_terms_in_universe,get_all_terms_in_data_descriptor,get_all_data_descriptors_in_universe
 
-    all_terms_universe = get_all_terms_in_univers()
+    all_terms_universe = get_all_terms_in_universe()
     print()
     print(all_terms_universe)
 

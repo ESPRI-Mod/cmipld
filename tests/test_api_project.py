@@ -20,13 +20,13 @@ _SOME_VALIDATION_REQUESTS = [
 _SETTINGS = SearchSettings(type=SearchType.LIKE)
 
 
-def _provide_validation_resquest() -> Generator[tuple]:
+def _provide_validation_request() -> Generator[tuple]:
     for validation_request in _SOME_VALIDATION_REQUESTS:
         yield validation_request
 
 
-@pytest.fixture(params=_provide_validation_resquest())
-def validation_resquest(request) -> tuple:
+@pytest.fixture(params=_provide_validation_request())
+def validation_request(request) -> tuple:
     return request.param
 
 
@@ -95,7 +95,7 @@ def test_find_terms_in_collection(project_id, collection_id, term_id) -> None:
     projects.find_terms_in_collection(project_id, collection_id, term_id, _SETTINGS)
 
 
-def test_valid_term_in_collection(validation_resquest) -> None:
-    nb_errors, parameters = validation_resquest
+def test_valid_term_in_collection(validation_request) -> None:
+    nb_errors, parameters = validation_request
     vr = projects.valid_term_in_collection(*parameters)
     assert nb_errors == len(vr), f'unmatching number of errors for parameters {parameters}'

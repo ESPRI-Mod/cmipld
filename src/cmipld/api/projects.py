@@ -7,7 +7,7 @@ from cmipld.api import (SearchSettings,
                        ValidationReport,
                        ValidationError,
                        CollectionError,
-                       UniversTermError,
+                       UniverseTermError,
                        ProjectTermError)
 import cmipld.settings as api_settings
 import cmipld.db as db
@@ -15,13 +15,13 @@ from cmipld.db.models.project import Project, Collection, PTerm
 from cmipld.db.models.mixins import TermKind
 import re
 from cmipld.api.models import GenericTermComposite
-import cmipld.api.univers as univers
-from cmipld.db.models.univers import UTerm
+import cmipld.api.universe as universe
+from cmipld.db.models.universe import UTerm
 
 ############## DEBUG ##############
 # TODO: to be deleted.
 # The following instructions are only temporary as long as a complete data management will be implemented.
-UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', False)
+UNIVERSE_DB_CONNECTION = db.DBConnection(db.UNIVERSE_DB_FILE_PATH, 'universe', False)
 ###################################
 
 
@@ -36,12 +36,12 @@ def _get_project_connection(project_id: str) -> db.DBConnection|None:
 def _resolve_term(term_id: str,
                   term_type: str,
                   project_session: Session,
-                  univers_session: Session) -> UTerm|PTerm|None:
-    '''First find the term in the univers than in the current project'''
+                  universe_session: Session) -> UTerm|PTerm|None:
+    '''First find the term in the universe than in the current project'''
     result = None
-    uterm: UTerm = univers._find_terms_in_data_descriptor(data_descriptor_id=term_type,
+    uterm: UTerm = universe._find_terms_in_data_descriptor(data_descriptor_id=term_type,
                                                           term_id=term_id,
-                                                          session=univers_session,
+                                                          session=universe_session,
                                                           settings=None)
     if uterm:
         result = uterm
@@ -59,7 +59,7 @@ def _resolve_term(term_id: str,
 def _valid_value_for_term_composite(value: str,
                                     term: UTerm|PTerm,
                                     project_session: Session,
-                                    univers_session: Session) -> list[ValidationError]:
+                                    universe_session: Session) -> list[ValidationError]:
     result = list()
     composite = GenericTermComposite(**term.specs)
     if composite.separator:
@@ -73,12 +73,12 @@ def _valid_value_for_term_composite(value: str,
                     resolved_term = _resolve_term(referenced_id,
                                                   referenced_type,
                                                   project_session,
-                                                  univers_session)
+                                                  universe_session)
                     if resolved_term:
                         errors = _valid_value(given_value,
                                               resolved_term,
                                               project_session,
-                                              univers_session)
+                                              universe_session)
                         result.extend(errors)
                     else:
                         msg = f'unable to find the term {referenced_id} ' + \
@@ -96,7 +96,7 @@ def _valid_value_for_term_composite(value: str,
 
 def create_term_error(value: str, term: UTerm|PTerm) -> ValidationError:
     if isinstance(term, UTerm):
-        return UniversTermError(value, term)
+        return UniverseTermError(value, term)
     else:
         return ProjectTermError(value, term)
 
@@ -104,7 +104,7 @@ def create_term_error(value: str, term: UTerm|PTerm) -> ValidationError:
 def _valid_value(value: str,
                  term: UTerm|PTerm,
                  project_session: Session,
-                 univers_session: Session) -> list[ValidationError]:
+                 universe_session: Session) -> list[ValidationError]:
     result = list()
     match term.kind:
         case TermKind.PLAIN:
@@ -118,7 +118,7 @@ def _valid_value(value: str,
         case TermKind.COMPOSITE:
             result.extend(_valid_value_for_term_composite(value, term,
                                                           project_session,
-                                                          univers_session))
+                                                          universe_session))
         case _:
             raise NotImplementedError(f'unsupported term kind {term.kind}')
     return result
@@ -128,14 +128,14 @@ def _search_term_and_valid_value(value: str,
                                  collection_id: str,
                                  term_id: str,
                                  project_session: Session,
-                                 univers_session: Session) -> list[ValidationError]:
+                                 universe_session: Session) -> list[ValidationError]:
     try:
         term: PTerm = _find_terms_in_collection(collection_id,
                                                 term_id,
                                                 project_session,
                                                 None)
         if term:
-            result = _valid_value(value, term, project_session, univers_session)
+            result = _valid_value(value, term, project_session, universe_session)
         else:
             raise ValueError(f'unable to find term {term_id} ' +
                              f'in collection {collection_id}')
@@ -182,17 +182,17 @@ def valid_term_in_collection(value: str,
     if value:= value.strip():
         if connection:=_get_project_connection(project_id):
             with connection.create_session() as project_session,\
-                 UNIVERS_DB_CONNECTION.create_session() as univers_session:
+                 UNIVERSE_DB_CONNECTION.create_session() as universe_session:
                 if term_id:
                     errors = _search_term_and_valid_value(value, collection_id, term_id,
-                                                          project_session, univers_session)
+                                                          project_session, universe_session)
                 else:
                     collection = _find_collections_in_project(collection_id,
                                                               project_session,
                                                               None)
                     if collection:
                         for term in collection.terms:
-                            _errors = _valid_value(value, term, project_session, univers_session)
+                            _errors = _valid_value(value, term, project_session, universe_session)
                             if not _errors:
                                 break
                         if _errors:

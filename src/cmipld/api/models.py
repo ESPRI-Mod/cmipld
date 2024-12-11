@@ -10,7 +10,7 @@ class GenericPlainTerm(GenericTerm):
     drs_name: str
     
 
-class GenericTermPatern(GenericTerm):
+class GenericTermPattern(GenericTerm):
     regex: str
 
 

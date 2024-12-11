@@ -7,7 +7,7 @@ from sqlmodel import col
 
 import cmipld.settings as api_settings
 from cmipld.db.models.project import PTerm
-from cmipld.db.models.univers import UTerm
+from cmipld.db.models.universe import UTerm
 from cmipld.db.models.mixins import TermKind
 
 
@@ -17,7 +17,7 @@ class ValidationErrorVisitor(ABC):
         pass
 
     @abstractmethod
-    def visit_univers_term_error(self, error: "UniversTermError") -> any:
+    def visit_universe_term_error(self, error: "UniverseTermError") -> any:
         pass
 
     @abstractmethod
@@ -30,7 +30,7 @@ class BasicValidationErrorVisitor(ValidationErrorVisitor):
         result = f"'{error.value}' does not belong to any terms of the collection {error.collection_id}"
         return result
 
-    def visit_univers_term_error(self, error: "UniversTermError") -> any:
+    def visit_universe_term_error(self, error: "UniverseTermError") -> any:
         result = f"'{error.value}' is not compliant with the term " +\
                  f"{error.term[api_settings.TERM_ID_JSON_KEY]} of the data descriptor {error.data_descriptor_id}"
         return result
@@ -58,7 +58,7 @@ class CollectionError(ValidationError):
         return visitor.visit_collection_error(self)
 
 
-class UniversTermError(ValidationError):
+class UniverseTermError(ValidationError):
     def __init__(self,
                  value: str,
                  term: UTerm):
@@ -68,7 +68,7 @@ class UniversTermError(ValidationError):
         self.data_descriptor_id: str = term.data_descriptor.id
 
     def accept(self, visitor: ValidationErrorVisitor) -> any:
-        return visitor.visit_univers_term_error(self)
+        return visitor.visit_universe_term_error(self)
 
 
 class ProjectTermError(ValidationError):
@@ -91,14 +91,14 @@ class ValidationReport:
         self.expression: str = given_expression
         self.errors: list[ValidationError] = errors
         self.nb_errors = len(self.errors) if self.errors else 0
-        self.valided: bool = False if errors else True
-        self.messsage = f"'{self.expression}' has {len(self.errors)} error(s)"
+        self.validated: bool = False if errors else True
+        self.message = f"'{self.expression}' has {len(self.errors)} error(s)"
    
     def __len__(self) -> int:
         return self.nb_errors
     
     def __bool__(self) -> bool:
-        return self.valided
+        return self.validated
     
     def __repr__(self) -> str:
         return self.message
@@ -124,7 +124,7 @@ def create_str_comparison_expression(field: str,
     '''
     SQLite LIKE is case insensitive (and so STARTS/ENDS_WITH which are implemented with LIKE).
     So the case sensitive LIKE is implemented with REGEX.
-    The i versions of SQLAlchemy operators (icontains, etc.) are not usefull
+    The i versions of SQLAlchemy operators (icontains, etc.) are not useful
     (but other dbs than SQLite should use them).
     If the provided `settings` is None, this functions returns an exact search expression.
     '''

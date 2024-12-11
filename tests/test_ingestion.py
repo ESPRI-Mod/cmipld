@@ -4,29 +4,29 @@ import pytest
 
 import cmipld.db as db
 import cmipld.db.models.project as project
-import cmipld.db.models.univers as univers
+import cmipld.db.models.universe as universe
 import cmipld.db.project_ingestion as project_ingestion
-import cmipld.db.univers_ingestion as univers_ingestion
+import cmipld.db.universe_ingestion as universe_ingestion
 
 
-# TODO: automize each tests!
+# TODO: automate each tests!
 @pytest.fixture(scope="module", autouse=True)
 def delete_db():
-    univers_file_path = Path(db.UNIVERS_DB_FILE_PATH)
+    universe_file_path = Path(db.UNIVERSE_DB_FILE_PATH)
     cmip6plus_file_path = Path(db.CMIP6PLUS_DB_FILE_PATH)
-    if univers_file_path.exists():
-        univers_file_path.unlink()
+    if universe_file_path.exists():
+        universe_file_path.unlink()
     if cmip6plus_file_path.exists():
         cmip6plus_file_path.unlink()
 
 
-def test_create_univers_db() -> None:
-    univers.univers_create_db(db.UNIVERS_DB_FILE_PATH)
+def test_create_universe_db() -> None:
+    universe.universe_create_db(db.UNIVERSE_DB_FILE_PATH)
 
 
-def test_univers_ingestion(caplog) -> None:
+def test_universe_ingestion(caplog) -> None:
     caplog.clear()
-    univers_ingestion.ingest_univers(db.UNIVERS_DIR_PATH, db.UNIVERS_DB_FILE_PATH)
+    universe_ingestion.ingest_universe(db.UNIVERSE_DIR_PATH, db.UNIVERSE_DB_FILE_PATH)
     count_error_tags = caplog.text.count("ERROR")
     if count_error_tags > 0:
         print(caplog.text)
@@ -41,7 +41,7 @@ def test_project_ingestion(caplog) -> None:
     caplog.clear()
     project_ingestion.ingest_project(db.CMIP6PLUS_DIR_PATH,
                                      db.CMIP6PLUS_DB_FILE_PATH,
-                                     db.UNIVERS_DB_FILE_PATH)
+                                     db.UNIVERSE_DB_FILE_PATH)
     count_error_tags = caplog.text.count("ERROR")
     if count_error_tags > 0:
         print(caplog.text)

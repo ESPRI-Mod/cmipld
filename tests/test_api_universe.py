@@ -2,7 +2,7 @@ from typing import Generator
 
 import pytest
 
-import cmipld.api.univers as univers
+import cmipld.api.universe as universe
 from cmipld.api import SearchSettings, SearchType
 
 _SOME_DATA_DESCRIPTOR_IDS = ['institution', 'product', 'variable']
@@ -30,28 +30,28 @@ def term_id(request) -> str:
     return request.param
 
 
-def test_get_all_terms_in_univers() -> None:
-    univers.get_all_terms_in_univers()
+def test_get_all_terms_in_universe() -> None:
+    universe.get_all_terms_in_universe()
 
 
-def test_get_all_data_descriptors_in_univers() -> None:
-    univers.get_all_data_descriptors_in_univers()
+def test_get_all_data_descriptors_in_universe() -> None:
+    universe.get_all_data_descriptors_in_universe()
 
 
 def test_get_terms_in_data_descriptor(data_descriptor_id) -> None:
-    univers.get_all_terms_in_data_descriptor(data_descriptor_id)
+    universe.get_all_terms_in_data_descriptor(data_descriptor_id)
         
 
 def test_find_term_in_data_descriptor(data_descriptor_id, term_id) -> None:
-    univers.find_terms_in_data_descriptor(data_descriptor_id, term_id)
-    univers.find_terms_in_data_descriptor(data_descriptor_id, term_id, _SETTINGS)
+    universe.find_terms_in_data_descriptor(data_descriptor_id, term_id)
+    universe.find_terms_in_data_descriptor(data_descriptor_id, term_id, _SETTINGS)
 
 
-def test_find_terms_in_univers(term_id) -> None:
-    univers.find_terms_in_univers(term_id)
-    univers.find_terms_in_univers(term_id, settings=_SETTINGS)
+def test_find_terms_in_universe(term_id) -> None:
+    universe.find_terms_in_universe(term_id)
+    universe.find_terms_in_universe(term_id, settings=_SETTINGS)
 
 
-def test_find_data_descriptor_in_univers(data_descriptor_id) -> None:
-    univers.find_data_descriptors_in_univers(data_descriptor_id)
-    univers.find_data_descriptors_in_univers(data_descriptor_id, settings=_SETTINGS)    
+def test_find_data_descriptor_in_universe(data_descriptor_id) -> None:
+    universe.find_data_descriptors_in_universe(data_descriptor_id)
+    universe.find_data_descriptors_in_universe(data_descriptor_id, settings=_SETTINGS)    

@@ -9,8 +9,8 @@ import cmipld.db as db
 import cmipld.settings as settings
 from cmipld.db import read_json_file
 from cmipld.db.models.mixins import TermKind
-from cmipld.db.models.univers import DataDescriptor, UTerm, Univers
-from cmipld.db.models.univers import univers_create_db
+from cmipld.db.models.universe import DataDescriptor, UTerm, Universe
+from cmipld.db.models.universe import universe_create_db
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,16 +23,16 @@ def infer_term_kind(json_specs: dict) -> TermKind:
         return TermKind.PLAIN
 
 
-def ingest_univers(universe_repo_dir_path: Path, univers_db_file_path: Path) -> None:
+def ingest_universe(universe_repo_dir_path: Path, universe_db_file_path: Path) -> None:
     try:
-        connection = db.DBConnection(univers_db_file_path)
+        connection = db.DBConnection(universe_db_file_path)
     except Exception as e:
-        msg = f'Unable to read univers SQLite file at {univers_db_file_path}. Abort.'
+        msg = f'Unable to read universe SQLite file at {universe_db_file_path}. Abort.'
         _LOGGER.fatal(msg)
         raise IOError(msg) from e
 
     for data_descriptor_dir_path in universe_repo_dir_path.iterdir(): 
-        if data_descriptor_dir_path.is_dir() and (data_descriptor_dir_path / "000_context.jsonld").exists(): # TOOD maybe put that in setting  
+        if data_descriptor_dir_path.is_dir() and (data_descriptor_dir_path / "000_context.jsonld").exists(): # TODO maybe put that in setting  
             try:
                 ingest_data_descriptor(data_descriptor_dir_path, connection)
             except Exception as e:
@@ -42,7 +42,7 @@ def ingest_univers(universe_repo_dir_path: Path, univers_db_file_path: Path) -> 
         
 def ingest_metadata_universe(connection,git_hash):
     with connection.create_session() as session:
-        universe = Univers(git_hash=git_hash)
+        universe = Universe(git_hash=git_hash)
         session.add(universe)    
         session.commit()
 
@@ -67,7 +67,7 @@ def ingest_data_descriptor(data_descriptor_path: Path,
         session.add(data_descriptor)
         _LOGGER.debug(f"add data_descriptor : {data_descriptor_id}")
         for term_file_path in data_descriptor_path.iterdir():
-            _LOGGER.debug(f"found term path : {term_file_path} , {term_file_path.suffix}")
+            _LOGGER.debug(f"found term path : {term_file_path}, {term_file_path.suffix}")
             if term_file_path.is_file() and term_file_path.suffix == ".json":
                 try:
                     json_specs=DataMerger(data=JsonLdResource(uri=str(term_file_path)),
@@ -76,7 +76,7 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                     term_id = json_specs["id"]
 
                 except Exception as e:
-                    _LOGGER.warning(f'Unable to read term {term_file_path} for datadescriptor {data_descriptor_path}. Skip.\n{str(e)}')
+                    _LOGGER.warning(f'Unable to read term {term_file_path} for data descriptor {data_descriptor_path}. Skip.\n{str(e)}')
                     continue
                 if term_id and json_specs and data_descriptor and term_kind:
                     _LOGGER.debug("adding {term_id}")
@@ -89,23 +89,23 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                     session.add(term)
         session.commit()
 
-def get_univers_term(data_descriptor_id: str,
+def get_universe_term(data_descriptor_id: str,
                      term_id: str,
-                     univers_db_session: Session) -> tuple[TermKind, dict]:
+                     universe_db_session: Session) -> tuple[TermKind, dict]:
     statement = (
         select(UTerm)
         .join(DataDescriptor)
         .where(DataDescriptor.id == data_descriptor_id, UTerm.id == term_id)
     )
-    results = univers_db_session.exec(statement)
+    results = universe_db_session.exec(statement)
     term = results.one()
     return term.kind, term.specs
 
 
 if __name__ == "__main__":
-    #ingest_univers(db.UNIVERS_DIR_PATH, db.UNIVERS_DB_FILE_PATH)
+    #ingest_universe(db.UNIVERSE_DIR_PATH, db.UNIVERSE_DB_FILE_PATH)
     import os
     root_dir = Path(str(os.getcwd())).parent.parent
     print(root_dir)
-    univers_create_db(root_dir /  Path(".cache/dbs/univers.sqlite"))
-    ingest_univers(root_dir / Path(".cache/repos/mip-cmor-tables"),root_dir /  Path(".cache/dbs/univers.sqlite"))
+    universe_create_db(root_dir /  Path(".cache/dbs/universe.sqlite"))
+    ingest_universe(root_dir / Path(".cache/repos/mip-cmor-tables"),root_dir /  Path(".cache/dbs/universe.sqlite"))
