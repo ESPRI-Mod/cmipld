@@ -36,6 +36,7 @@ DATA_DESCRIPTOR_CLASS_MAPPING: dict[str, type[BaseModel]] = {
     "frequency": Frequency,
     "grid": GridLabel, # DEBUG: the value of the key type for the terms of the DD grid is not consistent.
     "grid-label": GridLabel, # DEBUG: the value of the key type for the terms of the DD grid is not consistent.
+    "grid_label": GridLabel, # DEBUG: the value of the key type for the terms of the DD grid is not consistent.
     "initialisation_index": InitialisationIndex, 
     "institution": Institution,
     "license": License,

@@ -19,58 +19,66 @@ class SearchSettings(BaseModel):
     not_operator: bool = False
 
 
-# SQLite LIKE is case insensitive (and so STARTS/ENDS_WITH which are implemented with LIKE).
-# So the case sensitive LIKE is implemented with REGEX.
-# The i versions of SQLAlchemy operators (icontains, etc.) are not usefull (but other dbs than SQLite should use them).
-def create_str_comparison_expression(
-    field: str, value: str, settings: SearchSettings
-) -> BinaryExpression:
+def create_str_comparison_expression(field: str,
+                                     value: str,
+                                     settings: SearchSettings|None) -> BinaryExpression:
+    '''
+    SQLite LIKE is case insensitive (and so STARTS/ENDS_WITH which are implemented with LIKE).
+    So the case sensitive LIKE is implemented with REGEX.
+    The i versions of SQLAlchemy operators (icontains, etc.) are not usefull
+    (but other dbs than SQLite should use them).
+    If the provided `settings` is None, this functions returns an exact search expression.
+    '''
     does_wild_cards_in_value_have_to_be_interpreted = False
-    match settings.type:
-        # Early return because not operator is not implement with tilde symbol.
-        case SearchType.EXACT:
-            if settings.case_sensitive:
-                if settings.not_operator:
-                    return col(field).is_not(other=value)
-                else:
-                    return col(field).is_(other=value)
-            else:
-                if settings.not_operator:
-                    return func.lower(field) != func.lower(value)
-                else:
-                    return func.lower(field) == func.lower(value)
-        case SearchType.LIKE:
-            if settings.case_sensitive:
-                result = col(field).regexp_match(pattern=f".*{value}.*")
-            else:
-                result = col(field).contains(
-                    other=value,
-                    autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
-                )
-        case SearchType.STARTS_WITH:
-            if settings.case_sensitive:
-                result = col(field).regexp_match(pattern=f"^{value}.*")
-            else:
-                result = col(field).startswith(
-                    other=value,
-                    autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
-                )
-        case SearchType.ENDS_WITH:
-            if settings.case_sensitive:
-                result = col(field).regexp_match(pattern=f"{value}$")
-            else:
-                result = col(field).endswith(
-                    other=value,
-                    autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
-                )
-        case SearchType.REGEX:
-            if settings.case_sensitive:
-                result = col(field).regexp_match(pattern=value)
-            else:
-                raise NotImplementedError(
-                    "regex string comparison case insensitive is not implemented"
-                )
-    if settings.not_operator:
-        return ~result
+    # Shortcut.
+    if settings is None:
+        return col(field).is_(other=value)
     else:
-        return result
+        match settings.type:
+            # Early return because not operator is not implement with tilde symbol.
+            case SearchType.EXACT:
+                if settings.case_sensitive:
+                    if settings.not_operator:
+                        return col(field).is_not(other=value)
+                    else:
+                        return col(field).is_(other=value)
+                else:
+                    if settings.not_operator:
+                        return func.lower(field) != func.lower(value)
+                    else:
+                        return func.lower(field) == func.lower(value)
+            case SearchType.LIKE:
+                if settings.case_sensitive:
+                    result = col(field).regexp_match(pattern=f".*{value}.*")
+                else:
+                    result = col(field).contains(
+                        other=value,
+                        autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
+                    )
+            case SearchType.STARTS_WITH:
+                if settings.case_sensitive:
+                    result = col(field).regexp_match(pattern=f"^{value}.*")
+                else:
+                    result = col(field).startswith(
+                        other=value,
+                        autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
+                    )
+            case SearchType.ENDS_WITH:
+                if settings.case_sensitive:
+                    result = col(field).regexp_match(pattern=f"{value}$")
+                else:
+                    result = col(field).endswith(
+                        other=value,
+                        autoescape=not does_wild_cards_in_value_have_to_be_interpreted,
+                    )
+            case SearchType.REGEX:
+                if settings.case_sensitive:
+                    result = col(field).regexp_match(pattern=value)
+                else:
+                    raise NotImplementedError(
+                        "regex string comparison case insensitive is not implemented"
+                    )
+        if settings.not_operator:
+            return ~result
+        else:
+            return result
