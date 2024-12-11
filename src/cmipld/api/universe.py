@@ -4,13 +4,13 @@ from sqlmodel import Session, select
 import cmipld.db as db
 from cmipld import get_pydantic_class
 from cmipld.api import SearchSettings, create_str_comparison_expression, SearchType
-from cmipld.db.models.univers import DataDescriptor, UTerm
+from cmipld.db.models.universe import DataDescriptor, UTerm
 import cmipld.settings as api_settings
 
 ############## DEBUG ##############
 # TODO: to be deleted.
-# The following instructions are only temporary as long as a complet data managment will be implmented.
-UNIVERS_DB_CONNECTION = db.DBConnection(db.UNIVERS_DB_FILE_PATH, 'univers', False)
+# The following instructions are only temporary as long as a complete data management will be implemented.
+UNIVERSE_DB_CONNECTION = db.DBConnection(db.UNIVERSE_DB_FILE_PATH, 'universe', False)
 ###################################
 
 
@@ -60,7 +60,7 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     Returns `None` if no matches are found.
     :rtype: BaseModel|dict[str: BaseModel]|None
     """
-    with UNIVERS_DB_CONNECTION.create_session() as session:
+    with UNIVERSE_DB_CONNECTION.create_session() as session:
         result = None
         terms = _find_terms_in_data_descriptor(data_descriptor_id, term_id, session, settings)
         if terms:
@@ -75,9 +75,9 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     return result
 
 
-def _find_terms_in_univers(term_id: str,
-                           session: Session,
-                           settings: SearchSettings|None) -> list[UTerm]:
+def _find_terms_in_universe(term_id: str,
+                            session: Session,
+                            settings: SearchSettings|None) -> list[UTerm]:
     where_expression = create_str_comparison_expression(field=UTerm.id,
                                                         value=term_id,
                                                         settings=settings)
@@ -86,17 +86,17 @@ def _find_terms_in_univers(term_id: str,
     return results
 
 
-def find_terms_in_univers(term_id: str,
+def find_terms_in_universe(term_id: str,
                           settings: SearchSettings|None = None) \
                             -> dict[str, BaseModel]|\
                                dict[str, dict[str, BaseModel]]|\
                                None:
     """
-    Finds one or more terms of the univers.
+    Finds one or more terms of the universe.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
-    As terms are unique within a data descriptor but may have some synonyms within the univers,
+    As terms are unique within a data descriptor but may have some synonyms within the universe,
     the result maps every term found to their data descriptor.
     If the provided `term_id` is not found, the function returns `None`.
 
@@ -116,8 +116,8 @@ def find_terms_in_univers(term_id: str,
     Returns `None` if no matches are found.
     :rtype: dict[str, BaseModel]|dict[str, dict[str, BaseModel]]|None
     """
-    with UNIVERS_DB_CONNECTION.create_session() as session:
-        terms = _find_terms_in_univers(term_id, session, settings)
+    with UNIVERSE_DB_CONNECTION.create_session() as session:
+        terms = _find_terms_in_universe(term_id, session, settings)
         if terms:
             result = dict()
             for term in terms:
@@ -141,9 +141,9 @@ def _get_all_terms_in_data_descriptor(data_descriptor: DataDescriptor) -> list[B
     return result
 
 
-def _find_data_descriptors_in_univers(data_descriptor_id: str,
-                                      session: Session,
-                                      settings: SearchSettings|None) -> DataDescriptor|list[DataDescriptor]|None:
+def _find_data_descriptors_in_universe(data_descriptor_id: str,
+                                       session: Session,
+                                       settings: SearchSettings|None) -> DataDescriptor|list[DataDescriptor]|None:
     where_expression = create_str_comparison_expression(field=DataDescriptor.id,
                                                         value=data_descriptor_id,
                                                         settings=settings)
@@ -171,8 +171,8 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
     Returns `None` if no matches are found.
     :rtype: dict[str, BaseModel]|None
     """
-    with UNIVERS_DB_CONNECTION.create_session() as session:
-        data_descriptor = _find_data_descriptors_in_univers(data_descriptor_id,
+    with UNIVERSE_DB_CONNECTION.create_session() as session:
+        data_descriptor = _find_data_descriptors_in_universe(data_descriptor_id,
                                                             session,
                                                             None)
         if data_descriptor:
@@ -185,11 +185,11 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
     return result
 
 
-def find_data_descriptors_in_univers(data_descriptor_id: str,
-                                     settings: SearchSettings|None = None) \
+def find_data_descriptors_in_universe(data_descriptor_id: str,
+                                      settings: SearchSettings|None = None) \
                                         -> dict|dict[str, dict]|None:
     """
-    Finds one or more data descriptor of the univers, based on the specified search settings.
+    Finds one or more data descriptor of the universe, based on the specified search settings.
     The given `data_descriptor_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `data_descriptor_id`.
@@ -208,8 +208,8 @@ def find_data_descriptors_in_univers(data_descriptor_id: str,
     Returns `None` if no matches are found.
     :rtype: dict|dict[str, dict]|None
     """
-    with UNIVERS_DB_CONNECTION.create_session() as session:
-        data_descriptors = _find_data_descriptors_in_univers(data_descriptor_id,
+    with UNIVERSE_DB_CONNECTION.create_session() as session:
+        data_descriptors = _find_data_descriptors_in_universe(data_descriptor_id,
                                                              session,
                                                              settings)
         if data_descriptors:
@@ -224,42 +224,42 @@ def find_data_descriptors_in_univers(data_descriptor_id: str,
     return result
 
 
-def _get_all_data_descriptors_in_univers(session: Session) -> list[DataDescriptor]:
+def _get_all_data_descriptors_in_universe(session: Session) -> list[DataDescriptor]:
     statement = select(DataDescriptor)
     data_descriptors = session.exec(statement)
     result = data_descriptors.all()
     return result
 
 
-def get_all_data_descriptors_in_univers() -> dict[str, dict]:
+def get_all_data_descriptors_in_universe() -> dict[str, dict]:
     """
-    Gets all the data descriptors of the univers.
+    Gets all the data descriptors of the universe.
 
     :returns: A dictionary that maps data descriptor ids to their context.
     :rtype: dict[str, dict]
     """
-    with UNIVERS_DB_CONNECTION.create_session() as session:
-        data_descriptors = _get_all_data_descriptors_in_univers(session)
+    with UNIVERSE_DB_CONNECTION.create_session() as session:
+        data_descriptors = _get_all_data_descriptors_in_universe(session)
         result = dict()
         for data_descriptor in data_descriptors:
             result[data_descriptor.id] = data_descriptor.context
     return result
 
 
-def get_all_terms_in_univers() -> dict[str, dict[str, BaseModel]]:
+def get_all_terms_in_universe() -> dict[str, dict[str, BaseModel]]:
     """
-    Gets all the terms of the univers.
-    As terms are unique within a data descriptor but may have some synonyms within the univers,
+    Gets all the terms of the universe.
+    As terms are unique within a data descriptor but may have some synonyms within the universe,
     the result maps every term to their data descriptor.
 
     :returns: A dictionary that maps data descriptor ids to a mapping of term ids and their corresponding Pydantic model instances.
     :rtype: dict[str, dict[str, BaseModel]]
     """
-    with UNIVERS_DB_CONNECTION.create_session() as session:
-        data_descriptors = _get_all_data_descriptors_in_univers(session)
+    with UNIVERSE_DB_CONNECTION.create_session() as session:
+        data_descriptors = _get_all_data_descriptors_in_universe(session)
         result = dict()
         for data_descriptor in data_descriptors:
-            # Term may have some synonyms within the whole univers.
+            # Term may have some synonyms within the whole universe.
             result[data_descriptor.id] = dict()
             terms = _get_all_terms_in_data_descriptor(data_descriptor)
             for term in terms:
@@ -268,4 +268,4 @@ def get_all_terms_in_univers() -> dict[str, dict[str, BaseModel]]:
 
 
 if __name__ == "__main__":
-    print(find_terms_in_univers('ipsl'))
+    print(find_terms_in_universe('ipsl'))

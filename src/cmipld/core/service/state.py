@@ -6,8 +6,8 @@ from cmipld.core.repo_fetcher import RepoFetcher
 from cmipld.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings
 from cmipld.db import DBConnection
 from cmipld.db.models.project import Project
-from cmipld.db.models.univers import DataDescriptor, Univers, univers_create_db 
-from cmipld.db.univers_ingestion import ingest_metadata_universe
+from cmipld.db.models.universe import DataDescriptor, Universe, universe_create_db 
+from cmipld.db.universe_ingestion import ingest_metadata_universe
 from rich.table import Table
 from sqlalchemy import text
 from sqlmodel import select
@@ -77,7 +77,7 @@ class StateUniverse(BaseState):
             else:
                 self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
                 with self.db_connection.create_session() as session:
-                    self.db_version = session.exec(select(Univers.git_hash)).one()
+                    self.db_version = session.exec(select(Universe.git_hash)).one()
                     
         else:
             self.db_version = None

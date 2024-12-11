@@ -3,7 +3,7 @@ from logging import info
 from pathlib import Path
 from typing import Any
 from cmipld.api.projects import get_all_projects
-from cmipld.api.univers import find_data_descriptors_in_univers, find_terms_in_data_descriptor, find_terms_in_univers, get_all_data_descriptors_in_univers, get_all_terms_in_data_descriptor
+from cmipld.api.universd import find_data_descriptors_in_universe, find_terms_in_data_descriptor, find_terms_in_universe, get_all_data_descriptors_in_universe, get_all_terms_in_data_descriptor
 from cmipld.core.service.settings import ProjectSettings, ServiceSettings, UniverseSettings
 from pydantic import BaseModel
 from rich.table import Table
@@ -60,18 +60,18 @@ find_terms_in_data_descriptor(data_descriptor_id: str,
                                   term_id: str,
                                   settings: SearchSettings|None = None) \
                                      -> BaseModel|dict[str: BaseModel]|None:
-find_terms_in_univers(term_id: str,
+find_terms_in_universe(term_id: str,
                           settings: SearchSettings|None = None) \
                             -> dict[str, BaseModel]|\
                                dict[str, dict[str, BaseModel]]|\
                                None:
 get_all_terms_in_data_descriptor(data_descriptor_id: str) \
                                         -> dict[str, BaseModel]|None:
-find_data_descriptors_in_univers(data_descriptor_id: str,
+find_data_descriptors_in_universe(data_descriptor_id: str,
                                      settings: SearchSettings|None = None) \
                                         -> dict|dict[str, dict]|None:
-get_all_data_descriptors_in_univers() -> dict[str, dict]:
-get_all_terms_in_univers() -> dict[str, dict[str, BaseModel]]:
+get_all_data_descriptors_in_universe() -> dict[str, dict]:
+get_all_terms_in_universe() -> dict[str, dict[str, BaseModel]]:
 
 PROJECT
 
@@ -112,11 +112,11 @@ def handle_universe(data_descriptor_id:str|None,term_id:str|None, settings=None)
     if data_descriptor_id and term_id:
         return find_terms_in_data_descriptor(data_descriptor_id,term_id,settings)
     elif term_id:
-        return find_terms_in_univers(term_id,settings)
+        return find_terms_in_universe(term_id,settings)
     elif data_descriptor_id:
         return get_all_terms_in_data_descriptor(data_descriptor_id)
     else:
-        return get_all_data_descriptors_in_univers().keys()
+        return get_all_data_descriptors_in_universe().keys()
     
 
 
@@ -127,7 +127,7 @@ find_terms_in_data_descriptor(data_descriptor_id: str,
                                   settings: SearchSettings|None = None) \
                                      -> BaseModel|dict[str: BaseModel]|None:
 Y and options Done
-find_terms_in_univers(term_id: str,
+find_terms_in_universe(term_id: str,
                           settings: SearchSettings|None = None) \
                             -> dict[str, BaseModel]|\
                                dict[str, dict[str, BaseModel]]|\
@@ -136,14 +136,14 @@ X => Autre command ? list ? find ?
 get_all_terms_in_data_descriptor(data_descriptor_id: str) \
                                         -> dict[str, BaseModel]|None:
 X and options Done
-find_data_descriptors_in_univers(data_descriptor_id: str,
+find_data_descriptors_in_universe(data_descriptor_id: str,
                                      settings: SearchSettings|None = None) \
                                         -> dict|dict[str, dict]|None:
 Nothing
-get_all_data_descriptors_in_univers() -> dict[str, dict]:
+get_all_data_descriptors_in_universe() -> dict[str, dict]:
 
 Nothing... or Nothing + options ? 
-get_all_terms_in_univers() -> dict[str, dict[str, BaseModel]]:
+get_all_terms_in_universe() -> dict[str, dict[str, BaseModel]]:
 
 """
 

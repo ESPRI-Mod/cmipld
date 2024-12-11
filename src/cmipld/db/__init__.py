@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Generator
 
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
@@ -74,16 +73,16 @@ class DBConnection:
 
 ############## DEBUG ##############
 # TODO: to be deleted.
-# The following instructions are only temporary as long as a complet data managment will be implmented.
+# The following instructions are only temporary as long as a complete data management will be implemented.
 
 from cmipld.settings import ROOT_DIR_PATH  # noqa
 
-UNIVERS_DIR_NAME = '.cache/repos/mip-cmor-tables'
+UNIVERSE_DIR_NAME = '.cache/repos/mip-cmor-tables'
 CMIP6PLUS_DIR_NAME = '.cache/repos/CMIP6Plus_CVs'
 
-UNIVERS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(UNIVERS_DIR_NAME)
+UNIVERSE_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(UNIVERSE_DIR_NAME)
 CMIP6PLUS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(CMIP6PLUS_DIR_NAME)
 
-UNIVERS_DB_FILE_PATH = Path('.cache/dbs/univers.sqlite')
+UNIVERSE_DB_FILE_PATH = Path('.cache/dbs/universe.sqlite')
 CMIP6PLUS_DB_FILE_PATH = Path('.cache/dbs/projects.sqlite')
 ###################################
