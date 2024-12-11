@@ -8,11 +8,32 @@ from cmipld.api import SearchSettings, SearchType
 _SOME_PROJECT_IDS = ['cmip6plus']
 _SOME_COLLECTION_IDS = ['institution_id', 'time_range', 'source_id']
 _SOME_TERM_IDS = ['ipsl', 'daily', 'miroc6']
+_SOME_VALIDATION_REQUESTS = [
+    (0, ('IPSL', 'cmip6plus', 'institution_id', 'ipsl')),
+    (1, ('IPL', 'cmip6plus', 'institution_id', 'ipsl')),
+    (0, ('IPSL', 'cmip6plus', 'institution_id')),
+    (1, ('IPL', 'cmip6plus', 'institution_id')),
+    (0, ('20241206-20241207', 'cmip6plus', 'time_range', 'daily')),
+    (2, ('0241206-0241207', 'cmip6plus', 'time_range', 'daily')),
+    (0, ('20241206-20241207', 'cmip6plus', 'time_range')),
+    (1, ('0241206-0241207', 'cmip6plus', 'time_range'))]
 _SETTINGS = SearchSettings(type=SearchType.LIKE)
+
+
+def _provide_validation_resquest() -> Generator[tuple]:
+    for validation_request in _SOME_VALIDATION_REQUESTS:
+        yield validation_request
+
+
+@pytest.fixture(params=_provide_validation_resquest())
+def validation_resquest(request) -> tuple:
+    return request.param
+
 
 def _provide_project_ids() -> Generator[str]:
     for project_id in _SOME_PROJECT_IDS:
         yield project_id
+
 
 @pytest.fixture(params=_provide_project_ids())
 def project_id(request) -> str:
@@ -72,3 +93,9 @@ def test_find_terms_in_project(project_id, term_id) -> None:
 def test_find_terms_in_collection(project_id, collection_id, term_id) -> None:
     projects.find_terms_in_collection(project_id, collection_id, term_id)
     projects.find_terms_in_collection(project_id, collection_id, term_id, _SETTINGS)
+
+
+def test_valid_term_in_collection(validation_resquest) -> None:
+    nb_errors, parameters = validation_resquest
+    vr = projects.valid_term_in_collection(*parameters)
+    assert nb_errors == len(vr), f'unmatching number of errors for parameters {parameters}'
