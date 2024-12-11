@@ -9,4 +9,13 @@ mip-cmor-tables/
 sb.py
 # venv
 .venv
-uv.lock
+*.lock
+*.sqlite
+.pdm-python
+.DS_Store
+.vscode
+tmp*
+.cache
+CHANGELOG.md
+.mise.toml
+.mise.toml

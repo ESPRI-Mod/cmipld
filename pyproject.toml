@@ -3,15 +3,22 @@ name = "cmipld"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
-    { name = "TROUSSELLIER Laurent", email = "laurent.troussellier@ipsl.fr" }
+    {name = "TROUSSELLIER Laurent", email = "laurent.troussellier@ipsl.fr"},
+    {name = "Gardoll Sébastien", email = "sebastien@gardoll.fr"}
 ]
 dependencies = [
-    "pyld>=2.0.4",
+    "idna>=3.10",
     "pydantic>=2.9.2",
+    "sqlalchemy>=2.0.36",
+    "sqlmodel>=0.0.22",
+    "pyld>=2.0.4",
     "requests>=2.32.3",
+    "toml>=0.10.2",
+    "pytest-mock>=3.14.0",
+    "typer>=0.15.0",
 ]
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.12"
 
 [build-system]
 requires = ["hatchling"]
@@ -23,6 +30,11 @@ dev-dependencies = [
     "pytest>=8.3.3",
     "jupyter-console>=6.6.3",
 ]
+[tool.rye.scripts]
+ev = { cmd = "python src/cmipld/cli/main.py" }
+evc = { cmd = "python src/cmipld/cli/main.py config" }
+evcp = { cmd = "python src/cmipld/cli/main.py config projects." }
+evg = { cmd = "python src/cmipld/cli/main.py get" }
 
 [tool.hatch.metadata]
 allow-direct-references = true
