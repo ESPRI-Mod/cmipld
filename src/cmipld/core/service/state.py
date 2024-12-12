@@ -102,29 +102,6 @@ class StateProject(BaseState):
             logger.debug(f"Unable to find git_has in project {self.project_name} cause {e}" )
 
 
-    #
-    #
-    # def fetch_versions(self):
-    #     super().fetch_versions()
-    #     if self.db_path:
-    #         if not os.path.exists(self.db_path):
-    #             self.db_version = None
-    #         else:
-    #             try :
-    #                 self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
-    #                 with self.db_connection.create_session() as session:
-    #                     self.db_version = session.exec(select(Project.git_hash)).one()
-    #             except NoResultFound :
-    #                 logger.debug(f"Unable to find git_hash in project {self.project_name}")
-    #                 self.db_version = None
-    #
-    #
-    #     else:
-    #         self.db_version = None
-    #
-
-        
-
 class StateService:
     def __init__(self, service_settings: ServiceSettings):
         self.universe = StateUniverse(service_settings.universe)
