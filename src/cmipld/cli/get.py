@@ -162,7 +162,7 @@ def display(data:Any):
         console.print(JSON.from_data(data.model_dump()))
     elif isinstance(data, dict):
         # Dictionary as JSON
-        console.print(JSON.from_data(data))
+        console.print(data.keys())
     elif isinstance(data, list):
         # List as Table
         table = Table(title="List")
@@ -178,8 +178,33 @@ def display(data:Any):
 @app.command()
 def get(keys: list[str] = typer.Argument(..., help="List of keys in XXXX:YYYY:ZZZZ format")):
     """
-    Command to process a list of keys.
+    Retrieve a specific value from the database system.
+    This command allows you to fetch a value by specifying the universe/project, data_descriptor/collection, 
+    and term in a structured format.
+
+    Usage:
+        `get <project>:<collection>:<term>`
+
+    Arguments:
+        <project>        The name of the project to query. like `cmip6plus`
+        <collection>     The name of the collection in the specified database.
+        <term>           The name or term within the specified collection.
+
+    Example:
+        To retrieve the value from the "cmip6plus" project, under the "institution_id" column, 
+        in the term with the identifier "ipsl", you would use:
+            `get cmip6plus:institution_id:ipsl`
+        The default project is the universe CV : the argument would be like `universe:institution:ipsl` or `:institution:ipsl`
+        - to get list of available term from universe institution `:institution:` 
+
+    Notes:
+        - Ensure data exist in your system before using this command (use status command to see whats available).
+        - Use a colon (`:`) to separate the parts of the argument.  
+        - if more than one argument is given i.e get X:Y:Z A:B:C the 2 results are appended. 
+
     """
+
+    
     known_projects = get_all_projects()
     print("know projects :",known_projects)
 
