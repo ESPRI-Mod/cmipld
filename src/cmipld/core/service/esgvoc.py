@@ -69,8 +69,7 @@ def init():
                            Path(proj_setting.db_path),
                            state_service.projects[name].local_version)
         state_service.projects[name].fetch_versions()
-    display(state_service.table()
-)
+    display(state_service.table())
 
 def display(table):
     console = Console(record=True,width=200)

@@ -67,9 +67,9 @@ def ingest_collection(collection_dir_path: Path,
         context=collection_context,
         project=project,
         data_descriptor_id=data_descriptor_id,
-        term_kind="") # TODO find term_kind here ? 
+        term_kind="") # we ll know it only when we ll add a term (hypothesis all term have the same kind in a collection
+    term_kind_collection = None
 
-    project_db_session.add(collection)
     for term_file_path in collection_dir_path.iterdir():
         _LOGGER.debug(f"found term path : {term_file_path}")
         if term_file_path.is_file() and term_file_path.suffix==".json": 
@@ -79,10 +79,12 @@ def ingest_collection(collection_dir_path: Path,
                 term_kind = infer_term_kind(json_specs)
                 term_id = json_specs["id"]
 
+                if term_kind_collection is None:
+                    term_kind_collection = term_kind
+                
             except Exception as e:
                 _LOGGER.warning(f'Unable to read term {term_file_path}. Skip.\n{str(e)}')
                 continue
-            # [KEEP]
             try:
                 term = PTerm(
                     id=term_id,
@@ -97,6 +99,9 @@ def ingest_collection(collection_dir_path: Path,
                     + f"for the collection {collection_id} of the project {project.id}. Skip {term_id}.\n{str(e)}"
                 )
                 continue
+    if term_kind_collection:
+        collection.term_kind = term_kind_collection
+    project_db_session.add(collection)
 
 def ingest_project(project_dir_path: Path,
                    project_db_file_path: Path,
@@ -119,7 +124,6 @@ def ingest_project(project_dir_path: Path,
             _LOGGER.fatal(msg)
             raise RuntimeError(msg) from e
         
-        # [KEEP]
         project = Project(id=project_id, specs=project_json_specs,git_hash=git_hash)
         project_db_session.add(project)
         
