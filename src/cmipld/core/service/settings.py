@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Dict, Optional
+from pathlib import Path
 import toml
 
 class ProjectSettings(BaseModel):
@@ -32,3 +33,31 @@ class ServiceSettings(BaseModel):
         }
         with open(file_path, "w") as f:
             toml.dump(data, f)
+
+SETTINGS_FILE = Path("./src/cmipld/core/service/settings.toml")
+
+def load_settings() -> ServiceSettings:
+    """Load the settings from the TOML file."""
+    if SETTINGS_FILE.exists():
+        return ServiceSettings.load_from_file(str(SETTINGS_FILE))
+    else:
+        default_settings = ServiceSettings(
+        universe=UniverseSettings(
+            github_repo="https://github.com/ESPRI-Mod/mip-cmor-tables",
+            branch="uni_proj_ld",
+            local_path=".cache/repos/mip-cmor-tables",
+            db_path=".cache/dbs/universe.sqlite"
+        ),
+        projects={"cmip6plus":ProjectSettings(
+                project_name="CMIP6Plus_CVs",
+                github_repo="https://github.com/ESPRI-Mod/CMIP6Plus_CVs",
+                branch="uni_proj_ld",
+                local_path=".cache/repos/CMIP6Plus_CVs",
+                db_path=".cache/dbs/cmip6plus.sqlite"
+                )
+            }
+        
+    )
+
+        default_settings.save_to_file(str(SETTINGS_FILE))
+        return default_settings
