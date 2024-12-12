@@ -63,8 +63,11 @@ def ingest_data_descriptor(data_descriptor_path: Path,
 
 
     with connection.create_session() as session:
-        data_descriptor = DataDescriptor(id=data_descriptor_id, context=context, term_kind=TermKind.PLAIN)
-        session.add(data_descriptor)
+        data_descriptor = DataDescriptor(id=data_descriptor_id,
+                                         context=context,
+                                         term_kind="") # we ll know it only when we ll add a term (hypothesis all term have the same kind in a data_descriptor)
+        term_kind_dd = None
+
         _LOGGER.debug(f"add data_descriptor : {data_descriptor_id}")
         for term_file_path in data_descriptor_path.iterdir():
             _LOGGER.debug(f"found term path : {term_file_path}, {term_file_path.suffix}")
@@ -74,6 +77,9 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                                           locally_available={"https://espri-mod.github.io/mip-cmor-tables":".cache/repos/mip-cmor-tables"}).merge_linked_json()[-1]
                     term_kind = infer_term_kind(json_specs)
                     term_id = json_specs["id"]
+
+                    if term_kind_dd is None:
+                        term_kind_dd = term_kind
 
                 except Exception as e:
                     _LOGGER.warning(f'Unable to read term {term_file_path} for data descriptor {data_descriptor_path}. Skip.\n{str(e)}')
@@ -87,6 +93,9 @@ def ingest_data_descriptor(data_descriptor_path: Path,
                         kind=term_kind,
                     )
                     session.add(term)
+        if term_kind_dd is not None:
+            data_descriptor.term_kind = term_kind_dd
+        session.add(data_descriptor)
         session.commit()
 
 def get_universe_term(data_descriptor_id: str,
