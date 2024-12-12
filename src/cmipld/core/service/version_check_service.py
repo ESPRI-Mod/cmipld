@@ -1,11 +1,6 @@
 from cmipld.core.repo_fetcher import RepoFetcher
 #from .db_service import DBService
 
-class UniverseState:
-    last_version 
-class ProjectState:
-
-
 
 
 class VersionCheckService:
