@@ -8,6 +8,7 @@ from cmipld.db import DBConnection
 from cmipld.db.models.project import Project
 from cmipld.db.models.universe import Universe 
 from rich.table import Table
+from sqlalchemy.exc import NoResultFound
 from sqlmodel import select
 
 logger = logging.getLogger(__name__)
@@ -87,19 +88,40 @@ class StateProject(BaseState):
         self.project_name = mdict.pop("project_name")
         super().__init__(**mdict)
 
+
     def fetch_versions(self):
         super().fetch_versions()
-        if self.db_path:
-            if not os.path.exists(self.db_path):
-                self.db_version = None
-            else:
-                self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
-                with self.db_connection.create_session() as session:
-                    self.db_version = session.exec(select(Project.git_hash)).one()
-                    
-        else:
-            self.db_version = None
+        self.db_version = None
+        try :
+            self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
+            with self.db_connection.create_session() as session:
+                self.db_version = session.exec(select(Project.git_hash)).one()
+        except NoResultFound :
+            logger.debug(f"Unable to find git_hash in project {self.project_name}")
+        except Exception as e:
+            logger.debug(f"Unable to find git_has in project {self.project_name} cause {e}" )
 
+
+    #
+    #
+    # def fetch_versions(self):
+    #     super().fetch_versions()
+    #     if self.db_path:
+    #         if not os.path.exists(self.db_path):
+    #             self.db_version = None
+    #         else:
+    #             try :
+    #                 self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
+    #                 with self.db_connection.create_session() as session:
+    #                     self.db_version = session.exec(select(Project.git_hash)).one()
+    #             except NoResultFound :
+    #                 logger.debug(f"Unable to find git_hash in project {self.project_name}")
+    #                 self.db_version = None
+    #
+    #
+    #     else:
+    #         self.db_version = None
+    #
 
         
 

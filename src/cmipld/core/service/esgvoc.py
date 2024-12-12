@@ -35,6 +35,8 @@ def init():
     # Initialize StateService
     state_service = StateService(service_settings)
     state_service.get_state_summary()
+    display(state_service.table())
+
     state_service.synchronize_all()
     
     # create DB if present in setting and not in described path
@@ -48,26 +50,44 @@ def init():
     if state_service.universe.db_path and state_service.universe.local_path :
         ingest_universe(Path(state_service.universe.local_path),Path(state_service.universe.db_path))
 
+    display(state_service.table())
+
+
     for name,proj_setting in service_settings.projects.items():
+        print(f"CREATE DB for project {name}")
 
         # create project DB if present in setting
         if proj_setting.db_path is not None:
             if not os.path.exists(proj_setting.db_path):
                 os.makedirs(Path(proj_setting.db_path).parent,exist_ok=True)
             project_create_db(Path(proj_setting.db_path))
-            ingest_metadata_project(DBConnection(Path(proj_setting.db_path)),state_service.projects[name].local_version)
+            #ingest_metadata_project(DBConnection(Path(proj_setting.db_path)),state_service.projects[name].local_version)
         state_service.projects[name].fetch_versions()
-
-        if proj_setting.db_path and state_service.universe.db_path :
+        print("version local déduite",state_service.projects[name].local_version)
+        if proj_setting.db_path and proj_setting.local_path :
             ingest_project(Path(proj_setting.local_path),
                            Path(proj_setting.db_path),
-                           Path(state_service.universe.db_path))
-    state_table = state_service.table()
+                           state_service.projects[name].local_version)
+        state_service.projects[name].fetch_versions()
+    display(state_service.table()
+)
+
+def display(table):
     console = Console(record=True,width=200)
-    console.print(state_table)
-    #_LOGGER.info("\n"+console.export_text())
+    console.print(table)
 
 
+# def display_state():
+#     settings_path = "src/cmipld/core/service/settings.toml"
+#     service_settings = ServiceSettings.load_from_file(settings_path)
+#
+#     # Initialize StateService
+#     state_service = StateService(service_settings)
+#     state_service.get_state_summary()
+#     state_table = state_service.table()
+#     console = Console(record=True,width=200)
+#     console.print(state_table)
+#
 
 
 def test_api():
@@ -80,10 +100,14 @@ def test_api():
 
 if __name__ == "__main__":
     _LOGGER.setLevel(logging.INFO)
+
+    # print("BEGIN")
     reset_init_all()
     init()
-    print("END")
-    #test_api()
+    # print("END")
     
+    # print("BEGIN")
+    # display_state()
+    # print("END")
 
 

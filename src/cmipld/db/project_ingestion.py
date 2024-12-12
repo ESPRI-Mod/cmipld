@@ -27,8 +27,8 @@ def infer_term_kind(json_specs: dict) -> TermKind:
 
 def ingest_metadata_project(connection:DBConnection,git_hash):
     with connection.create_session() as session:
-        universe = Project(id=str(connection.file_path.stem), git_hash=git_hash,specs={})
-        session.add(universe)    
+        project = Project(id=str(connection.file_path.stem), git_hash=git_hash,specs={})
+        session.add(project)    
         session.commit()
 
 ###############################
@@ -49,8 +49,7 @@ def instantiate_project_term(universe_term_json_specs: dict,
 
 def ingest_collection(collection_dir_path: Path,
                       project: Project,
-                      project_db_session,
-                      universe_db_session) -> None:
+                      project_db_session) -> None:
 
 
     collection_id = collection_dir_path.name
@@ -101,22 +100,16 @@ def ingest_collection(collection_dir_path: Path,
 
 def ingest_project(project_dir_path: Path,
                    project_db_file_path: Path,
-                   universe_db_file_path: Path):
+                   git_hash : str
+                   ):
     try:
         project_connection = db.DBConnection(project_db_file_path)
     except Exception as e:
         msg = f'Unable to read project SQLite file at {project_db_file_path}. Abort.'
         _LOGGER.fatal(msg)
         raise RuntimeError(msg) from e
-    try:
-        universe_connection = db.DBConnection(universe_db_file_path)
-    except Exception as e:
-        msg = f'Unable to read universe SQLite file at {universe_db_file_path}. Abort.'
-        _LOGGER.fatal(msg)
-        raise RuntimeError(msg) from e
-    
-    with project_connection.create_session() as project_db_session,\
-         universe_connection.create_session() as universe_db_session:
+        
+    with project_connection.create_session() as project_db_session:
         try:
             project_specs_file_path = project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)
             project_json_specs = read_json_file(project_specs_file_path)
@@ -127,7 +120,7 @@ def ingest_project(project_dir_path: Path,
             raise RuntimeError(msg) from e
         
         # [KEEP]
-        project = Project(id=project_id, specs=project_json_specs,git_hash="")
+        project = Project(id=project_id, specs=project_json_specs,git_hash=git_hash)
         project_db_session.add(project)
         
 
@@ -137,8 +130,7 @@ def ingest_project(project_dir_path: Path,
                 try:
                     ingest_collection(collection_dir_path,
                                       project,
-                                      project_db_session,
-                                      universe_db_session)
+                                      project_db_session)
                 except Exception as e:
                     msg = f'Unexpected error while ingesting collection {collection_dir_path}. Abort.'
                     _LOGGER.fatal(msg)
@@ -155,118 +147,6 @@ def ingest_project(project_dir_path: Path,
 
 
 
-################################################
-
-def ingest_collection2(collection_dir_path: Path,
-                      project: Project,
-                      project_db_session,
-                      universe_db_session) -> None:
-    
-    collection_id = collection_dir_path.name
-    collection_context_file_path = collection_dir_path.joinpath(settings.CONTEXT_FILENAME)
-    try:
-        collection_context = read_json_file(collection_context_file_path)
-        data_descriptor_id = get_data_descriptor_id_from_context(collection_context)
-    except Exception as e:
-        msg = f'Unable to read project context file {collection_context_file_path}. Abort.'
-        _LOGGER.fatal(msg)
-        raise RuntimeError(msg) from e
-    # [KEEP]
-    collection = Collection(
-        id=collection_id,
-        context=collection_context,
-        project=project,
-        data_descriptor_id=data_descriptor_id)
-    
-
-    for term_file_path in items_of_interest(dir_path=collection_dir_path,
-                                            glob_inclusion_pattern='*.json',
-                                            exclude_prefixes=settings.SKIPPED_FILE_DIR_NAME_PREFIXES,
-                                            kind='file'):
-        try:
-            project_term_json_specs = read_json_file(term_file_path)
-        except Exception as e:
-            _LOGGER.error(f'Unable to read the term json file {term_file_path}. Skip.\n{str(e)}')
-            return
-        try:
-            term_id = project_term_json_specs[settings.TERM_ID_JSON_KEY]
-        except Exception as e:
-            _LOGGER.error(f'Term id not found in the term json file {term_file_path}. Skip.\n{str(e)}')
-            return
-        try:
-            kind, universe_term_json_specs = universe_ingestion.get_universe_term(
-                    data_descriptor_id, term_id, universe_db_session)
-            try:
-                term_type = universe_term_json_specs[settings.TERM_TYPE_JSON_KEY]
-                pydantic_class = get_pydantic_class(term_type)
-            except Exception as e:
-                msg = f'Unable to find the pydantic class for term {term_file_path}. Skip.\n{str(e)}'
-                _LOGGER.error(msg)
-                continue
-            
-            project_term_json_specs = instantiate_project_term(universe_term_json_specs,
-                                                               project_term_json_specs,
-                                                               pydantic_class)
-            # [KEEP]
-            term = PTerm(
-                id=term_id,
-                specs=project_term_json_specs,
-                collection=collection,
-                kind=kind,
-            )
-            project_db_session.add(term)
-        except Exception as e:
-            _LOGGER.error(
-                f"fail to find term {term_id} in data descriptor {data_descriptor_id} "
-                + f"for the collection {collection_id} of the project {project.id}. Skip {term_id}.\n{str(e)}"
-            )
-            continue
-
-
-def ingest_project2(project_dir_path: Path,
-                   project_db_file_path: Path,
-                   universe_db_file_path: Path):
-    try:
-        project_connection = db.DBConnection(project_db_file_path)
-    except Exception as e:
-        msg = f'Unable to read project SQLite file at {project_db_file_path}. Abort.'
-        _LOGGER.fatal(msg)
-        raise RuntimeError(msg) from e
-    try:
-        universe_connection = db.DBConnection(universe_db_file_path)
-    except Exception as e:
-        msg = f'Unable to read universe SQLite file at {universe_db_file_path}. Abort.'
-        _LOGGER.fatal(msg)
-        raise RuntimeError(msg) from e
-    
-    with project_connection.create_session() as project_db_session,\
-         universe_connection.create_session() as universe_db_session:
-        try:
-            project_specs_file_path = project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)
-            project_json_specs = read_json_file(project_specs_file_path)
-            project_id = project_json_specs[settings.PROJECT_ID_JSON_KEY]
-        except Exception as e:
-            msg = f'Unable to read project specs file  {project_specs_file_path}. Abort.'
-            _LOGGER.fatal(msg)
-            raise RuntimeError(msg) from e
-        
-        # [KEEP]
-        project = Project(id=project_id, specs=project_json_specs)
-        project_db_session.add(project)
-        
-        for collection_dir_path in items_of_interest(dir_path=project_dir_path,
-                                                     exclude_prefixes=settings.SKIPPED_FILE_DIR_NAME_PREFIXES,
-                                                     kind='dir'):
-            try:
-                ingest_collection(collection_dir_path,
-                                  project,
-                                  project_db_session,
-                                  universe_db_session)
-            except Exception as e:
-                msg = f'Unexpected error while ingesting collection {collection_dir_path}. Abort.'
-                _LOGGER.fatal(msg)
-                raise RuntimeError(msg) from e
-        project_db_session.commit()
 
 
 if __name__ == "__main__":
