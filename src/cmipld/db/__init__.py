@@ -84,5 +84,5 @@ UNIVERSE_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(UNIVERSE_DIR_NAME)
 CMIP6PLUS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(CMIP6PLUS_DIR_NAME)
 
 UNIVERSE_DB_FILE_PATH = Path('.cache/dbs/universe.sqlite')
-CMIP6PLUS_DB_FILE_PATH = Path('.cache/dbs/projects.sqlite')
+CMIP6PLUS_DB_FILE_PATH = Path('.cache/dbs/cmip6plus.sqlite')
 ###################################
