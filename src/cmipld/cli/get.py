@@ -1,9 +1,8 @@
 
 from pathlib import Path
 from typing import Any
-from cmipld.api.projects import get_all_projects
+from cmipld.api.projects import find_terms_in_collection, find_terms_in_project, get_all_collections_in_project, get_all_projects, get_all_terms_in_collection
 from cmipld.api.universe import find_terms_in_data_descriptor, find_terms_in_universe, get_all_data_descriptors_in_universe, get_all_terms_in_data_descriptor
-from cmipld.core.service.settings import ProjectSettings, ServiceSettings, UniverseSettings
 from pydantic import BaseModel
 from rich.table import Table
 import typer
@@ -13,40 +12,12 @@ from rich.console import Console
 
 app = typer.Typer()
 console = Console()
-SETTINGS_FILE = Path("./src/cmipld/core/service/settings.toml")
-
-def load_settings() -> ServiceSettings:
-    """Load the settings from the TOML file."""
-    if SETTINGS_FILE.exists():
-        return ServiceSettings.load_from_file(str(SETTINGS_FILE))
-    else:
-        typer.echo("Settings file not found. Creating a new one with defaults.")
-        default_settings = ServiceSettings(
-        universe=UniverseSettings(
-            github_repo="https://github.com/example/universe",
-            branch="main",
-            local_path="/local/universe",
-            db_name="universe.db"
-        ),
-        Project1=ProjectSettings(
-                project_name="Project1",
-                github_repo="https://github.com/example/project1",
-                branch="main",
-                local_path="/local/project1",
-                db_name="project1.db"
-            )
-        
-    )
-
-        default_settings.save_to_file(str(SETTINGS_FILE))
-        return default_settings
-
 
 def validate_key_format(key: str):
     """
     Validate if the key matches the XXXX:YYYY:ZZZZ format.
     """
-    if not re.match(r"^(\w*-?\w*):(\w*-?\w*):(\w*-?\w*)$", key):
+    if not re.match(r"^(\w*-?\w*)*:(\w*-?\w*)*:(\w*-?\w*)*$", key):
         raise typer.BadParameter(f"Invalid key format: {key}. Must be XXXX:YYYY:ZZZZ.")
     return key.split(":")
 
@@ -105,51 +76,50 @@ def get_all_projects() -> dict[str: dict]:
 """
 
 
-def handle_universe(data_descriptor_id:str|None,term_id:str|None, settings=None):
-    print(f"Handling universe with data_descriptor_id={data_descriptor_id}, term_id={term_id}")
-    
+def handle_universe(data_descriptor_id:str|None,term_id:str|None, options=None):
+    print(f"Handling universe with data_descriptor_id={data_descriptor_id}, term_id={term_id}") 
+
     if data_descriptor_id and term_id:
-        return find_terms_in_data_descriptor(data_descriptor_id,term_id,settings)
+        return find_terms_in_data_descriptor(data_descriptor_id,term_id,options)
+        # BaseModel|dict[str: BaseModel]|None:
+
     elif term_id:
-        return find_terms_in_universe(term_id,settings)
+        return find_terms_in_universe(term_id,options)
+        # dict[str, BaseModel] | dict[str, dict[str, BaseModel]] | None:
+
+
     elif data_descriptor_id:
         return get_all_terms_in_data_descriptor(data_descriptor_id)
+        # dict[str, BaseModel]|None:
+
     else:
         return get_all_data_descriptors_in_universe().keys()
-    
-
-
-"""
-X and Y and options Done
-find_terms_in_data_descriptor(data_descriptor_id: str,
-                                  term_id: str,
-                                  settings: SearchSettings|None = None) \
-                                     -> BaseModel|dict[str: BaseModel]|None:
-Y and options Done
-find_terms_in_universe(term_id: str,
-                          settings: SearchSettings|None = None) \
-                            -> dict[str, BaseModel]|\
-                               dict[str, dict[str, BaseModel]]|\
-                               None:
-X => Autre command ? list ? find ? 
-get_all_terms_in_data_descriptor(data_descriptor_id: str) \
-                                        -> dict[str, BaseModel]|None:
-X and options Done
-find_data_descriptors_in_universe(data_descriptor_id: str,
-                                     settings: SearchSettings|None = None) \
-                                        -> dict|dict[str, dict]|None:
-Nothing
-get_all_data_descriptors_in_universe() -> dict[str, dict]:
-
-Nothing... or Nothing + options ? 
-get_all_terms_in_universe() -> dict[str, dict[str, BaseModel]]:
-
-"""
-
-
+        # dict[str, dict]:
 
 def handle_project(project_id:str,collection_id:str|None,term_id:str|None,options=None):
     print(f"Handling project {project_id} with Y={collection_id}, Z={term_id}, options = {options}")
+    
+    if project_id and collection_id and term_id:
+        return find_terms_in_collection(project_id,collection_id,term_id)
+        # BaseModel|dict[str: BaseModel]|None:
+
+    elif term_id:
+        return find_terms_in_project(project_id, term_id,options)
+        # dict[str, BaseModel] | dict[str, dict[str, BaseModel]] | None:
+
+
+    elif collection_id:
+        return get_all_terms_in_collection(project_id, collection_id)
+        # dict[str, BaseModel]|None:
+
+    else:
+        res = get_all_collections_in_project(project_id)
+        if res is None:
+            return None
+        else:
+            return res
+        # dict[str, dict]:
+
 
 def handle_unknown(x:str|None,y:str|None,z:str|None):
     print(f"Something wrong in X,Y or Z : X={x}, Y={y}, Z={z}")
@@ -206,8 +176,6 @@ def get(keys: list[str] = typer.Argument(..., help="List of keys in XXXX:YYYY:ZZ
 
     
     known_projects = get_all_projects()
-    print("know projects :",known_projects)
-
 
     # Validate and process each key
     for key in keys:
