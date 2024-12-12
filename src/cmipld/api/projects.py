@@ -1,6 +1,7 @@
+from typing import cast
 from pydantic import BaseModel
 from cmipld import get_pydantic_class
-from sqlmodel import Session, select
+from sqlmodel import Session, select, and_
 from cmipld.api import (SearchSettings,
                        create_str_comparison_expression,
                        SearchType,
@@ -40,9 +41,9 @@ def _resolve_term(term_id: str,
     '''First find the term in the universe than in the current project'''
     result = None
     uterm: UTerm = universe._find_terms_in_data_descriptor(data_descriptor_id=term_type,
-                                                          term_id=term_id,
-                                                          session=universe_session,
-                                                          settings=None)
+                                                           term_id=term_id,
+                                                           session=universe_session,
+                                                           settings=None)
     if uterm:
         result = uterm
     else:
@@ -59,7 +60,8 @@ def _resolve_term(term_id: str,
 def _valid_value_for_term_composite(value: str,
                                     term: UTerm|PTerm,
                                     project_session: Session,
-                                    universe_session: Session) -> list[ValidationError]:
+                                    universe_session: Session)\
+                                        -> list[ValidationError]:
     result = list()
     composite = GenericTermComposite(**term.specs)
     if composite.separator:
@@ -85,16 +87,16 @@ def _valid_value_for_term_composite(value: str,
                               f'in {referenced_type}'
                         raise RuntimeError(msg)
             else:
-                result.append(create_term_error(value, term))
+                result.append(_create_term_error(value, term))
         else:
-            result.append(create_term_error(value, term))
+            result.append(_create_term_error(value, term))
     else:
         raise NotImplementedError(f'unsupported separator less term composite {term.id} ' +
                                   f'in collection {term.collection.id}')
     return result
 
 
-def create_term_error(value: str, term: UTerm|PTerm) -> ValidationError:
+def _create_term_error(value: str, term: UTerm|PTerm) -> ValidationError:
     if isinstance(term, UTerm):
         return UniverseTermError(value, term)
     else:
@@ -109,12 +111,12 @@ def _valid_value(value: str,
     match term.kind:
         case TermKind.PLAIN:
             if term.specs[api_settings.DRS_SPECS_JSON_KEY] != value:
-                result.append(create_term_error(value, term))
+                result.append(_create_term_error(value, term))
         case TermKind.PATTERN:
             # OPTIM: Pattern can be compiled and stored for further matching.
             pattern_match = re.match(term.specs[api_settings.PATTERN_JSON_KEY], value)
             if pattern_match is None:
-                result.append(create_term_error(value, term))
+                result.append(_create_term_error(value, term))
         case TermKind.COMPOSITE:
             result.extend(_valid_value_for_term_composite(value, term,
                                                           project_session,
@@ -124,11 +126,12 @@ def _valid_value(value: str,
     return result
 
 
-def _search_term_and_valid_value(value: str,
-                                 collection_id: str,
-                                 term_id: str,
-                                 project_session: Session,
-                                 universe_session: Session) -> list[ValidationError]:
+def _valid_value_against_given_term(value: str,
+                                    collection_id: str,
+                                    term_id: str,
+                                    project_session: Session,
+                                    universe_session: Session)\
+                                        -> list[ValidationError]:
     try:
         term: PTerm = _find_terms_in_collection(collection_id,
                                                 term_id,
@@ -144,6 +147,40 @@ def _search_term_and_valid_value(value: str,
               f'in collection {collection_id}'
         raise RuntimeError(msg) from e
     return result
+
+
+def _search_plain_term_and_valid_value(value: str,
+                                       collection_id: str,
+                                       project_session: Session) \
+                                        -> list[ValidationError]:
+    where_expression = and_(Collection.id == collection_id,
+                            PTerm.specs[api_settings.DRS_SPECS_JSON_KEY] == value)
+    statement = select(PTerm).join(Collection).where(where_expression)
+    term = project_session.exec(statement).one_or_none()
+    if term:
+        return list()
+    else:
+        return [CollectionError(value, collection_id)]
+
+
+def _valid_value_against_all_terms_of_collection(value: str,
+                                                 collection: Collection,
+                                                 project_session: Session,
+                                                 universe_session: Session) \
+                                                     -> list[ValidationError]:
+    if collection.terms:
+        for term in collection.terms:
+            _errors = _valid_value(value, term,
+                                   project_session,
+                                   universe_session)
+            if not _errors:
+                break
+        if _errors:
+            return [CollectionError(value, collection.id)]
+        else:
+            return list()
+    else:
+        raise RuntimeError(f'collection {collection.id} has no term')
 
 
 def valid_term_in_collection(value: str,
@@ -184,22 +221,23 @@ def valid_term_in_collection(value: str,
             with connection.create_session() as project_session,\
                  UNIVERSE_DB_CONNECTION.create_session() as universe_session:
                 if term_id:
-                    errors = _search_term_and_valid_value(value, collection_id, term_id,
-                                                          project_session, universe_session)
+                    errors = _valid_value_against_given_term(value, collection_id, term_id,
+                                                             project_session, universe_session)
                 else:
                     collection = _find_collections_in_project(collection_id,
                                                               project_session,
                                                               None)
+                    collection = cast(Collection, collection)
                     if collection:
-                        for term in collection.terms:
-                            _errors = _valid_value(value, term, project_session, universe_session)
-                            if not _errors:
-                                break
-                        if _errors:
-                            errors = [CollectionError(value, collection_id)]
-                        else:
-                            errors = list()
-                        del _errors
+                        match collection.term_kind: # TODO: untested.
+                            case TermKind.PLAIN:
+                                errors = _search_plain_term_and_valid_value(value, collection_id,
+                                                                            project_session)
+                            case _:
+                                errors = _valid_value_against_all_terms_of_collection(value,
+                                                                                      collection,
+                                                                                      project_session,
+                                                                                      universe_session)
                     else:
                         msg = f'unable to find collection {collection_id}'
                         raise ValueError(msg)
@@ -524,7 +562,7 @@ def get_all_projects() -> dict[str: dict]:
 
 if __name__ == "__main__":
 
-    vr = valid_term_in_collection('0241206-0241207', 'cmip6plus', 'time_range', 'daily')
+    vr = valid_term_in_collection('ISL', 'cmip6plus', 'institution_id')
     if vr:
         print('OK')
     else:
