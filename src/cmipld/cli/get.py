@@ -46,7 +46,7 @@ def validate_key_format(key: str):
     """
     Validate if the key matches the XXXX:YYYY:ZZZZ format.
     """
-    if not re.match(r"^\w*:\w*:\w*$", key):
+    if not re.match(r"^(\w*-?\w*):(\w*-?\w*):(\w*-?\w*)$", key):
         raise typer.BadParameter(f"Invalid key format: {key}. Must be XXXX:YYYY:ZZZZ.")
     return key.split(":")
 
