@@ -32,7 +32,7 @@ DrsPart = Annotated[DrsConstant | DrsCollection, Field(discriminator="kind")]
 class DrsSpecification(BaseModel):
     type: DrsType
     separator: str
-    properties: dict = None
+    properties: dict|None = None
     parts: list[DrsPart]
 
 

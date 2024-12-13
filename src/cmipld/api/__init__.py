@@ -1,8 +1,10 @@
 from enum import Enum
 from abc import ABC, abstractmethod
 
+from typing import Any
+
 from pydantic import BaseModel
-from sqlalchemy import BinaryExpression, func
+from sqlalchemy import ColumnElement, func
 from sqlmodel import col
 
 import cmipld.settings as api_settings
@@ -13,29 +15,29 @@ from cmipld.db.models.mixins import TermKind
 
 class ValidationErrorVisitor(ABC):
     @abstractmethod
-    def visit_collection_error(self, error: "CollectionError") -> any:
+    def visit_collection_error(self, error: "CollectionError") -> Any:
         pass
 
     @abstractmethod
-    def visit_universe_term_error(self, error: "UniverseTermError") -> any:
+    def visit_universe_term_error(self, error: "UniverseTermError") -> Any:
         pass
 
     @abstractmethod
-    def visit_project_term_error(self, error: "ProjectTermError") -> any:
+    def visit_project_term_error(self, error: "ProjectTermError") -> Any:
         pass
 
 
 class BasicValidationErrorVisitor(ValidationErrorVisitor):
-    def visit_collection_error(self, error: "CollectionError") -> any:
+    def visit_collection_error(self, error: "CollectionError") -> Any:
         result = f"'{error.value}' does not belong to any terms of the collection {error.collection_id}"
         return result
 
-    def visit_universe_term_error(self, error: "UniverseTermError") -> any:
+    def visit_universe_term_error(self, error: "UniverseTermError") -> Any:
         result = f"'{error.value}' is not compliant with the term " +\
                  f"{error.term[api_settings.TERM_ID_JSON_KEY]} of the data descriptor {error.data_descriptor_id}"
         return result
 
-    def visit_project_term_error(self, error: "ProjectTermError") -> any:
+    def visit_project_term_error(self, error: "ProjectTermError") -> Any:
         result = f"'{error.value}' is not compliant with the term " +\
                  f"{error.term[api_settings.TERM_ID_JSON_KEY]} of the collection {error.collection_id}"
         return result
@@ -47,7 +49,7 @@ class ValidationError(ABC):
         self.value: str = value
     
     @abstractmethod
-    def accept(self, visitor: ValidationErrorVisitor) -> any:
+    def accept(self, visitor: ValidationErrorVisitor) -> Any:
         pass
 
 class CollectionError(ValidationError):
@@ -57,7 +59,7 @@ class CollectionError(ValidationError):
         super().__init__(value)
         self.collection_id: str = collection_id
 
-    def accept(self, visitor: ValidationErrorVisitor) -> any:
+    def accept(self, visitor: ValidationErrorVisitor) -> Any:
         return visitor.visit_collection_error(self)
 
 
@@ -70,7 +72,7 @@ class UniverseTermError(ValidationError):
         self.term_kind: TermKind = term.kind
         self.data_descriptor_id: str = term.data_descriptor.id
 
-    def accept(self, visitor: ValidationErrorVisitor) -> any:
+    def accept(self, visitor: ValidationErrorVisitor) -> Any:
         return visitor.visit_universe_term_error(self)
 
 
@@ -83,7 +85,7 @@ class ProjectTermError(ValidationError):
         self.term_kind: TermKind = term.kind
         self.collection_id: str = term.collection.id
 
-    def accept(self, visitor: ValidationErrorVisitor) -> any:
+    def accept(self, visitor: ValidationErrorVisitor) -> Any:
         return visitor.visit_project_term_error(self)
 
 
@@ -123,7 +125,7 @@ class SearchSettings(BaseModel):
 
 def create_str_comparison_expression(field: str,
                                      value: str,
-                                     settings: SearchSettings|None) -> BinaryExpression:
+                                     settings: SearchSettings|None) -> ColumnElement:
     '''
     SQLite LIKE is case insensitive (and so STARTS/ENDS_WITH which are implemented with LIKE).
     So the case sensitive LIKE is implemented with REGEX.
