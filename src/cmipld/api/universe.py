@@ -1,3 +1,4 @@
+from typing import Sequence
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -17,7 +18,7 @@ UNIVERSE_DB_CONNECTION = db.DBConnection(db.UNIVERSE_DB_FILE_PATH, 'universe', F
 def _find_terms_in_data_descriptor(data_descriptor_id: str,
                                    term_id: str,
                                    session: Session,
-                                   settings: SearchSettings|None) -> list[UTerm]:
+                                   settings: SearchSettings|None) -> Sequence[UTerm]:
     """Settings only apply on the term_id comparison."""
     where_expression = create_str_comparison_expression(field=UTerm.id,
                                                         value=term_id,
@@ -70,7 +71,7 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
 
 def _find_terms_in_universe(term_id: str,
                             session: Session,
-                            settings: SearchSettings|None) -> list[UTerm]:
+                            settings: SearchSettings|None) -> Sequence[UTerm]:
     where_expression = create_str_comparison_expression(field=UTerm.id,
                                                         value=term_id,
                                                         settings=settings)
@@ -117,7 +118,7 @@ def _get_all_terms_in_data_descriptor(data_descriptor: DataDescriptor) -> list[B
 
 def _find_data_descriptors_in_universe(data_descriptor_id: str,
                                        session: Session,
-                                       settings: SearchSettings|None) -> list[DataDescriptor]:
+                                       settings: SearchSettings|None) -> Sequence[DataDescriptor]:
     where_expression = create_str_comparison_expression(field=DataDescriptor.id,
                                                         value=data_descriptor_id,
                                                         settings=settings)
@@ -186,7 +187,7 @@ def find_data_descriptors_in_universe(data_descriptor_id: str,
     return result
 
 
-def _get_all_data_descriptors_in_universe(session: Session) -> list[DataDescriptor]:
+def _get_all_data_descriptors_in_universe(session: Session) -> Sequence[DataDescriptor]:
     statement = select(DataDescriptor)
     data_descriptors = session.exec(statement)
     result = data_descriptors.all()

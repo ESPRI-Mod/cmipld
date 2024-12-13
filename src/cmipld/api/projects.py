@@ -42,14 +42,14 @@ def _resolve_term(term_id: str,
                                                      session=universe_session,
                                                      settings=None)
     if uterms:
-        result = uterms[0]
+        return uterms[0]
     else:
         pterms = _find_terms_in_collection(collection_id=term_type,
                                            term_id=term_id,
                                            session=project_session,
                                            settings=None)
         result = pterms[0] if pterms else None
-    return result
+        return result
 
 
 # TODO: support optionality of parts of composite.
@@ -249,7 +249,7 @@ def valid_term_in_collection(value: str,
 def _find_terms_in_collection(collection_id: str,
                               term_id: str,
                               session: Session,
-                              settings: SearchSettings|None = None) -> list[PTerm]:
+                              settings: SearchSettings|None = None) -> Sequence[PTerm]:
     """Settings only apply on the term_id comparison."""
     where_expression = create_str_comparison_expression(field=PTerm.id,
                                                         value=term_id,
@@ -380,7 +380,7 @@ def get_all_terms_in_collection(project_id: str,
 def _find_collections_in_project(collection_id: str,
                                  session: Session,
                                  settings: SearchSettings|None) \
-                                    -> list[Collection]:
+                                    -> Sequence[Collection]:
     where_exp = create_str_comparison_expression(field=Collection.id,
                                                  value=collection_id,
                                                  settings=settings)
@@ -433,7 +433,8 @@ def find_collections_in_project(project_id: str,
 
 def _get_all_collections_in_project(session: Session) -> list[Collection]:
     project = session.get(Project, api_settings.SQLITE_FIRST_PK)
-    return project.collections
+    # Project can't be missing if session exists.
+    return project.collections # type: ignore
 
 
 def get_all_collections_in_project(project_id: str) -> list[str]:
@@ -507,7 +508,8 @@ def find_project(project_id: str) -> dict|None:
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             project = session.get(Project, api_settings.SQLITE_FIRST_PK)
-            result = project.specs
+            # Project can't be missing if session exists.
+            result = project.specs # type: ignore
     return result
 
 
