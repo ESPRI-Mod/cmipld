@@ -123,7 +123,7 @@ class StateService:
         table = Table(show_header=False, show_lines=True)
         table.add_row("","Remote github repo","Local repository","Cache Database")
         table.add_row("Universe path",self.universe.github_repo,self.universe.local_path,self.universe.db_path)
-        table.add_row("Version",self.universe.github_version,self.universe.github_version,self.universe.db_version)
+        table.add_row("Version",self.universe.github_version,self.universe.local_version,self.universe.db_version)
         for proj_name,proj in self.projects.items():
 
             table.add_row("","Remote github repo","Local repository","Cache Database")
