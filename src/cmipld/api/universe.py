@@ -154,7 +154,7 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
 
 def find_data_descriptors_in_universe(data_descriptor_id: str,
                                       settings: SearchSettings|None = None) \
-                                        -> list[str]:
+                                        -> list[dict]:
     """
     Finds one or more data descriptor of the universe, based on the specified search settings.
     The given `data_descriptor_id` is searched according to the search type specified in 
@@ -165,16 +165,16 @@ def find_data_descriptors_in_universe(data_descriptor_id: str,
     If the provided `data_descriptor_id` is not found, the function returns an empty list.
     
     Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns zero or one data descriptor id in the list.
+    - `EXACT` and absence of `settings`: returns zero or one data descriptor context in the list.
     - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more
-      data descriptor ids in the list.
+      data descriptor contexts in the list.
 
     :param data_descriptor_id: A data descriptor id to be found
     :type data_descriptor_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A list of data descriptor ids. Returns an empty list if no matches are found.
-    :rtype: list[str]
+    :returns: A list of data descriptor contexts. Returns an empty list if no matches are found.
+    :rtype: list[dict]
     """
     result = list()
     with UNIVERSE_DB_CONNECTION.create_session() as session:
@@ -182,7 +182,7 @@ def find_data_descriptors_in_universe(data_descriptor_id: str,
                                                               session,
                                                               settings)
         for data_descriptor in data_descriptors:
-            result.append(data_descriptor.id)
+            result.append(data_descriptor.context)
     return result
 
 
@@ -227,4 +227,4 @@ def get_all_terms_in_universe() -> list[BaseModel]:
 
 
 if __name__ == "__main__":
-    print(find_terms_in_universe('ipsl'))
+    print(find_terms_in_data_descriptor('institution', 'ipsl'))
