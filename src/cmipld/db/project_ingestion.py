@@ -19,7 +19,7 @@ _LOGGER = logging.getLogger("project_ingestion")
 def infer_term_kind(json_specs: dict) -> TermKind:
     if settings.PATTERN_JSON_KEY in json_specs:
         return TermKind.PATTERN
-    elif settings.COMPOSITE_JSON_KEY in json_specs:
+    elif settings.COMPOSITE_PARTS_JSON_KEY in json_specs:
         return TermKind.COMPOSITE
     else:
         return TermKind.PLAIN

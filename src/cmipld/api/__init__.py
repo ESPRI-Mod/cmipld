@@ -46,6 +46,9 @@ class ValidationError(ABC):
                  value: str):
         self.value: str = value
     
+    @abstractmethod
+    def accept(self, visitor: ValidationErrorVisitor) -> any:
+        pass
 
 class CollectionError(ValidationError):
     def __init__(self,
