@@ -1,4 +1,4 @@
-from typing import cast
+from typing import cast, Sequence
 from pydantic import BaseModel
 from cmipld import get_pydantic_class
 from sqlmodel import Session, select, and_
@@ -15,7 +15,6 @@ import cmipld.db as db
 from cmipld.db.models.project import Project, Collection, PTerm
 from cmipld.db.models.mixins import TermKind
 import re
-from cmipld.api.models import GenericTermComposite
 import cmipld.api.universe as universe
 from cmipld.db.models.universe import UTerm
 
@@ -63,15 +62,16 @@ def _valid_value_for_term_composite(value: str,
                                     universe_session: Session)\
                                         -> list[ValidationError]:
     result = list()
-    composite = GenericTermComposite(**term.specs)
-    if composite.separator:
-        if composite.separator in value:
-            splits = value.split(composite.separator)
-            if len(splits) == len(composite.parts):
+    separator = term.specs[api_settings.COMPOSITE_SEPARATOR_JSON_KEY]
+    parts = term.specs[api_settings.COMPOSITE_PARTS_JSON_KEY]
+    if separator:
+        if separator in value:
+            splits = value.split(separator)
+            if len(splits) == len(parts):
                 for index in range(0, len(splits)):
                     given_value = splits[index]
-                    referenced_id = composite.parts[index].id
-                    referenced_type = composite.parts[index].type
+                    referenced_id = parts[index][api_settings.TERM_ID_JSON_KEY]
+                    referenced_type = parts[index][api_settings.TERM_TYPE_JSON_KEY]
                     resolved_term = _resolve_term(referenced_id,
                                                   referenced_type,
                                                   project_session,
@@ -91,8 +91,7 @@ def _valid_value_for_term_composite(value: str,
         else:
             result.append(_create_term_error(value, term))
     else:
-        raise NotImplementedError(f'unsupported separator less term composite {term.id} ' +
-                                  f'in collection {term.collection.id}')
+        raise NotImplementedError(f'unsupported separator less term composite {term.id} ')
     return result
 
 
@@ -271,7 +270,7 @@ def find_terms_in_collection(project_id:str,
                              collection_id: str,
                              term_id: str,
                              settings: SearchSettings|None = None) \
-                                -> BaseModel|dict[str: BaseModel]|None:
+                                -> BaseModel|dict[str, BaseModel]|None:
     """
     Finds one or more terms, based on the specified search settings, in the given collection of a project.
     This function performs an exact match on the `project_id` and `collection_id`, and does **not** search for similar or related projects and collections.
@@ -315,7 +314,7 @@ def find_terms_in_collection(project_id:str,
 
 def _find_terms_in_project(term_id: str,
                            session: Session,
-                           settings: SearchSettings|None) -> list[PTerm]:
+                           settings: SearchSettings|None) -> Sequence[PTerm]:
     where_expression = create_str_comparison_expression(field=PTerm.id,
                                                         value=term_id,
                                                         settings=settings)
@@ -562,7 +561,7 @@ def get_all_projects() -> dict[str: dict]:
 
 if __name__ == "__main__":
 
-    vr = valid_term_in_collection('ISL', 'cmip6plus', 'institution_id')
+    vr = valid_term_in_collection('20241206-20241207', 'cmip6plus', 'time_range', 'daily')
     if vr:
         print('OK')
     else:
