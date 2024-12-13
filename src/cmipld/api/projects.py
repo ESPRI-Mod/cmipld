@@ -152,7 +152,7 @@ def _search_plain_term_and_valid_value(value: str,
                                        project_session: Session) \
                                         -> list[ValidationError]:
     where_expression = and_(Collection.id == collection_id,
-                            PTerm.specs[api_settings.DRS_SPECS_JSON_KEY] == value)
+                            PTerm.specs[api_settings.DRS_SPECS_JSON_KEY] == f'"{value}"')
     statement = select(PTerm).join(Collection).where(where_expression)
     term = project_session.exec(statement).one_or_none()
     if term:
