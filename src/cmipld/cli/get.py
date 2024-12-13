@@ -13,6 +13,9 @@ from rich.console import Console
 app = typer.Typer()
 console = Console()
 
+_LOGGER = logging.getLogger(__name__)
+
+
 def validate_key_format(key: str):
     """
     Validate if the key matches the XXXX:YYYY:ZZZZ format.
@@ -77,7 +80,7 @@ def get_all_projects() -> dict[str: dict]:
 
 
 def handle_universe(data_descriptor_id:str|None,term_id:str|None, options=None):
-    print(f"Handling universe with data_descriptor_id={data_descriptor_id}, term_id={term_id}") 
+    _LOGGER.debug(f"Handling universe with data_descriptor_id={data_descriptor_id}, term_id={term_id}") 
 
     if data_descriptor_id and term_id:
         return find_terms_in_data_descriptor(data_descriptor_id,term_id,options)
@@ -97,7 +100,7 @@ def handle_universe(data_descriptor_id:str|None,term_id:str|None, options=None):
         # dict[str, dict]:
 
 def handle_project(project_id:str,collection_id:str|None,term_id:str|None,options=None):
-    print(f"Handling project {project_id} with Y={collection_id}, Z={term_id}, options = {options}")
+    _LOGGER.debug(f"Handling project {project_id} with Y={collection_id}, Z={term_id}, options = {options}")
     
     if project_id and collection_id and term_id:
         return find_terms_in_collection(project_id,collection_id,term_id)
@@ -172,15 +175,13 @@ def get(keys: list[str] = typer.Argument(..., help="List of keys in XXXX:YYYY:ZZ
         - Use a colon (`:`) to separate the parts of the argument.  
         - if more than one argument is given i.e get X:Y:Z A:B:C the 2 results are appended. 
 
-    """
-
-    
+    """ 
     known_projects = get_all_projects()
 
     # Validate and process each key
     for key in keys:
         validated_key = validate_key_format(key)
-        print(f"Processed key: {validated_key}")
+        _LOGGER.debug(f"Processed key: {validated_key}")
         where,what,who = validated_key
         what = what if what!="" else None
         who = who if who!="" else None
