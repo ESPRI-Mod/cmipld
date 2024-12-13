@@ -204,9 +204,9 @@ def valid_term_in_collection(value: str,
     :type value: str
     :param project_id: A project id
     :type project_id: str
-    :param collection_id: A collection
+    :param collection_id: A collection id
     :type collection_id: str
-    :param term_id: A optional term id
+    :param term_id: An optional term id
     :type term_id: str|None
     :returns: A validation report that contains the possible errors
     :rtype: ValidationReport
@@ -277,9 +277,9 @@ def find_terms_in_collection(project_id:str,
     the function returns an empty list.
     
     Behavior based on search type:
-    - `EXACT`: and absence of `settings`: returns zero or one Pydantic model term instance in the list.
+    - `EXACT` and absence of `settings`: returns zero or one Pydantic term instance in the list.
     - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more
-      Pydantic model term instances in the list.
+      Pydantic term instances in the list.
 
     :param project_id: A project id
     :type project_id: str
@@ -289,8 +289,7 @@ def find_terms_in_collection(project_id:str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A list of Pydantic model term instances.
-    Returns an empty list if no matches are found.
+    :returns: A list of Pydantic term instances. Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
     result = list()
@@ -320,12 +319,12 @@ def find_terms_in_project(project_id: str,
                             -> list[BaseModel]:
     """
     Finds one or more terms, based on the specified search settings, in a project.
-    This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
+    This function performs an exact match on the `project_id` and 
+    does **not** search for similar or related projects.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
-    As terms are unique within a collection but may have some synonyms within a project,
-    the function returns a list of Pydantic model term instances.
+    Terms are unique within a collection but may have some synonyms within a project.
     If any of the provided ids (`project_id` or `term_id`) is not found, the function returns
     an empty list.
 
@@ -335,8 +334,7 @@ def find_terms_in_project(project_id: str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A list of Pydantic model term instances.
-    Returns an empty list if no matches are found.
+    :returns: A list of Pydantic term instances. Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
     result = list()
@@ -363,7 +361,7 @@ def get_all_terms_in_collection(project_id: str,
     :type project_id: str
     :param collection_id: A collection id
     :type collection_id: str
-    :returns: a list of Pydantic model term instances.
+    :returns: a list of Pydantic term instances.
     Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
@@ -398,8 +396,10 @@ def find_collections_in_project(project_id: str,
                                     -> list[str]:
     """
     Finds one or more collections of the given project.
-    This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
-    The given `collection_id` is searched according to the search type specified in the parameter `settings`,
+    This function performs an exact match on the `project_id` and 
+    does **not** search for similar or related projects.
+    The given `collection_id` is searched according to the search type specified in 
+    the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `collection_id`.
     If any of the provided ids (`project_id` or `collection_id`) is not found, the function returns
@@ -439,7 +439,8 @@ def _get_all_collections_in_project(session: Session) -> list[Collection]:
 def get_all_collections_in_project(project_id: str) -> list[str]:
     """
     Gets all the collections of the given project.
-    This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
+    This function performs an exact match on the `project_id` and 
+    does **not** search for similar or related projects.
     If the provided `project_id` is not found, the function returns an empty list.
 
     :param project_id: A project id
@@ -468,13 +469,14 @@ def _get_all_terms_in_collection(collection: Collection) -> list[BaseModel]:
 def get_all_terms_in_project(project_id: str) -> list[BaseModel]:
     """
     Gets all the terms of the given project.
-    This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
-    As terms are unique within a collection but may have some synonyms in a project.
+    This function performs an exact match on the `project_id` and 
+    does **not** search for similar or related projects.
+    Terms are unique within a collection but may have some synonyms in a project.
     If the provided `project_id` is not found, the function returns an empty list.
 
     :param project_id: A project id
     :type project_id: str
-    :returns: A list of Pydantic model term instances.
+    :returns: A list of Pydantic term instances.
     Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
@@ -491,7 +493,8 @@ def get_all_terms_in_project(project_id: str) -> list[BaseModel]:
 def find_project(project_id: str) -> dict|None:
     """
     Finds a project.
-    This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
+    This function performs an exact match on the `project_id` and 
+    does **not** search for similar or related projects.
     If the provided `project_id` is not found, the function returns `None`.
     
     :param project_id: A project id to be found
@@ -515,7 +518,7 @@ def get_all_projects() -> list[str]:
     :returns: A list of project ids.
     :rtype: list[str]
     """
-    return ['cmip6plus'] # TODO: to be implemented
+    return ['cmip6plus'] # DEBUG TODO: to be implemented
 
 
 if __name__ == "__main__":

@@ -35,16 +35,18 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
                                      -> list[BaseModel]:
     """
     Finds one or more terms in the given data descriptor based on the specified search settings.
-    This function performs an exact match on the `data_descriptor_id` and does **not** search for similar or related descriptors.
-    The given `term_id` is searched according to the search type specified in the parameter `settings`,
+    This function performs an exact match on the `data_descriptor_id` and 
+    does **not** search for similar or related descriptors.
+    The given `term_id` is searched according to the search type specified in 
+    the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
     If any of the provided ids (`data_descriptor_id` or `term_id`) is not found, the function
     returns an empty list.
 
     Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns zero or one Pydantic model term instance in the list.
-    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more Pydantic model term
+    - `EXACT` and absence of `settings`: returns zero or one Pydantic term instance in the list.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more Pydantic term
       instances in the list.
 
     :param data_descriptor_id: A data descriptor id
@@ -82,7 +84,8 @@ def find_terms_in_universe(term_id: str,
                               -> list[BaseModel]:
     """
     Finds one or more terms of the universe.
-    The given `term_id` is searched according to the search type specified in the parameter `settings`,
+    The given `term_id` is searched according to the search type specified in 
+    the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
     Terms are unique within a data descriptor but may have some synonyms in the universe.
@@ -92,7 +95,7 @@ def find_terms_in_universe(term_id: str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A list of Pydantic model term instances. Returns an empty list if no matches are found.
+    :returns: A list of Pydantic term instances. Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
     result = list()
@@ -128,12 +131,13 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
                                         -> list[BaseModel]:
     """
     Gets all the terms of the given data descriptor.
-    This function performs an exact match on the `data_descriptor_id` and does **not** search for similar or related descriptors.
+    This function performs an exact match on the `data_descriptor_id` and does **not** search 
+    for similar or related descriptors.
     If the provided `data_descriptor_id` is not found, the function returns an empty list.
 
     :param data_descriptor_id: A data descriptor id
     :type data_descriptor_id: str
-    :returns: a list of Pydantic model term instances. Returns an empty list if no matches are found.
+    :returns: a list of Pydantic term instances. Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
     with UNIVERSE_DB_CONNECTION.create_session() as session:
@@ -153,9 +157,11 @@ def find_data_descriptors_in_universe(data_descriptor_id: str,
                                         -> list[str]:
     """
     Finds one or more data descriptor of the universe, based on the specified search settings.
-    The given `data_descriptor_id` is searched according to the search type specified in the parameter `settings`,
+    The given `data_descriptor_id` is searched according to the search type specified in 
+    the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
-    If the parameter `settings` is `None`, this function performs an exact match on the `data_descriptor_id`.
+    If the parameter `settings` is `None`, this function performs an exact match on 
+    the `data_descriptor_id`.
     If the provided `data_descriptor_id` is not found, the function returns an empty list.
     
     Behavior based on search type:
@@ -205,9 +211,9 @@ def get_all_data_descriptors_in_universe() -> list[str]:
 def get_all_terms_in_universe() -> list[BaseModel]:
     """
     Gets all the terms of the universe.
-    As terms are unique within a data descriptor but may have some synonyms in the universe.
+    Terms are unique within a data descriptor but may have some synonyms in the universe.
 
-    :returns: A list of Pydantic model term instances.
+    :returns: A list of Pydantic term instances.
     :rtype: list[BaseModel]
     """
     result = list()
