@@ -3,12 +3,12 @@ from pydantic import BaseModel
 from cmipld import get_pydantic_class
 from sqlmodel import Session, select, and_
 from cmipld.api import (SearchSettings,
-                       create_str_comparison_expression,
-                       ValidationReport,
-                       ValidationError,
-                       CollectionError,
-                       UniverseTermError,
-                       ProjectTermError)
+                        create_str_comparison_expression,
+                        ValidationReport,
+                        ValidationError,
+                        CollectionError,
+                        UniverseTermError,
+                        ProjectTermError)
 import cmipld.settings as api_settings
 import cmipld.db as db
 from cmipld.db.models.project import Project, Collection, PTerm

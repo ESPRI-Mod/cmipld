@@ -29,17 +29,20 @@ class ValidationErrorVisitor(ABC):
 
 class BasicValidationErrorVisitor(ValidationErrorVisitor):
     def visit_collection_error(self, error: "CollectionError") -> Any:
-        result = f"'{error.value}' does not belong to any terms of the collection {error.collection_id}"
+        result = f"'{error.value}' does not belong to any terms of the collection "+\
+                  "{error.collection_id}"
         return result
 
     def visit_universe_term_error(self, error: "UniverseTermError") -> Any:
         result = f"'{error.value}' is not compliant with the term " +\
-                 f"{error.term[api_settings.TERM_ID_JSON_KEY]} of the data descriptor {error.data_descriptor_id}"
+                 f"{error.term[api_settings.TERM_ID_JSON_KEY]} of the data descriptor "+\
+                  "{error.data_descriptor_id}"
         return result
 
     def visit_project_term_error(self, error: "ProjectTermError") -> Any:
         result = f"'{error.value}' is not compliant with the term " +\
-                 f"{error.term[api_settings.TERM_ID_JSON_KEY]} of the collection {error.collection_id}"
+                 f"{error.term[api_settings.TERM_ID_JSON_KEY]} of the collection "+\
+                  "{error.collection_id}"
         return result
 
 
