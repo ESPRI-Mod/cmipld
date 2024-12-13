@@ -92,7 +92,7 @@ class ValidationReport:
         self.errors: list[ValidationError] = errors
         self.nb_errors = len(self.errors) if self.errors else 0
         self.validated: bool = False if errors else True
-        self.message = f"'{self.expression}' has {len(self.errors)} error(s)"
+        self.message = f"'{self.expression}' has {self.nb_errors} error(s)"
    
     def __len__(self) -> int:
         return self.nb_errors

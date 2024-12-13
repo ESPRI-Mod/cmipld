@@ -20,7 +20,7 @@ class Project(SQLModel, PkMixin, IdMixin, table=True):
 
 class Collection(SQLModel, PkMixin, IdMixin, table=True):
     __tablename__ = "collections"
-    data_descriptor_id: str
+    data_descriptor_id: str = Field(index=True)
     context: dict = Field(sa_column=sa.Column(JSON))
     project_pk: int | None = Field(default=None, foreign_key="projects.pk")
     project: Project = Relationship(back_populates="collections")
