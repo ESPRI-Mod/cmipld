@@ -1,10 +1,9 @@
-from typing import cast, Sequence
+from typing import Sequence
 from pydantic import BaseModel
 from cmipld import get_pydantic_class
 from sqlmodel import Session, select, and_
 from cmipld.api import (SearchSettings,
                        create_str_comparison_expression,
-                       SearchType,
                        ValidationReport,
                        ValidationError,
                        CollectionError,
@@ -38,19 +37,18 @@ def _resolve_term(term_id: str,
                   project_session: Session,
                   universe_session: Session) -> UTerm|PTerm|None:
     '''First find the term in the universe than in the current project'''
-    result = None
-    uterm: UTerm = universe._find_terms_in_data_descriptor(data_descriptor_id=term_type,
-                                                           term_id=term_id,
-                                                           session=universe_session,
-                                                           settings=None)
-    if uterm:
-        result = uterm
+    uterms = universe._find_terms_in_data_descriptor(data_descriptor_id=term_type,
+                                                     term_id=term_id,
+                                                     session=universe_session,
+                                                     settings=None)
+    if uterms:
+        result = uterms[0]
     else:
-        pterm:PTerm = _find_terms_in_collection(collection_id=term_type,
-                                                term_id=term_id,
-                                                session=project_session,
-                                                settings=None)
-        result = pterm
+        pterms = _find_terms_in_collection(collection_id=term_type,
+                                           term_id=term_id,
+                                           session=project_session,
+                                           settings=None)
+        result = pterms[0] if pterms else None
     return result
 
 
@@ -132,11 +130,12 @@ def _valid_value_against_given_term(value: str,
                                     universe_session: Session)\
                                         -> list[ValidationError]:
     try:
-        term: PTerm = _find_terms_in_collection(collection_id,
-                                                term_id,
-                                                project_session,
-                                                None)
-        if term:
+        terms = _find_terms_in_collection(collection_id,
+                                          term_id,
+                                          project_session,
+                                          None)
+        if terms:
+            term = terms[0]
             result = _valid_value(value, term, project_session, universe_session)
         else:
             raise ValueError(f'unable to find term {term_id} ' +
@@ -223,12 +222,12 @@ def valid_term_in_collection(value: str,
                     errors = _valid_value_against_given_term(value, collection_id, term_id,
                                                              project_session, universe_session)
                 else:
-                    collection = _find_collections_in_project(collection_id,
-                                                              project_session,
-                                                              None)
-                    collection = cast(Collection, collection)
-                    if collection:
-                        match collection.term_kind: # TODO: untested.
+                    collections = _find_collections_in_project(collection_id,
+                                                               project_session,
+                                                               None)
+                    if collections:
+                        collection = collections[0]
+                        match collection.term_kind:
                             case TermKind.PLAIN:
                                 errors = _search_plain_term_and_valid_value(value, collection_id,
                                                                             project_session)
@@ -250,7 +249,7 @@ def valid_term_in_collection(value: str,
 def _find_terms_in_collection(collection_id: str,
                               term_id: str,
                               session: Session,
-                              settings: SearchSettings|None = None) -> PTerm|list[PTerm]|None:
+                              settings: SearchSettings|None = None) -> list[PTerm]:
     """Settings only apply on the term_id comparison."""
     where_expression = create_str_comparison_expression(field=PTerm.id,
                                                         value=term_id,
@@ -258,11 +257,7 @@ def _find_terms_in_collection(collection_id: str,
     statement = select(PTerm).join(Collection).where(Collection.id==collection_id,
                                                      where_expression)
     results = session.exec(statement)
-    if settings is None or SearchType.EXACT == settings.type:
-        # As we compare id, it can't be more than one result.
-        result = results.one_or_none()
-    else:
-        result = results.all()
+    result = results.all()    
     return result
 
 
@@ -270,19 +265,21 @@ def find_terms_in_collection(project_id:str,
                              collection_id: str,
                              term_id: str,
                              settings: SearchSettings|None = None) \
-                                -> BaseModel|dict[str, BaseModel]|None:
+                                -> list[BaseModel]:
     """
     Finds one or more terms, based on the specified search settings, in the given collection of a project.
-    This function performs an exact match on the `project_id` and `collection_id`, and does **not** search for similar or related projects and collections.
+    This function performs an exact match on the `project_id` and `collection_id`, 
+    and does **not** search for similar or related projects and collections.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
-    If any of the provided ids (`project_id`, `collection_id` or `term_id`) is not found, the function returns `None`.
+    If any of the provided ids (`project_id`, `collection_id` or `term_id`) is not found,
+    the function returns an empty list.
     
     Behavior based on search type:
-    - `EXACT`: and absence of `settings`: returns `None` or a Pydantic model term instance.
-    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns `None` or a dictionary that maps term ids found
-    to their corresponding Pydantic model instances.
+    - `EXACT`: and absence of `settings`: returns zero or one Pydantic model term instance in the list.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more
+      Pydantic model term instances in the list.
 
     :param project_id: A project id
     :type project_id: str
@@ -292,23 +289,17 @@ def find_terms_in_collection(project_id:str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A Pydantic model term instance or a dictionary that maps term ids found to their corresponding Pydantic model instances.
-    Returns `None` if no matches are found.
-    :rtype: BaseModel|dict[str: BaseModel]|None
+    :returns: A list of Pydantic model term instances.
+    Returns an empty list if no matches are found.
+    :rtype: list[BaseModel]
     """
-    result = None
+    result = list()
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             terms = _find_terms_in_collection(collection_id, term_id, session, settings)
-            if terms:
-                if settings is None or SearchType.EXACT == settings.type:
-                    term_class = get_pydantic_class(terms.specs[api_settings.TERM_TYPE_JSON_KEY])
-                    result = term_class(**terms.specs)
-                else:
-                    result = dict()
-                    for term in terms:
-                        term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-                        result[term.id] = term_class(**term.specs)
+            for term in terms:
+                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+                result.append(term_class(**term.specs))
     return result
 
 
@@ -326,9 +317,7 @@ def _find_terms_in_project(term_id: str,
 def find_terms_in_project(project_id: str,
                           term_id: str,
                           settings: SearchSettings|None = None) \
-                            -> dict[str, BaseModel]|\
-                               dict[str, dict[str, BaseModel]]|\
-                               None:
+                            -> list[BaseModel]:
     """
     Finds one or more terms, based on the specified search settings, in a project.
     This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
@@ -336,14 +325,9 @@ def find_terms_in_project(project_id: str,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
     As terms are unique within a collection but may have some synonyms within a project,
-    the result maps every term found to their collection.
-    If any of the provided ids (`project_id` or `term_id`) is not found, the function returns `None`.
-
-    Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns `None` or a dictionary that maps
-      collection ids to a Pydantic model term instance.
-    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns `None` or a dictionary that maps
-      collection ids to a mapping of term ids and their corresponding Pydantic model instances.
+    the function returns a list of Pydantic model term instances.
+    If any of the provided ids (`project_id` or `term_id`) is not found, the function returns
+    an empty list.
 
     :param project_id: A project id
     :type project_id: str
@@ -351,92 +335,80 @@ def find_terms_in_project(project_id: str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A dictionary that maps collection ids to a Pydantic model term instance
-    or a dictionary that maps collection ids
-    to a mapping of term ids and their corresponding Pydantic model instances.
-    Returns `None` if no matches are found.
-    :rtype: dict[str, BaseModel]|dict[str, dict[str, BaseModel]]|None
+    :returns: A list of Pydantic model term instances.
+    Returns an empty list if no matches are found.
+    :rtype: list[BaseModel]
     """
-    result = None
+    result = list()
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             terms = _find_terms_in_project(term_id, session, settings)
-            if terms:
-                result = dict()
-                for term in terms:
-                    term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-                    if settings is None or SearchType.EXACT == settings.type:
-                        result[term.collection.id] = term_class(**term.specs)
-                    else:
-                        if term.collection.id not in result:
-                            result[term.collection.id] = dict()
-                        result[term.collection.id][term.id] = term_class(**term.specs)
+            for term in terms:
+                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+                result.append(term_class(**term.specs))
     return result
 
 
 def get_all_terms_in_collection(project_id: str,
                                 collection_id: str)\
-                                   -> dict[str, BaseModel]|None:
+                                   -> list[BaseModel]:
     """
     Gets all the terms of the given collection of a project.
-    This function performs an exact match on the `project_id` and `collection_id`, and does **not** search for similar or related projects and collections.
-    If any of the provided ids (`project_id` or `collection_id`) is not found, the function returns `None`.
+    This function performs an exact match on the `project_id` and `collection_id`,
+    and does **not** search for similar or related projects and collections.
+    If any of the provided ids (`project_id` or `collection_id`) is not found, the function
+    returns an empty list.
 
     :param project_id: A project id
     :type project_id: str
     :param collection_id: A collection id
     :type collection_id: str
-    :returns: a dictionary that maps term ids to their corresponding Pydantic instances.
-    Returns `None` if no matches are found.
-    :rtype: dict[str, BaseModel]|None
+    :returns: a list of Pydantic model term instances.
+    Returns an empty list if no matches are found.
+    :rtype: list[BaseModel]
     """
-    result = None
+    result = list()
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
-            collection = _find_collections_in_project(collection_id,
-                                                      session,
-                                                      None)
-            if collection:
-                result = dict()
-                terms = _get_all_terms_in_collection(collection)
-                for term in terms:
-                    result[term.id] = term
+            collections = _find_collections_in_project(collection_id,
+                                                       session,
+                                                       None)
+            if collections:
+                collection = collections[0]
+                result = _get_all_terms_in_collection(collection)
     return result
 
 
 def _find_collections_in_project(collection_id: str,
                                  session: Session,
                                  settings: SearchSettings|None) \
-                                    -> Collection|list[Collection]|None:
+                                    -> list[Collection]:
     where_exp = create_str_comparison_expression(field=Collection.id,
                                                  value=collection_id,
                                                  settings=settings)
     statement = select(Collection).where(where_exp)
     results = session.exec(statement)
-    if settings is None or SearchType.EXACT == settings.type:
-        # As we compare id, it can't be more than one result.
-        result = results.one_or_none()
-    else:
-        result = results.all()
+    result = results.all()
     return result
 
 
 def find_collections_in_project(project_id: str,
                                 collection_id: str,
                                 settings: SearchSettings|None = None) \
-                                    -> dict|dict[str, dict]|None:
+                                    -> list[str]:
     """
     Finds one or more collections of the given project.
     This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
     The given `collection_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `collection_id`.
-    If any of the provided ids (`project_id` or `collection_id`) is not found, the function returns `None`.
+    If any of the provided ids (`project_id` or `collection_id`) is not found, the function returns
+    an empty list.
         
     Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns `None` or a collection context.
-    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns `None` or 
-      dictionary that maps collection ids to their context.
+    - `EXACT` and absence of `settings`: returns zero or one collection id in the list.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more
+      collection ids in the list.
 
     :param project_id: A project id
     :type project_id: str
@@ -444,51 +416,44 @@ def find_collections_in_project(project_id: str,
     :type collection_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A collection context or dictionary that maps collection ids to their context.
-    Returns `None` if no matches are found.
-    :rtype: dict|dict[str, dict]|None
+    :returns: A list of collection ids.
+    Returns an empty list if no matches are found.
+    :rtype: list[str]
     """
-    result = None
+    result = list()
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             collections = _find_collections_in_project(collection_id,
                                                        session,
                                                        settings)
-            if collections:
-                if settings is None or SearchType.EXACT == settings.type:
-                    result = collections.context
-                else:
-                    result = dict()
-                    for collection in collections:
-                        result[collection.id] = collection.context
+            for collection in collections:
+                result.append(collection.id)
     return result
 
 
-def _get_all_collections_in_project(session: Session) -> list[Collection]|None:
+def _get_all_collections_in_project(session: Session) -> list[Collection]:
     project = session.get(Project, api_settings.SQLITE_FIRST_PK)
-    return project.collections if project else None
+    return project.collections
 
 
-def get_all_collections_in_project(project_id: str) -> dict[str, dict]|None:
+def get_all_collections_in_project(project_id: str) -> list[str]:
     """
     Gets all the collections of the given project.
     This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
-    If the provided `project_id` is not found, the function returns `None`.
+    If the provided `project_id` is not found, the function returns an empty list.
 
     :param project_id: A project id
     :type project_id: str
-    :returns: A dictionary that maps collection ids to their context.
-    Returns `None` if no matches are found.
-    :rtype: dict[str, dict]|None
+    :returns: A list of collection ids.
+    Returns an empty list if no matches are found.
+    :rtype: list[str]
     """
-    result = None
+    result = list()
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             collections = _get_all_collections_in_project(session)
-            if collections:
-                result = dict()
-                for collection in collections:
-                    result[collection.id] = collection.context
+            for collection in collections:
+                result.append(collection.id)
     return result
 
 
@@ -500,32 +465,26 @@ def _get_all_terms_in_collection(collection: Collection) -> list[BaseModel]:
     return result
 
 
-def get_all_terms_in_project(project_id: str) -> dict[str, dict[str, BaseModel]]|None:
+def get_all_terms_in_project(project_id: str) -> list[BaseModel]:
     """
     Gets all the terms of the given project.
     This function performs an exact match on the `project_id` and does **not** search for similar or related projects.
-    As terms are unique within a collection but may have some synonyms within a project,
-    this function returns a dictionary that maps every term to their collection.
-    If the provided `project_id` is not found, the function returns `None`.
+    As terms are unique within a collection but may have some synonyms in a project.
+    If the provided `project_id` is not found, the function returns an empty list.
 
     :param project_id: A project id
     :type project_id: str
-    :returns: A dictionary that maps collection ids to a mapping of term ids and their corresponding Pydantic model instances.
-    Returns `None` if no matches are found.
-    :rtype: dict[str, dict[str, BaseModel]]|None
+    :returns: A list of Pydantic model term instances.
+    Returns an empty list if no matches are found.
+    :rtype: list[BaseModel]
     """
-    result = None
+    result = list()
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             collections = _get_all_collections_in_project(session)
-            if collections:
-                result = dict()
-                for collection in collections:
-                    # Term may have some synonyms within a project.
-                    result[collection.id] = dict()
-                    terms = _get_all_terms_in_collection(collection)
-                    for term in terms:
-                        result[collection.id][term.id] = term
+            for collection in collections:
+                # Term may have some synonyms in a project.
+                result.extend(_get_all_terms_in_collection(collection))
     return result
 
 
@@ -545,23 +504,23 @@ def find_project(project_id: str) -> dict|None:
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             project = session.get(Project, api_settings.SQLITE_FIRST_PK)
-            result = project.specs if project else None
+            result = project.specs
     return result
 
 
-def get_all_projects() -> dict[str: dict]:
+def get_all_projects() -> list[str]:
     """
     Gets all the projects.
     
-    :returns: A dictionary that maps project ids to their specs.
-    :rtype: dict[str: dict]
+    :returns: A list of project ids.
+    :rtype: list[str]
     """
     return ['cmip6plus'] # TODO: to be implemented
 
 
 if __name__ == "__main__":
 
-    vr = valid_term_in_collection('20241206-20241207', 'cmip6plus', 'time_range', 'daily')
+    vr = valid_term_in_collection('IPSL', 'cmip6plus', 'institution_id')
     if vr:
         print('OK')
     else:

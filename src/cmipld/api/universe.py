@@ -1,10 +1,9 @@
-from typing import cast
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
 import cmipld.db as db
 from cmipld import get_pydantic_class
-from cmipld.api import SearchSettings, create_str_comparison_expression, SearchType
+from cmipld.api import SearchSettings, create_str_comparison_expression
 from cmipld.db.models.universe import DataDescriptor, UTerm
 import cmipld.settings as api_settings
 
@@ -18,7 +17,7 @@ UNIVERSE_DB_CONNECTION = db.DBConnection(db.UNIVERSE_DB_FILE_PATH, 'universe', F
 def _find_terms_in_data_descriptor(data_descriptor_id: str,
                                    term_id: str,
                                    session: Session,
-                                   settings: SearchSettings|None) -> UTerm|list[UTerm]|None:
+                                   settings: SearchSettings|None) -> list[UTerm]:
     """Settings only apply on the term_id comparison."""
     where_expression = create_str_comparison_expression(field=UTerm.id,
                                                         value=term_id,
@@ -26,30 +25,27 @@ def _find_terms_in_data_descriptor(data_descriptor_id: str,
     statement = select(UTerm).join(DataDescriptor).where(DataDescriptor.id==data_descriptor_id,
                                                          where_expression)
     results = session.exec(statement)
-    if settings is None or SearchType.EXACT == settings.type:
-        # As we compare id, it can't be more than one result.
-        result = results.one_or_none()
-    else:
-        result = results.all()
+    result = results.all()
     return result
 
 
 def find_terms_in_data_descriptor(data_descriptor_id: str,
                                   term_id: str,
                                   settings: SearchSettings|None = None) \
-                                     -> BaseModel|dict[str: BaseModel]|None:
+                                     -> list[BaseModel]:
     """
     Finds one or more terms in the given data descriptor based on the specified search settings.
     This function performs an exact match on the `data_descriptor_id` and does **not** search for similar or related descriptors.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
-    If any of the provided ids (`data_descriptor_id` or `term_id`) is not found, the function returns `None`.
+    If any of the provided ids (`data_descriptor_id` or `term_id`) is not found, the function
+    returns an empty list.
 
     Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns `None` or a Pydantic model term instance.
-    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns `None` or a dictionary that maps term ids found
-    to their corresponding Pydantic model instances.
+    - `EXACT` and absence of `settings`: returns zero or one Pydantic model term instance in the list.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more Pydantic model term
+      instances in the list.
 
     :param data_descriptor_id: A data descriptor id
     :type data_descriptor_id: str
@@ -57,23 +53,16 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: a Pydantic model term instance or a dictionary that maps term ids found to their corresponding Pydantic model instances.
-    Returns `None` if no matches are found.
-    :rtype: BaseModel|dict[str: BaseModel]|None
+    :returns: A list of Pydantic model term instances.
+    Returns an empty list if no matches are found.
+    :rtype: list[BaseModel]
     """
+    result = list()
     with UNIVERSE_DB_CONNECTION.create_session() as session:
         terms = _find_terms_in_data_descriptor(data_descriptor_id, term_id, session, settings)
-        result:BaseModel|dict[str: BaseModel]|None = None
-        if terms:
-            if settings is None or SearchType.EXACT == settings.type:
-                term = cast(UTerm, terms)
-                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-                result = term_class(**term.specs)
-            else:
-                result = dict()
-                for term in cast(list[UTerm], terms):
-                    term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-                    result[term.id] = term_class(**term.specs)
+        for term in terms:
+            term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+            result.append(term_class(**term.specs))
     return result
 
 
@@ -89,49 +78,29 @@ def _find_terms_in_universe(term_id: str,
 
 
 def find_terms_in_universe(term_id: str,
-                          settings: SearchSettings|None = None) \
-                            -> dict[str, BaseModel]|\
-                               dict[str, dict[str, BaseModel]]|\
-                               None:
+                           settings: SearchSettings|None = None) \
+                              -> list[BaseModel]:
     """
     Finds one or more terms of the universe.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
-    As terms are unique within a data descriptor but may have some synonyms within the universe,
-    the result maps every term found to their data descriptor.
-    If the provided `term_id` is not found, the function returns `None`.
-
-    Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns `None` or a dictionary that maps
-      data descriptor ids to a Pydantic model term instance.
-    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns `None` or a dictionary that maps
-      data descriptor ids to a mapping of term ids and their corresponding Pydantic model instances.
+    Terms are unique within a data descriptor but may have some synonyms in the universe.
+    If the provided `term_id` is not found, the function returns an empty list.
 
     :param term_id: A term id to be found
     :type term_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A dictionary that maps data descriptor ids to a Pydantic model term instance
-    or a dictionary that maps data descriptor ids
-    to a mapping of term ids and their corresponding Pydantic model instances.
-    Returns `None` if no matches are found.
-    :rtype: dict[str, BaseModel]|dict[str, dict[str, BaseModel]]|None
+    :returns: A list of Pydantic model term instances. Returns an empty list if no matches are found.
+    :rtype: list[BaseModel]
     """
+    result = list()
     with UNIVERSE_DB_CONNECTION.create_session() as session:
         terms = _find_terms_in_universe(term_id, session, settings)
-        if terms:
-            result = dict()
-            for term in terms:
-                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-                if settings is None or SearchType.EXACT == settings.type:
-                    result[term.data_descriptor.id] = term_class(**term.specs)
-                else:
-                    if term.data_descriptor.id not in result:
-                        result[term.data_descriptor.id] = dict()
-                    result[term.data_descriptor.id][term.id] = term_class(**term.specs)
-        else:
-            result = None
+        for term in terms:
+            term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+            result.append(term_class(**term.specs))
     return result
 
 
@@ -145,84 +114,69 @@ def _get_all_terms_in_data_descriptor(data_descriptor: DataDescriptor) -> list[B
 
 def _find_data_descriptors_in_universe(data_descriptor_id: str,
                                        session: Session,
-                                       settings: SearchSettings|None) -> DataDescriptor|list[DataDescriptor]|None:
+                                       settings: SearchSettings|None) -> list[DataDescriptor]:
     where_expression = create_str_comparison_expression(field=DataDescriptor.id,
                                                         value=data_descriptor_id,
                                                         settings=settings)
     statement = select(DataDescriptor).where(where_expression)
     results = session.exec(statement)
-    if settings is None or SearchType.EXACT == settings.type:
-        # As we compare id, it can't be more than one result.
-        result = results.one_or_none()
-    else:
-        result = results.all()
+    result = results.all()      
     return result
 
 
 def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
-                                        -> dict[str, BaseModel]|None:
+                                        -> list[BaseModel]:
     """
     Gets all the terms of the given data descriptor.
     This function performs an exact match on the `data_descriptor_id` and does **not** search for similar or related descriptors.
-    As a result, the function returns a dictionary that maps term ids to their corresponding Pydantic instances.
-    If the provided `data_descriptor_id` is not found, the function returns `None`.
+    If the provided `data_descriptor_id` is not found, the function returns an empty list.
 
     :param data_descriptor_id: A data descriptor id
     :type data_descriptor_id: str
-    :returns: a dictionary that maps term ids to their corresponding Pydantic instances.
-    Returns `None` if no matches are found.
-    :rtype: dict[str, BaseModel]|None
+    :returns: a list of Pydantic model term instances. Returns an empty list if no matches are found.
+    :rtype: list[BaseModel]
     """
     with UNIVERSE_DB_CONNECTION.create_session() as session:
-        data_descriptor = _find_data_descriptors_in_universe(data_descriptor_id,
-                                                            session,
-                                                            None)
-        if data_descriptor:
-            result = dict()
-            terms = _get_all_terms_in_data_descriptor(data_descriptor)
-            for term in terms:
-                result[term.id] = term
+        data_descriptors = _find_data_descriptors_in_universe(data_descriptor_id,
+                                                              session,
+                                                              None)
+        if data_descriptors:
+            data_descriptor = data_descriptors[0]
+            result = _get_all_terms_in_data_descriptor(data_descriptor)
         else:
-            result = None
+            result = list()
     return result
 
 
 def find_data_descriptors_in_universe(data_descriptor_id: str,
                                       settings: SearchSettings|None = None) \
-                                        -> dict|dict[str, dict]|None:
+                                        -> list[str]:
     """
     Finds one or more data descriptor of the universe, based on the specified search settings.
     The given `data_descriptor_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `data_descriptor_id`.
-    If the provided `data_descriptor_id` is not found, the function returns `None`.
+    If the provided `data_descriptor_id` is not found, the function returns an empty list.
     
     Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns `None` or a data descriptor context.
-    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns `None` or 
-      dictionary that maps data descriptor ids to their context.
+    - `EXACT` and absence of `settings`: returns zero or one data descriptor id in the list.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more
+      data descriptor ids in the list.
 
     :param data_descriptor_id: A data descriptor id to be found
     :type data_descriptor_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A data descriptor context or dictionary that maps data descriptor ids to their context.
-    Returns `None` if no matches are found.
-    :rtype: dict|dict[str, dict]|None
+    :returns: A list of data descriptor ids. Returns an empty list if no matches are found.
+    :rtype: list[str]
     """
+    result = list()
     with UNIVERSE_DB_CONNECTION.create_session() as session:
         data_descriptors = _find_data_descriptors_in_universe(data_descriptor_id,
-                                                             session,
-                                                             settings)
-        if data_descriptors:
-            if settings is None or SearchType.EXACT == settings.type:
-                result = data_descriptors.context
-            else:
-                result = dict()
-                for data_descriptor in data_descriptors:
-                    result[data_descriptor.id] = data_descriptor.context
-        else:
-            result = None
+                                                              session,
+                                                              settings)
+        for data_descriptor in data_descriptors:
+            result.append(data_descriptor.id)
     return result
 
 
@@ -233,39 +187,36 @@ def _get_all_data_descriptors_in_universe(session: Session) -> list[DataDescript
     return result
 
 
-def get_all_data_descriptors_in_universe() -> dict[str, dict]:
+def get_all_data_descriptors_in_universe() -> list[str]:
     """
     Gets all the data descriptors of the universe.
 
-    :returns: A dictionary that maps data descriptor ids to their context.
-    :rtype: dict[str, dict]
+    :returns: A list of data descriptor ids.
+    :rtype: list[str]
     """
+    result = list()
     with UNIVERSE_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors_in_universe(session)
-        result = dict()
         for data_descriptor in data_descriptors:
-            result[data_descriptor.id] = data_descriptor.context
+            result.append(data_descriptor.id)
     return result
 
 
-def get_all_terms_in_universe() -> dict[str, dict[str, BaseModel]]:
+def get_all_terms_in_universe() -> list[BaseModel]:
     """
     Gets all the terms of the universe.
-    As terms are unique within a data descriptor but may have some synonyms within the universe,
-    the result maps every term to their data descriptor.
+    As terms are unique within a data descriptor but may have some synonyms in the universe.
 
-    :returns: A dictionary that maps data descriptor ids to a mapping of term ids and their corresponding Pydantic model instances.
-    :rtype: dict[str, dict[str, BaseModel]]
+    :returns: A list of Pydantic model term instances.
+    :rtype: list[BaseModel]
     """
+    result = list()
     with UNIVERSE_DB_CONNECTION.create_session() as session:
         data_descriptors = _get_all_data_descriptors_in_universe(session)
-        result = dict()
         for data_descriptor in data_descriptors:
             # Term may have some synonyms within the whole universe.
-            result[data_descriptor.id] = dict()
             terms = _get_all_terms_in_data_descriptor(data_descriptor)
-            for term in terms:
-                result[data_descriptor.id][term.id] = term
+            result.extend(terms)
     return result
 
 
