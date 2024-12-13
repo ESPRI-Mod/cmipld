@@ -10,7 +10,7 @@ _SOME_TERM_IDS = ['ipsl', 'observations', 'airmass']
 _SETTINGS = SearchSettings(type=SearchType.LIKE)
 
 
-def _provide_data_descriptor_ids() -> Generator[str]:
+def _provide_data_descriptor_ids() -> Generator:
     for id in _SOME_DATA_DESCRIPTOR_IDS:
         yield id
 
@@ -20,7 +20,7 @@ def data_descriptor_id(request) -> str:
     return request.param
 
 
-def _provide_term_ids() -> Generator[str]:
+def _provide_term_ids() -> Generator:
     for id in _SOME_TERM_IDS:
         yield id
 
