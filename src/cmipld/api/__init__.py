@@ -1,6 +1,5 @@
-from enum import Enum
 from abc import ABC, abstractmethod
-
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel
@@ -8,9 +7,9 @@ from sqlalchemy import ColumnElement, func
 from sqlmodel import col
 
 import cmipld.settings as api_settings
+from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.project import PTerm
 from cmipld.db.models.universe import UTerm
-from cmipld.db.models.mixins import TermKind
 
 
 class ValidationErrorVisitor(ABC):

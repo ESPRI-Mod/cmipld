@@ -1,20 +1,18 @@
-from typing import Sequence
-from pydantic import BaseModel
-from cmipld import get_pydantic_class
-from sqlmodel import Session, select, and_
-from cmipld.api import (SearchSettings,
-                        create_str_comparison_expression,
-                        ValidationReport,
-                        ValidationError,
-                        CollectionError,
-                        UniverseTermError,
-                        ProjectTermError)
-import cmipld.settings as api_settings
-import cmipld.db as db
-from cmipld.db.models.project import Project, Collection, PTerm
-from cmipld.db.models.mixins import TermKind
 import re
+from typing import Sequence
+
+from pydantic import BaseModel
+from sqlmodel import Session, and_, select
+
 import cmipld.api.universe as universe
+import cmipld.db as db
+import cmipld.settings as api_settings
+from cmipld import get_pydantic_class
+from cmipld.api import (CollectionError, ProjectTermError, SearchSettings,
+                        UniverseTermError, ValidationError, ValidationReport,
+                        create_str_comparison_expression)
+from cmipld.db.models.mixins import TermKind
+from cmipld.db.models.project import Collection, Project, PTerm
 from cmipld.db.models.universe import UTerm
 
 ############## DEBUG ##############

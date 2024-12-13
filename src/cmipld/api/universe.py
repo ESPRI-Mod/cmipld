@@ -1,12 +1,13 @@
 from typing import Sequence
+
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
 import cmipld.db as db
+import cmipld.settings as api_settings
 from cmipld import get_pydantic_class
 from cmipld.api import SearchSettings, create_str_comparison_expression
 from cmipld.db.models.universe import DataDescriptor, UTerm
-import cmipld.settings as api_settings
 
 ############## DEBUG ##############
 # TODO: to be deleted.
