@@ -393,7 +393,7 @@ def _find_collections_in_project(collection_id: str,
 def find_collections_in_project(project_id: str,
                                 collection_id: str,
                                 settings: SearchSettings|None = None) \
-                                    -> list[str]:
+                                    -> list[dict]:
     """
     Finds one or more collections of the given project.
     This function performs an exact match on the `project_id` and 
@@ -406,9 +406,9 @@ def find_collections_in_project(project_id: str,
     an empty list.
         
     Behavior based on search type:
-    - `EXACT` and absence of `settings`: returns zero or one collection id in the list.
+    - `EXACT` and absence of `settings`: returns zero or one collection context in the list.
     - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more
-      collection ids in the list.
+      collection contexts in the list.
 
     :param project_id: A project id
     :type project_id: str
@@ -416,9 +416,9 @@ def find_collections_in_project(project_id: str,
     :type collection_id: str
     :param settings: The search settings
     :type settings: SearchSettings|None
-    :returns: A list of collection ids.
+    :returns: A list of collection contexts.
     Returns an empty list if no matches are found.
-    :rtype: list[str]
+    :rtype: list[dict]
     """
     result = list()
     if connection:=_get_project_connection(project_id):
@@ -427,7 +427,7 @@ def find_collections_in_project(project_id: str,
                                                        session,
                                                        settings)
             for collection in collections:
-                result.append(collection.id)
+                result.append(collection.context)
     return result
 
 
@@ -522,8 +522,7 @@ def get_all_projects() -> list[str]:
 
 
 if __name__ == "__main__":
-
-    vr = valid_term_in_collection('IPSL', 'cmip6plus', 'institution_id')
+    vr = valid_term_in_collection('0241206-0241207', 'cmip6plus', 'time_range', 'daily')
     if vr:
         print('OK')
     else:
