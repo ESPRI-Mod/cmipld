@@ -1,9 +1,9 @@
-from cmipld.api.models import Term
+from pydantic import BaseModel
 
 from cmipld.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
 
 
-def get_pydantic_class(data_descriptor_id_or_term_type: str) -> type[Term]:
+def get_pydantic_class(data_descriptor_id_or_term_type: str) -> type[BaseModel]:
     if data_descriptor_id_or_term_type in DATA_DESCRIPTOR_CLASS_MAPPING:
         return DATA_DESCRIPTOR_CLASS_MAPPING[data_descriptor_id_or_term_type]
     else:
