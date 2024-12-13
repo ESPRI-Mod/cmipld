@@ -28,24 +28,29 @@ class BaseState:
         self.local_version = None
         self.db_version = None
 
-    def fetch_versions(self):
-        try:
-            owner, repo = self.github_repo.lstrip("https://github.com/").split("/")
-            self.github_version = self.rf.get_github_version(owner, repo, self.branch)
-            logger.debug(f"Latest GitHub commit: {self.github_version}")
-        except Exception as e:
-            logger.exception(f"Failed to fetch GitHub version: {e} ,for {owner},{repo},{self.branch}")
-
-        if self.local_path:
+    
+    def fetch_version_local(self):
+         if self.local_path:
             try:
                 self.local_version = self.rf.get_local_repo_version(self.local_path, self.branch)
                 logger.debug(f"Local repo commit: {self.local_version}")
             except Exception as e:
                 logger.exception(f"Failed to fetch local repo version: {e}")
-        
-        
+    def fetch_version_remote(self):
+        if self.github_repo:
+            owner = None
+            repo = None
+            try:
+                owner, repo = self.github_repo.lstrip("https://github.com/").split("/")
+                self.github_version = self.rf.get_github_version(owner, repo, self.branch) # This one use the github api, TODO maybe change that ? 
+                logger.debug(f"Latest GitHub commit: {self.github_version}")
+            except Exception as e:
+                logger.exception(f"Failed to fetch GitHub version: {e} ,for {self.github_repo},owner : {owner}, repo : {repo},branch : {self.branch}")
 
-
+    def fetch_versions(self):
+        self.fetch_version_remote()
+        self.fetch_version_local()
+              
     def check_sync_status(self):
         self.fetch_versions()
         return {
@@ -77,7 +82,6 @@ class StateUniverse(BaseState):
                 self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
                 with self.db_connection.create_session() as session:
                     self.db_version = session.exec(select(Universe.git_hash)).one()
-                    
         else:
             self.db_version = None
 
@@ -88,19 +92,18 @@ class StateProject(BaseState):
         self.project_name = mdict.pop("project_name")
         super().__init__(**mdict)
 
-
     def fetch_versions(self):
         super().fetch_versions()
         self.db_version = None
-        try :
-            self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
-            with self.db_connection.create_session() as session:
-                self.db_version = session.exec(select(Project.git_hash)).one()
-        except NoResultFound :
-            logger.debug(f"Unable to find git_hash in project {self.project_name}")
-        except Exception as e:
-            logger.debug(f"Unable to find git_has in project {self.project_name} cause {e}" )
-
+        if self.db_path:
+            try :
+                self.db_connection =DBConnection(db_file_path= Path(self.db_path)) 
+                with self.db_connection.create_session() as session:
+                    self.db_version = session.exec(select(Project.git_hash)).one()
+            except NoResultFound :
+                logger.debug(f"Unable to find git_hash in project {self.project_name}")
+            except Exception as e:
+                logger.debug(f"Unable to find git_has in project {self.project_name} cause {e}" )
 
 class StateService:
     def __init__(self, service_settings: ServiceSettings):
@@ -120,12 +123,12 @@ class StateService:
         table = Table(show_header=False, show_lines=True)
         table.add_row("","Remote github repo","Local repository","Cache Database")
         table.add_row("Universe path",self.universe.github_repo,self.universe.local_path,self.universe.db_path)
-        table.add_row("Version",self.universe.github_version,self.universe.github_version,self.universe.db_version)
+        table.add_row("Version",self.universe.github_version,self.universe.local_version,self.universe.db_version)
         for proj_name,proj in self.projects.items():
 
             table.add_row("","Remote github repo","Local repository","Cache Database")
             table.add_row(f"{proj_name} path",proj.github_repo,proj.local_path,proj.db_path)
-            table.add_row("Version",proj.github_version,proj.github_version,proj.db_version)
+            table.add_row("Version",proj.github_version,proj.local_version,proj.db_version)
         return table
 
     # def find_version_differences(self):

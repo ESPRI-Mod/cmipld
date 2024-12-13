@@ -76,19 +76,6 @@ def display(table):
     console.print(table)
 
 
-# def display_state():
-#     settings_path = "src/cmipld/core/service/settings.toml"
-#     service_settings = ServiceSettings.load_from_file(settings_path)
-#
-#     # Initialize StateService
-#     state_service = StateService(service_settings)
-#     state_service.get_state_summary()
-#     state_table = state_service.table()
-#     console = Console(record=True,width=200)
-#     console.print(state_table)
-#
-
-
 def test_api():
     from cmipld.api.universe import get_all_terms_in_universe
 
