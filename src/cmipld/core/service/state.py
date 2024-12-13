@@ -128,7 +128,7 @@ class StateService:
 
             table.add_row("","Remote github repo","Local repository","Cache Database")
             table.add_row(f"{proj_name} path",proj.github_repo,proj.local_path,proj.db_path)
-            table.add_row("Version",proj.github_version,proj.github_version,proj.db_version)
+            table.add_row("Version",proj.github_version,proj.local_version,proj.db_version)
         return table
 
     # def find_version_differences(self):
