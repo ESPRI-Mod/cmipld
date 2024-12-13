@@ -7,19 +7,18 @@ _LOGGER = logging.getLogger("drs")
 
 
 def parse_project_specs(project_id: str) -> ProjectSpecs:
-    cmip6_project = projects.find_project(project_id)
-    if not cmip6_project:
+    project_specs = projects.find_project(project_id)
+    if not project_specs:
         msg = f'Unable to find project {project_id}'
         _LOGGER.fatal(msg)
         raise ValueError(msg)
     try:
-        drs_json_specs = cmip6_project[project_id]
-        drs_specs = ProjectSpecs(**drs_json_specs)
+        result = ProjectSpecs(**project_specs)
     except Exception as e:
         msg = f'Unable to read specs in project {project_id}'
         _LOGGER.fatal(msg)
         raise RuntimeError(msg) from e
-    return drs_specs
+    return result
 
 
 if __name__ == "__main__":
