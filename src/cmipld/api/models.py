@@ -1,25 +1,42 @@
-from pydantic import BaseModel, ConfigDict
+from typing import Protocol
 
-class GenericTerm(BaseModel):
-    id: str
-    type: str
-    model_config = ConfigDict(extra = "allow")
+class Term(Protocol):
+    @property
+    def id(self) -> str:
+        pass
+    @property
+    def type(self) -> str:
+        pass
 
 
-class GenericPlainTerm(GenericTerm):
-    drs_name: str
+class PlainTerm(Term, Protocol):
+    @property
+    def drs_name(self) -> str:
+        pass
     
 
-class GenericTermPattern(GenericTerm):
-    regex: str
+class TermPattern(Term, Protocol):
+    @property
+    def regex(self) -> str:
+        pass
 
 
-class CompositePart(BaseModel):
-    id: str
-    type: str
-    is_required: bool
+class CompositePart(Protocol):
+    @property
+    def id(self) -> str:
+        pass
+    @property
+    def type(self) -> str:
+        pass
+    @property
+    def is_required(self) -> bool:
+        pass
 
 
-class GenericTermComposite(GenericTerm):
-    separator: str
-    parts: list[CompositePart]
+class TermComposite(Term, Protocol):
+    @property
+    def separator(self) -> str:
+        pass
+    @property
+    def parts(self) -> list[CompositePart]:
+        pass
