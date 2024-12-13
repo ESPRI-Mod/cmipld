@@ -20,7 +20,7 @@ _SOME_VALIDATION_REQUESTS = [
 _SETTINGS = SearchSettings(type=SearchType.LIKE)
 
 
-def _provide_validation_request() -> Generator[tuple]:
+def _provide_validation_request() -> Generator:
     for validation_request in _SOME_VALIDATION_REQUESTS:
         yield validation_request
 
@@ -30,7 +30,7 @@ def validation_request(request) -> tuple:
     return request.param
 
 
-def _provide_project_ids() -> Generator[str]:
+def _provide_project_ids() -> Generator:
     for project_id in _SOME_PROJECT_IDS:
         yield project_id
 
@@ -40,7 +40,7 @@ def project_id(request) -> str:
     return request.param
 
 
-def _provide_collection_ids() -> Generator[str]:
+def _provide_collection_ids() -> Generator:
     for collection_id in _SOME_COLLECTION_IDS:
         yield collection_id
 
@@ -50,7 +50,7 @@ def collection_id(request) -> str:
     return request.param
 
 
-def _provide_term_ids() -> Generator[str]:
+def _provide_term_ids() -> Generator:
     for term_id in _SOME_TERM_IDS:
         yield term_id
 
