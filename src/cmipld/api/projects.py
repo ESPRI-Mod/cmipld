@@ -311,6 +311,34 @@ def _find_terms_in_project(term_id: str,
     return results
 
 
+def find_terms_in_all_projects(term_id: str,
+                               settings: SearchSettings|None = None) \
+                                  -> list[BaseModel]:
+    """
+    Finds one or more terms, based on the specified search settings, in all projects.
+    This function performs an exact match on the `project_id` and 
+    does **not** search for similar or related projects.
+    The given `term_id` is searched according to the search type specified in the parameter `settings`,
+    which allows a flexible matching (e.g., `LIKE` may return multiple results).
+    If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
+    Terms are unique within a collection but may have some synonyms within a project.
+    If any of the provided ids (`project_id` or `term_id`) is not found, the function returns
+    an empty list.
+
+    :param term_id: A term id to be found
+    :type term_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings|None
+    :returns: A list of Pydantic term instances. Returns an empty list if no matches are found.
+    :rtype: list[BaseModel]
+    """
+    project_ids = get_all_projects()
+    result = list()
+    for project_id in project_ids:
+        result.extend(find_terms_in_project(project_id, term_id, settings))
+    return result
+
+
 def find_terms_in_project(project_id: str,
                           term_id: str,
                           settings: SearchSettings|None = None) \
@@ -536,12 +564,4 @@ def get_all_projects() -> list[str]:
 
 
 if __name__ == "__main__":
-    vr = valid_term_in_collection('0241206-0241207', 'cmip6plus', 'time_range', 'daily')
-    if vr:
-        print('OK')
-    else:
-        print(vr)
-        from cmipld.api import BasicValidationErrorVisitor
-        visitor = BasicValidationErrorVisitor()
-        for error in vr.errors:
-            print(error.accept(visitor))
+    print(find_terms_in_all_projects('ipsl'))
