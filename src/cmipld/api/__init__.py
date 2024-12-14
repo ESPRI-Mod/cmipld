@@ -1,15 +1,28 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any
+from typing import Any, Sequence
 
 from pydantic import BaseModel
 from sqlalchemy import ColumnElement, func
 from sqlmodel import col
 
 import cmipld.settings as api_settings
+from cmipld.api.data_descriptors import get_pydantic_class
 from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.project import PTerm
 from cmipld.db.models.universe import UTerm
+
+
+def instantiate_pydantic_term(term: UTerm|PTerm) -> BaseModel:
+    term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
+    return term_class(**term.specs)
+
+
+def instantiate_pydantic_terms(db_terms: Sequence[UTerm|PTerm],
+                               list_to_populate: list[BaseModel]) -> None:
+    for db_term in db_terms:
+        term = instantiate_pydantic_term(db_term)
+        list_to_populate.append(term)
 
 
 class ValidationErrorVisitor(ABC):

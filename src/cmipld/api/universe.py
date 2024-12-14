@@ -4,9 +4,7 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 import cmipld.db as db
-import cmipld.settings as api_settings
-from cmipld import get_pydantic_class
-from cmipld.api import SearchSettings, create_str_comparison_expression
+from cmipld.api import SearchSettings, create_str_comparison_expression, instantiate_pydantic_terms
 from cmipld.db.models.universe import DataDescriptor, UTerm
 
 ############## DEBUG ##############
@@ -61,12 +59,10 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
-    result = list()
+    result: list[BaseModel] = list()
     with UNIVERSE_DB_CONNECTION.create_session() as session:
         terms = _find_terms_in_data_descriptor(data_descriptor_id, term_id, session, settings)
-        for term in terms:
-            term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-            result.append(term_class(**term.specs))
+        instantiate_pydantic_terms(terms, result)
     return result
 
 
@@ -100,20 +96,16 @@ def find_terms_in_universe(term_id: str,
     :returns: A list of Pydantic term instances. Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
-    result = list()
+    result: list[BaseModel] = list()
     with UNIVERSE_DB_CONNECTION.create_session() as session:
         terms = _find_terms_in_universe(term_id, session, settings)
-        for term in terms:
-            term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-            result.append(term_class(**term.specs))
+        instantiate_pydantic_terms(terms, result)
     return result
 
 
 def _get_all_terms_in_data_descriptor(data_descriptor: DataDescriptor) -> list[BaseModel]:
-    result = list()
-    for term in data_descriptor.terms:
-        term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-        result.append(term_class(**term.specs))
+    result: list[BaseModel] = list()
+    instantiate_pydantic_terms(data_descriptor.terms, result)
     return result
 
 
