@@ -7,6 +7,7 @@ from cmipld.api import SearchSettings, SearchType
 
 _SOME_PROJECT_IDS = ['cmip6plus']
 _SOME_COLLECTION_IDS = ['institution_id', 'time_range', 'source_id']
+_SOME_DATA_DESCRIPTOR_IDS = ['organisation', 'time_range', 'source']
 _SOME_TERM_IDS = ['ipsl', 'daily', 'miroc6']
 _SOME_VALIDATION_REQUESTS = [
     (0, ('IPSL', 'cmip6plus', 'institution_id', 'ipsl')),
@@ -47,6 +48,16 @@ def _provide_collection_ids() -> Generator:
 
 @pytest.fixture(params=_provide_collection_ids())
 def collection_id(request) -> str:
+    return request.param
+
+
+def _provide_data_descriptor_ids() -> Generator:
+    for collection_id in _SOME_DATA_DESCRIPTOR_IDS:
+        yield collection_id
+
+
+@pytest.fixture(params=_provide_data_descriptor_ids())
+def data_descriptor_id(request) -> str:
     return request.param
 
 
@@ -102,6 +113,22 @@ def test_find_terms_in_all_projects(term_id) -> None:
 def test_find_terms_in_collection(project_id, collection_id, term_id) -> None:
     projects.find_terms_in_collection(project_id, collection_id, term_id)
     projects.find_terms_in_collection(project_id, collection_id, term_id, _SETTINGS)
+
+
+def test_find_terms_from_data_descriptor_in_project(project_id, data_descriptor_id, term_id) -> None:
+    projects.find_terms_from_data_descriptor_in_project(project_id, data_descriptor_id, term_id)
+    projects.find_terms_from_data_descriptor_in_project(project_id,
+                                                        data_descriptor_id,
+                                                        term_id,
+                                                        _SETTINGS)
+
+
+def test_find_terms_from_data_descriptor_in_all_projects(data_descriptor_id,
+                                                         term_id) -> None:
+    projects.find_terms_from_data_descriptor_in_all_projects(data_descriptor_id, term_id)
+    projects.find_terms_from_data_descriptor_in_all_projects(data_descriptor_id,
+                                                             term_id,
+                                                             _SETTINGS)
 
 
 def test_valid_term_in_collection(validation_request) -> None:

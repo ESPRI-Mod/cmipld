@@ -7,10 +7,11 @@ from sqlmodel import Session, and_, select
 import cmipld.api.universe as universe
 import cmipld.db as db
 import cmipld.settings as api_settings
-from cmipld import get_pydantic_class
 from cmipld.api import (CollectionError, ProjectTermError, SearchSettings,
                         UniverseTermError, ValidationError, ValidationReport,
-                        create_str_comparison_expression)
+                        create_str_comparison_expression,
+                        instantiate_pydantic_term,
+                        instantiate_pydantic_terms)
 from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.project import Collection, Project, PTerm
 from cmipld.db.models.universe import UTerm
@@ -165,8 +166,8 @@ def _valid_value_against_all_terms_of_collection(value: str,
                                                  universe_session: Session) \
                                                      -> list[ValidationError]:
     if collection.terms:
-        for term in collection.terms:
-            _errors = _valid_value(value, term,
+        for pterm in collection.terms:
+            _errors = _valid_value(value, pterm,
                                    project_session,
                                    universe_session)
             if not _errors:
@@ -290,13 +291,116 @@ def find_terms_in_collection(project_id:str,
     :returns: A list of Pydantic term instances. Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
-    result = list()
+    result: list[BaseModel] = list()
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             terms = _find_terms_in_collection(collection_id, term_id, session, settings)
-            for term in terms:
-                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-                result.append(term_class(**term.specs))
+            instantiate_pydantic_terms(terms, result)
+    return result
+
+
+def _find_terms_from_data_descriptor_in_project(data_descriptor_id: str,
+                                                term_id: str,
+                                                session: Session,
+                                                settings: SearchSettings|None = None) \
+                                                   -> Sequence[PTerm]:
+    """Settings only apply on the term_id comparison."""
+    where_expression = create_str_comparison_expression(field=PTerm.id,
+                                                        value=term_id,
+                                                        settings=settings)
+    statement = select(PTerm).join(Collection).where(Collection.data_descriptor_id==data_descriptor_id,
+                                                     where_expression)
+    results = session.exec(statement)
+    result = results.all()    
+    return result
+
+
+def find_terms_from_data_descriptor_in_project(project_id: str,
+                                               data_descriptor_id: str,
+                                               term_id: str,
+                                               settings: SearchSettings|None = None) \
+                                                  -> list[tuple[BaseModel, str]]:
+    """
+    Finds one or more terms in the given project which are instances of the given data descriptor
+    in the universe, based on the specified search settings, in the given collection of a project.
+    This function performs an exact match on the `project_id` and `data_descriptor_id`, 
+    and does **not** search for similar or related projects and data descriptors.
+    The given `term_id` is searched according to the search type specified in the parameter `settings`,
+    which allows a flexible matching (e.g., `LIKE` may return multiple results).
+    If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
+    If any of the provided ids (`project_id`, `data_descriptor_id` or `term_id`) is not found,
+    the function returns an empty list.
+    
+    Behavior based on search type:
+    - `EXACT` and absence of `settings`: returns zero or one Pydantic term instance and
+      collection id in the list.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more
+      Pydantic term instances and collection ids in the list.
+
+    :param project_id: A project id
+    :type project_id: str
+    :param data_descriptor_id: A data descriptor
+    :type data_descriptor_id: str
+    :param term_id: A term id to be found
+    :type term_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings|None
+    :returns: A list of tuple of Pydantic term instances and related collection ids.
+    Returns an empty list if no matches are found.
+    :rtype: list[tuple[BaseModel, str]]
+    """
+    result = list()
+    if connection:=_get_project_connection(project_id):
+        with connection.create_session() as session:
+            terms = _find_terms_from_data_descriptor_in_project(data_descriptor_id,
+                                                                term_id,
+                                                                session,
+                                                                settings)
+            for pterm in terms:
+                collection_id = pterm.collection.id
+                term = instantiate_pydantic_term(pterm)
+                result.append((term, collection_id))
+    return result
+
+
+def find_terms_from_data_descriptor_in_all_projects(data_descriptor_id: str,
+                                                    term_id: str,
+                                                    settings: SearchSettings|None = None) \
+                                                       -> list[tuple[BaseModel, str]]:
+    """
+    Finds one or more terms in all projects which are instances of the given data descriptor
+    in the universe, based on the specified search settings, in the given collection of a project.
+    This function performs an exact match on the `data_descriptor_id`, 
+    and does **not** search for similar or related data descriptors.
+    The given `term_id` is searched according to the search type specified in the parameter `settings`,
+    which allows a flexible matching (e.g., `LIKE` may return multiple results).
+    If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
+    If any of the provided ids (`data_descriptor_id` or `term_id`) is not found,
+    the function returns an empty list.
+    
+    Behavior based on search type:
+    - `EXACT` and absence of `settings`: returns zero or one Pydantic term instance and
+      collection id in the list.
+    - `REGEX`, `LIKE`, `STARTS_WITH` and `ENDS_WITH`: returns zero, one or more
+      Pydantic term instances and collection ids in the list.
+
+    :param data_descriptor_id: A data descriptor
+    :type data_descriptor_id: str
+    :param term_id: A term id to be found
+    :type term_id: str
+    :param settings: The search settings
+    :type settings: SearchSettings|None
+    :returns: A list of tuple of Pydantic term instances and related collection ids.
+    Returns an empty list if no matches are found.
+    :rtype: list[tuple[BaseModel, str]]
+    """
+    project_ids = get_all_projects()
+    result = list()
+    for project_id in project_ids:
+        result.extend(find_terms_from_data_descriptor_in_project(project_id,
+                                                                 data_descriptor_id,
+                                                                 term_id,
+                                                                 settings))
     return result
 
 
@@ -316,14 +420,11 @@ def find_terms_in_all_projects(term_id: str,
                                   -> list[BaseModel]:
     """
     Finds one or more terms, based on the specified search settings, in all projects.
-    This function performs an exact match on the `project_id` and 
-    does **not** search for similar or related projects.
     The given `term_id` is searched according to the search type specified in the parameter `settings`,
     which allows a flexible matching (e.g., `LIKE` may return multiple results).
     If the parameter `settings` is `None`, this function performs an exact match on the `term_id`.
     Terms are unique within a collection but may have some synonyms within a project.
-    If any of the provided ids (`project_id` or `term_id`) is not found, the function returns
-    an empty list.
+    If the provided `term_id` is not found, the function returns an empty list.
 
     :param term_id: A term id to be found
     :type term_id: str
@@ -363,13 +464,11 @@ def find_terms_in_project(project_id: str,
     :returns: A list of Pydantic term instances. Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
-    result = list()
+    result: list[BaseModel] = list()
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
             terms = _find_terms_in_project(term_id, session, settings)
-            for term in terms:
-                term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-                result.append(term_class(**term.specs))
+            instantiate_pydantic_terms(terms, result)
     return result
 
 
@@ -377,7 +476,7 @@ def get_all_terms_in_collection(project_id: str,
                                 collection_id: str)\
                                    -> list[BaseModel]:
     """
-    Gets all the terms of the given collection of a project.
+    Gets all terms of the given collection of a project.
     This function performs an exact match on the `project_id` and `collection_id`,
     and does **not** search for similar or related projects and collections.
     If any of the provided ids (`project_id` or `collection_id`) is not found, the function
@@ -465,7 +564,7 @@ def _get_all_collections_in_project(session: Session) -> list[Collection]:
 
 def get_all_collections_in_project(project_id: str) -> list[str]:
     """
-    Gets all the collections of the given project.
+    Gets all collections of the given project.
     This function performs an exact match on the `project_id` and 
     does **not** search for similar or related projects.
     If the provided `project_id` is not found, the function returns an empty list.
@@ -486,16 +585,14 @@ def get_all_collections_in_project(project_id: str) -> list[str]:
 
 
 def _get_all_terms_in_collection(collection: Collection) -> list[BaseModel]:
-    result = list()
-    for term in collection.terms:
-        term_class = get_pydantic_class(term.specs[api_settings.TERM_TYPE_JSON_KEY])
-        result.append(term_class(**term.specs))
+    result: list[BaseModel] = list()
+    instantiate_pydantic_terms(collection.terms, result)
     return result
 
 
 def get_all_terms_in_project(project_id: str) -> list[BaseModel]:
     """
-    Gets all the terms of the given project.
+    Gets all terms of the given project.
     This function performs an exact match on the `project_id` and 
     does **not** search for similar or related projects.
     Terms are unique within a collection but may have some synonyms in a project.
@@ -519,7 +616,7 @@ def get_all_terms_in_project(project_id: str) -> list[BaseModel]:
 
 def get_all_terms_in_all_projects() -> list[BaseModel]:
     """
-    Gets all the terms of all the projects.
+    Gets all terms of all projects.
 
     :returns: A list of Pydantic term instances.
     :rtype: list[BaseModel]
@@ -555,7 +652,7 @@ def find_project(project_id: str) -> dict|None:
 
 def get_all_projects() -> list[str]:
     """
-    Gets all the projects.
+    Gets all projects.
     
     :returns: A list of project ids.
     :rtype: list[str]
@@ -564,4 +661,12 @@ def get_all_projects() -> list[str]:
 
 
 if __name__ == "__main__":
-    print(find_terms_in_all_projects('ipsl'))
+    vr = valid_term_in_collection('0241206-0241207', 'cmip6plus', 'time_range', 'daily')
+    if vr:
+        print('OK')
+    else:
+        print(vr)
+        from cmipld.api import BasicValidationErrorVisitor
+        visitor = BasicValidationErrorVisitor()
+        for error in vr.errors:
+            print(error.accept(visitor))
