@@ -94,6 +94,11 @@ def test_find_terms_in_project(project_id, term_id) -> None:
     projects.find_terms_in_project(project_id, term_id, _SETTINGS)
 
 
+def test_find_terms_in_all_projects(term_id) -> None:
+    projects.find_terms_in_all_projects(term_id)
+    projects.find_terms_in_all_projects(term_id, _SETTINGS)
+
+
 def test_find_terms_in_collection(project_id, collection_id, term_id) -> None:
     projects.find_terms_in_collection(project_id, collection_id, term_id)
     projects.find_terms_in_collection(project_id, collection_id, term_id, _SETTINGS)
