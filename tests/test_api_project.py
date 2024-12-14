@@ -64,6 +64,10 @@ def test_get_all_projects() -> None:
     projects.get_all_projects()
 
 
+def test_get_all_terms_in_all_projects() -> None:
+    projects.get_all_terms_in_all_projects()
+
+
 def test_find_project(project_id) -> None:
     projects.find_project(project_id)
 
