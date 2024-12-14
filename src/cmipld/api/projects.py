@@ -489,6 +489,20 @@ def get_all_terms_in_project(project_id: str) -> list[BaseModel]:
     return result
 
 
+def get_all_terms_in_all_projects() -> list[BaseModel]:
+    """
+    Gets all the terms of all the projects.
+
+    :returns: A list of Pydantic term instances.
+    :rtype: list[BaseModel]
+    """
+    project_ids = get_all_projects()
+    result = list()
+    for project_id in project_ids:
+        result.extend(get_all_terms_in_project(project_id))
+    return result
+
+
 def find_project(project_id: str) -> dict|None:
     """
     Finds a project.
