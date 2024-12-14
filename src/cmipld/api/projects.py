@@ -205,7 +205,7 @@ def valid_term(value: str,
     
     """
     value = _check_and_strip_value(value)
-    with _get_universe_session as universe_session, \
+    with _get_universe_session() as universe_session, \
          _get_project_session_with_exception(project_id) as project_session:
         errors = _valid_value_against_given_term(value, collection_id, term_id,
                                                  universe_session, project_session)
@@ -232,7 +232,7 @@ def _valid_term_in_collection(value: str,
                 if term_id_found:
                     result.append(MatchingTerm(project_id, collection_id, term_id_found))
             case _:
-                term_ids_found = _valid_value_against_all_terms_of_collection(value, collection_id,
+                term_ids_found = _valid_value_against_all_terms_of_collection(value, collection,
                                                                               universe_session,
                                                                               project_session)
                 for term_id_found in term_ids_found:
@@ -706,7 +706,7 @@ def get_all_projects() -> list[str]:
 
 
 if __name__ == "__main__":
-    vr = valid_term_in_collection('0241206-0241207', 'cmip6plus', 'time_range', 'daily')
+    vr = valid_term('0241206-0241207', 'cmip6plus', 'time_range', 'daily')
     if vr:
         print('OK')
     else:
