@@ -7,7 +7,7 @@ from sqlmodel import Session, and_, select
 import cmipld.api.universe as universe
 import cmipld.db as db
 import cmipld.settings as api_settings
-from cmipld.api import (CollectionError, ProjectTermError, SearchSettings,
+from cmipld.api import (MatchingTerm, ProjectTermError, SearchSettings,
                         UniverseTermError, ValidationError, ValidationReport,
                         create_str_comparison_expression,
                         instantiate_pydantic_term,
@@ -31,10 +31,22 @@ def _get_project_connection(project_id: str) -> db.DBConnection|None:
     ###################################
 
 
+def _get_project_session_with_exception(project_id: str) -> Session:
+    if connection:=_get_project_connection(project_id):
+        project_session = connection.create_session()
+        return project_session
+    else:
+        raise ValueError(f'unable to find project {project_id}')
+    
+
+def _get_universe_session() -> Session:
+    return UNIVERSE_DB_CONNECTION.create_session()
+
+
 def _resolve_term(term_id: str,
                   term_type: str,
-                  project_session: Session,
-                  universe_session: Session) -> UTerm|PTerm|None:
+                  universe_session: Session,
+                  project_session: Session) -> UTerm|PTerm|None:
     '''First find the term in the universe than in the current project'''
     uterms = universe._find_terms_in_data_descriptor(data_descriptor_id=term_type,
                                                      term_id=term_id,
@@ -55,8 +67,8 @@ def _resolve_term(term_id: str,
 # It is backtrack possible for more than one missing parts.
 def _valid_value_for_term_composite(value: str,
                                     term: UTerm|PTerm,
-                                    project_session: Session,
-                                    universe_session: Session)\
+                                    universe_session: Session,
+                                    project_session: Session)\
                                         -> list[ValidationError]:
     result = list()
     separator = term.specs[api_settings.COMPOSITE_SEPARATOR_JSON_KEY]
@@ -71,13 +83,13 @@ def _valid_value_for_term_composite(value: str,
                     referenced_type = parts[index][api_settings.TERM_TYPE_JSON_KEY]
                     resolved_term = _resolve_term(referenced_id,
                                                   referenced_type,
-                                                  project_session,
-                                                  universe_session)
+                                                  universe_session,
+                                                  project_session)
                     if resolved_term:
                         errors = _valid_value(given_value,
                                               resolved_term,
-                                              project_session,
-                                              universe_session)
+                                              universe_session,
+                                              project_session)
                         result.extend(errors)
                     else:
                         msg = f'unable to find the term {referenced_id} ' + \
@@ -101,8 +113,8 @@ def _create_term_error(value: str, term: UTerm|PTerm) -> ValidationError:
 
 def _valid_value(value: str,
                  term: UTerm|PTerm,
-                 project_session: Session,
-                 universe_session: Session) -> list[ValidationError]:
+                 universe_session: Session,
+                 project_session: Session) -> list[ValidationError]:
     result = list()
     match term.kind:
         case TermKind.PLAIN:
@@ -115,18 +127,56 @@ def _valid_value(value: str,
                 result.append(_create_term_error(value, term))
         case TermKind.COMPOSITE:
             result.extend(_valid_value_for_term_composite(value, term,
-                                                          project_session,
-                                                          universe_session))
+                                                          universe_session,
+                                                          project_session))
         case _:
             raise NotImplementedError(f'unsupported term kind {term.kind}')
     return result
 
 
+def _check_and_strip_value(value: str) -> str:
+    if not value:
+        raise ValueError('value should be set')
+    if result:= value.strip():
+        return result
+    else:
+        raise ValueError('value should not be empty')
+
+
+def _search_plain_term_and_valid_value(value: str,
+                                       collection_id: str,
+                                       project_session: Session) \
+                                        -> str|None:
+    where_expression = and_(Collection.id == collection_id,
+                            PTerm.specs[api_settings.DRS_SPECS_JSON_KEY] == f'"{value}"')
+    statement = select(PTerm).join(Collection).where(where_expression)
+    term = project_session.exec(statement).one_or_none()
+    return term.id if term else None
+
+
+def _valid_value_against_all_terms_of_collection(value: str,
+                                                 collection: Collection,
+                                                 universe_session: Session,
+                                                 project_session: Session) \
+                                                     -> list[str]:
+    if collection.terms:
+        result = list()
+        for pterm in collection.terms:
+            _errors = _valid_value(value, pterm,
+                                   universe_session,
+                                   project_session)
+            if not _errors:
+                result.append(pterm.id)
+        return result
+    else:
+        raise RuntimeError(f'collection {collection.id} has no term')
+
+
 def _valid_value_against_given_term(value: str,
                                     collection_id: str,
                                     term_id: str,
-                                    project_session: Session,
-                                    universe_session: Session)\
+                                    universe_session: Session,
+                                    project_session: Session)\
                                         -> list[ValidationError]:
     try:
         terms = _find_terms_in_collection(collection_id,
@@ -135,7 +185,7 @@ def _valid_value_against_given_term(value: str,
                                           None)
         if terms:
             term = terms[0]
-            result = _valid_value(value, term, project_session, universe_session)
+            result = _valid_value(value, term, universe_session, project_session)
         else:
             raise ValueError(f'unable to find term {term_id} ' +
                              f'in collection {collection_id}')
@@ -146,103 +196,98 @@ def _valid_value_against_given_term(value: str,
     return result
 
 
-def _search_plain_term_and_valid_value(value: str,
-                                       collection_id: str,
-                                       project_session: Session) \
-                                        -> list[ValidationError]:
-    where_expression = and_(Collection.id == collection_id,
-                            PTerm.specs[api_settings.DRS_SPECS_JSON_KEY] == f'"{value}"')
-    statement = select(PTerm).join(Collection).where(where_expression)
-    term = project_session.exec(statement).one_or_none()
-    if term:
-        return list()
-    else:
-        return [CollectionError(value, collection_id)]
+def valid_term(value: str,
+               project_id: str,
+               collection_id: str,
+               term_id: str) \
+                  -> ValidationReport:
+    """
+    
+    """
+    value = _check_and_strip_value(value)
+    with _get_universe_session as universe_session, \
+         _get_project_session_with_exception(project_id) as project_session:
+        errors = _valid_value_against_given_term(value, collection_id, term_id,
+                                                 universe_session, project_session)
+        return ValidationReport(value, errors)
 
 
-def _valid_value_against_all_terms_of_collection(value: str,
-                                                 collection: Collection,
-                                                 project_session: Session,
-                                                 universe_session: Session) \
-                                                     -> list[ValidationError]:
-    if collection.terms:
-        for pterm in collection.terms:
-            _errors = _valid_value(value, pterm,
-                                   project_session,
-                                   universe_session)
-            if not _errors:
-                break
-        if _errors:
-            return [CollectionError(value, collection.id)]
-        else:
-            return list()
+def _valid_term_in_collection(value: str,
+                              project_id: str,
+                              collection_id: str,
+                              universe_session: Session,
+                              project_session: Session) \
+                                -> list[MatchingTerm]:
+    value = _check_and_strip_value(value)
+    result = list()
+    collections = _find_collections_in_project(collection_id,
+                                               project_session,
+                                               None)
+    if collections:
+        collection = collections[0]
+        match collection.term_kind:
+            case TermKind.PLAIN:
+                term_id_found = _search_plain_term_and_valid_value(value, collection_id,
+                                                                   project_session)
+                if term_id_found:
+                    result.append(MatchingTerm(project_id, collection_id, term_id_found))
+            case _:
+                term_ids_found = _valid_value_against_all_terms_of_collection(value, collection_id,
+                                                                              universe_session,
+                                                                              project_session)
+                for term_id_found in term_ids_found:
+                    result.append(MatchingTerm(project_id, collection_id, term_id_found))
     else:
-        raise RuntimeError(f'collection {collection.id} has no term')
+        msg = f'unable to find collection {collection_id}'
+        raise ValueError(msg)
+    return result
 
 
 def valid_term_in_collection(value: str,
                              project_id: str,
-                             collection_id: str,
-                             term_id: str|None = None) \
-                               -> ValidationReport:
+                             collection_id: str) \
+                               -> list[MatchingTerm]:
     """
-    Check if the given value may or may not represent a term in the given project and collection.
     
-    Behavior based on the nature of the term:
-    - plain term: the function try to match the value on the drs_name field.
-    - term pattern: the function try to match the value on the pattern field (regex).
-    - term composite: the function splits the value according to the separator of the term then
-      it try to match every part of the composite with every split of the value.
-
-    If the provided term_id is `None`, the function try to match the value on every term of the given
-    collection.
-    If any of the provided ids (`project_id`, `collection_id` or `term_id`) is not found,
-    the function raises a ValueError.
-
-    :param value: A value to be validated
-    :type value: str
-    :param project_id: A project id
-    :type project_id: str
-    :param collection_id: A collection id
-    :type collection_id: str
-    :param term_id: An optional term id
-    :type term_id: str|None
-    :returns: A validation report that contains the possible errors
-    :rtype: ValidationReport
-    :raises ValueError: If any of the provided ids is not found
     """
-    if not value:
-        raise ValueError('value should be set')
-    if value:= value.strip():
-        if connection:=_get_project_connection(project_id):
-            with connection.create_session() as project_session,\
-                 UNIVERSE_DB_CONNECTION.create_session() as universe_session:
-                if term_id:
-                    errors = _valid_value_against_given_term(value, collection_id, term_id,
-                                                             project_session, universe_session)
-                else:
-                    collections = _find_collections_in_project(collection_id,
-                                                               project_session,
-                                                               None)
-                    if collections:
-                        collection = collections[0]
-                        match collection.term_kind:
-                            case TermKind.PLAIN:
-                                errors = _search_plain_term_and_valid_value(value, collection_id,
-                                                                            project_session)
-                            case _:
-                                errors = _valid_value_against_all_terms_of_collection(value,
-                                                                                      collection,
-                                                                                      project_session,
-                                                                                      universe_session)
-                    else:
-                        msg = f'unable to find collection {collection_id}'
-                        raise ValueError(msg)
-                return ValidationReport(value, errors)
-        else:
-            raise ValueError(f'unable to find project {project_id}')
-    else:
-        raise ValueError('value should not be empty')
+    with _get_universe_session() as universe_session, \
+         _get_project_session_with_exception(project_id) as project_session:
+        return _valid_term_in_collection(value, project_id, collection_id,
+                                         universe_session, project_session)
+
+
+def _valid_term_in_project(value: str,
+                           project_id: str,
+                           universe_session: Session,
+                           project_session: Session) -> list[MatchingTerm]:
+    result = list()
+    collections = _get_all_collections_in_project(project_session)
+    for collection in collections:
+        result.extend(_valid_term_in_collection(value, project_id, collection.id,
+                                                universe_session, project_session))
+    return result
+
+
+def valid_term_in_project(value: str, project_id: str) -> list[MatchingTerm]:
+    """
+    
+    """
+    with _get_universe_session() as universe_session, \
+         _get_project_session_with_exception(project_id) as project_session:
+        return _valid_term_in_project(value, project_id, universe_session, project_session)
+
+
+def valid_term_in_all_projects(value: str) -> list[MatchingTerm]:
+    """
+    
+    """
+    result = list()
+    with _get_universe_session() as universe_session:
+        for project_id in get_all_projects():
+            with _get_project_session_with_exception(project_id) as project_session:
+                result.extend(_valid_term_in_project(value, project_id,
+                                                     universe_session, project_session))
+    return result
 
 
 def _find_terms_in_collection(collection_id: str,
