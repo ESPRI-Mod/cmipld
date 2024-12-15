@@ -202,7 +202,33 @@ def valid_term(value: str,
                term_id: str) \
                   -> ValidationReport:
     """
+    Check if the given value may or may not represent the given term. The functions returns
+    a report that contains the possible errors.
     
+    Behavior based on the nature of the term:
+    - plain term: the function try to match the value on the drs_name field.
+    - term pattern: the function try to match the value on the pattern field (regex).
+    - term composite: 
+        - if the composite has got a separator, the function splits the value according to the
+          separator of the term then it try to match every part of the composite
+          with every split of the value.
+        - if the composite hasn't got a separator, the function aggregates the parts of the composite
+          so as to compare it as a regex to the value.
+
+    If any of the provided ids (`project_id`, `collection_id` or `term_id`) is not found,
+    the function raises a ValueError.
+
+    :param value: A value to be validated
+    :type value: str
+    :param project_id: A project id
+    :type project_id: str
+    :param collection_id: A collection id
+    :type collection_id: str
+    :param term_id: A term id
+    :type term_id: str
+    :returns: A validation report that contains the possible errors
+    :rtype: ValidationReport
+    :raises ValueError: If any of the provided ids is not found
     """
     value = _check_and_strip_value(value)
     with _get_universe_session() as universe_session, \
@@ -248,7 +274,31 @@ def valid_term_in_collection(value: str,
                              collection_id: str) \
                                -> list[MatchingTerm]:
     """
+    Check if the given value may or may not represent a term in the given collection. The function
+    returns the terms that the value matches.
     
+    Behavior based on the nature of the term:
+    - plain term: the function try to match the value on the drs_name field.
+    - term pattern: the function try to match the value on the pattern field (regex).
+    - term composite: 
+        - if the composite has got a separator, the function splits the value according to the
+          separator of the term then it try to match every part of the composite
+          with every split of the value.
+        - if the composite hasn't got a separator, the function aggregates the parts of the composite
+          so as to compare it as a regex to the value.
+
+    If any of the provided ids (`project_id` or `collection_id`) is not found,
+    the function raises a ValueError.
+
+    :param value: A value to be validated
+    :type value: str
+    :param project_id: A project id
+    :type project_id: str
+    :param collection_id: A collection id
+    :type collection_id: str
+    :returns: The list of terms that the value matches.
+    :rtype: list[MatchingTerm]
+    :raises ValueError: If any of the provided ids is not found
     """
     with _get_universe_session() as universe_session, \
          _get_project_session_with_exception(project_id) as project_session:
@@ -271,7 +321,28 @@ def _valid_term_in_project(value: str,
 # TODO: support term composite without separator (e.g., ripf).
 def valid_term_in_project(value: str, project_id: str) -> list[MatchingTerm]:
     """
+    Check if the given value may or may not represent a term in the given project. The function
+    returns the terms that the value matches.
     
+    Behavior based on the nature of the term:
+    - plain term: the function try to match the value on the drs_name field.
+    - term pattern: the function try to match the value on the pattern field (regex).
+    - term composite: 
+        - if the composite has got a separator, the function splits the value according to the
+          separator of the term then it try to match every part of the composite
+          with every split of the value.
+        - if the composite hasn't got a separator, the function aggregates the parts of the composite
+          so as to compare it as a regex to the value.
+
+    If the `project_id` is not found, the function raises a ValueError.
+
+    :param value: A value to be validated
+    :type value: str
+    :param project_id: A project id
+    :type project_id: str
+    :returns: The list of terms that the value matches.
+    :rtype: list[MatchingTerm]
+    :raises ValueError: If the `project_id` is not found
     """
     with _get_universe_session() as universe_session, \
          _get_project_session_with_exception(project_id) as project_session:
@@ -280,7 +351,23 @@ def valid_term_in_project(value: str, project_id: str) -> list[MatchingTerm]:
 
 def valid_term_in_all_projects(value: str) -> list[MatchingTerm]:
     """
+    Check if the given value may or may not represent a term in all projects. The function
+    returns the terms that the value matches.
     
+    Behavior based on the nature of the term:
+    - plain term: the function try to match the value on the drs_name field.
+    - term pattern: the function try to match the value on the pattern field (regex).
+    - term composite: 
+        - if the composite has got a separator, the function splits the value according to the
+          separator of the term then it try to match every part of the composite
+          with every split of the value.
+        - if the composite hasn't got a separator, the function aggregates the parts of the composite
+          so as to compare it as a regex to the value.
+
+    :param value: A value to be validated
+    :type value: str
+    :returns: The list of terms that the value matches.
+    :rtype: list[MatchingTerm]
     """
     result = list()
     with _get_universe_session() as universe_session:
