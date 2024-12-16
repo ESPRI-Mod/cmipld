@@ -3,11 +3,12 @@ from typing import Sequence
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from cmipld.api import SearchSettings, create_str_comparison_expression, instantiate_pydantic_terms
+from cmipld.api._utils import (create_str_comparison_expression,
+                               instantiate_pydantic_terms,
+                               get_universe_session)
+from cmipld.api.search import SearchSettings
 from cmipld.core.db.models.universe import DataDescriptor, UTerm
-import cmipld.core.service as service
 
-UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection
 
 def _find_terms_in_data_descriptor(data_descriptor_id: str,
                                    term_id: str,
@@ -55,7 +56,7 @@ def find_terms_in_data_descriptor(data_descriptor_id: str,
     :rtype: list[BaseModel]
     """
     result: list[BaseModel] = list()
-    with UNIVERSE_DB_CONNECTION.create_session() as session:
+    with get_universe_session() as session:
         terms = _find_terms_in_data_descriptor(data_descriptor_id, term_id, session, settings)
         instantiate_pydantic_terms(terms, result)
     return result
@@ -92,7 +93,7 @@ def find_terms_in_universe(term_id: str,
     :rtype: list[BaseModel]
     """
     result: list[BaseModel] = list()
-    with UNIVERSE_DB_CONNECTION.create_session() as session:
+    with get_universe_session() as session:
         terms = _find_terms_in_universe(term_id, session, settings)
         instantiate_pydantic_terms(terms, result)
     return result
@@ -129,7 +130,7 @@ def get_all_terms_in_data_descriptor(data_descriptor_id: str) \
     :returns: a list of Pydantic term instances. Returns an empty list if no matches are found.
     :rtype: list[BaseModel]
     """
-    with UNIVERSE_DB_CONNECTION.create_session() as session:
+    with get_universe_session() as session:
         data_descriptors = _find_data_descriptors_in_universe(data_descriptor_id,
                                                               session,
                                                               None)
@@ -166,7 +167,7 @@ def find_data_descriptors_in_universe(data_descriptor_id: str,
     :rtype: list[dict]
     """
     result = list()
-    with UNIVERSE_DB_CONNECTION.create_session() as session:
+    with get_universe_session() as session:
         data_descriptors = _find_data_descriptors_in_universe(data_descriptor_id,
                                                               session,
                                                               settings)
@@ -190,7 +191,7 @@ def get_all_data_descriptors_in_universe() -> list[str]:
     :rtype: list[str]
     """
     result = list()
-    with UNIVERSE_DB_CONNECTION.create_session() as session:
+    with get_universe_session() as session:
         data_descriptors = _get_all_data_descriptors_in_universe(session)
         for data_descriptor in data_descriptors:
             result.append(data_descriptor.id)
@@ -206,7 +207,7 @@ def get_all_terms_in_universe() -> list[BaseModel]:
     :rtype: list[BaseModel]
     """
     result = list()
-    with UNIVERSE_DB_CONNECTION.create_session() as session:
+    with get_universe_session() as session:
         data_descriptors = _get_all_data_descriptors_in_universe(session)
         for data_descriptor in data_descriptors:
             # Term may have some synonyms within the whole universe.

@@ -6,19 +6,23 @@ from sqlmodel import Session, and_, select
 
 import cmipld.api.universe as universe
 import cmipld.settings as api_settings
-from cmipld.api import (MatchingTerm, ProjectTermError, SearchSettings,
-                        UniverseTermError, ValidationError, ValidationReport,
-                        create_str_comparison_expression,
-                        instantiate_pydantic_term,
-                        instantiate_pydantic_terms)
+from cmipld.api.search import MatchingTerm, SearchSettings
+from cmipld.api._utils import (create_str_comparison_expression,
+                               instantiate_pydantic_term,
+                               instantiate_pydantic_terms,
+                               get_universe_session)
+from cmipld.api.report import (ProjectTermError,
+                               UniverseTermError,
+                               ValidationError,
+                               ValidationReport)
+                        
+                        
 from cmipld.core.db import DBConnection
 from cmipld.core.db.models.mixins import TermKind
 from cmipld.core.db.models.project import Collection, Project, PTerm
 from cmipld.core.db.models.universe import UTerm
 import cmipld.core.service as service
 
-
-UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection
 
 def _get_project_connection(project_id: str) -> DBConnection|None:
     return service.state_service.projects[project_id].db_connection
@@ -30,10 +34,6 @@ def _get_project_session_with_exception(project_id: str) -> Session:
     else:
         raise ValueError(f'unable to find project {project_id}')
     
-
-def _get_universe_session() -> Session:
-    return UNIVERSE_DB_CONNECTION.create_session()
-
 
 def _resolve_term(term_composite_part: dict,
                   universe_session: Session,
@@ -288,7 +288,7 @@ def valid_term(value: str,
     :raises ValueError: If any of the provided ids is not found
     """
     value = _check_and_strip_value(value)
-    with _get_universe_session() as universe_session, \
+    with get_universe_session() as universe_session, \
          _get_project_session_with_exception(project_id) as project_session:
         errors = _valid_value_against_given_term(value, collection_id, term_id,
                                                  universe_session, project_session)
@@ -357,7 +357,7 @@ def valid_term_in_collection(value: str,
     :rtype: list[MatchingTerm]
     :raises ValueError: If any of the provided ids is not found
     """
-    with _get_universe_session() as universe_session, \
+    with get_universe_session() as universe_session, \
          _get_project_session_with_exception(project_id) as project_session:
         return _valid_term_in_collection(value, project_id, collection_id,
                                          universe_session, project_session)
@@ -400,7 +400,7 @@ def valid_term_in_project(value: str, project_id: str) -> list[MatchingTerm]:
     :rtype: list[MatchingTerm]
     :raises ValueError: If the `project_id` is not found
     """
-    with _get_universe_session() as universe_session, \
+    with get_universe_session() as universe_session, \
          _get_project_session_with_exception(project_id) as project_session:
         return _valid_term_in_project(value, project_id, universe_session, project_session)
 
@@ -426,7 +426,7 @@ def valid_term_in_all_projects(value: str) -> list[MatchingTerm]:
     :rtype: list[MatchingTerm]
     """
     result = list()
-    with _get_universe_session() as universe_session:
+    with get_universe_session() as universe_session:
         for project_id in get_all_projects():
             with _get_project_session_with_exception(project_id) as project_session:
                 result.extend(_valid_term_in_project(value, project_id,
