@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 from cmipld.core.repo_fetcher import RepoFetcher
 from cmipld.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings
-from cmipld.core.db import DBConnection
+from cmipld.core.db._utils import DBConnection
 from cmipld.core.db.models.project import Project
 from cmipld.core.db.models.universe import Universe 
 from rich.table import Table

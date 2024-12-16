@@ -17,7 +17,7 @@ from cmipld.api.report import (ProjectTermError,
                                ValidationReport)
                         
                         
-from cmipld.core.db import DBConnection
+from cmipld.core.db._utils import DBConnection
 from cmipld.core.db.models.mixins import TermKind
 from cmipld.core.db.models.project import Collection, Project, PTerm
 from cmipld.core.db.models.universe import UTerm

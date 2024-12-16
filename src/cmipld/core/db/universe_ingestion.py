@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 
 import cmipld.core.db as db
 import cmipld.settings as settings
-from cmipld.core.db import read_json_file
+from cmipld.core.db._utils import read_json_file
 from cmipld.core.db.models.mixins import TermKind
 from cmipld.core.db.models.universe import DataDescriptor, UTerm, Universe
 from cmipld.core.db.models.universe import universe_create_db

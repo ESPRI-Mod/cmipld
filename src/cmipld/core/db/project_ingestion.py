@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 import cmipld.core.db as db
 import cmipld.settings as settings
-from cmipld.core.db import DBConnection, read_json_file
+from cmipld.core.db._utils import DBConnection, read_json_file
 from cmipld.core.db.models.project import Collection, Project, PTerm
 
 
