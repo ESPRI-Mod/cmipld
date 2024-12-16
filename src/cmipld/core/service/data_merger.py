@@ -6,8 +6,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-## REMOVE WHEN Check_version IMPLEMENTED 
-#locally_available = {"https://espri-mod.github.io/mip-cmor-tables":".cache/repos/mip-cmor-tables","https://espri-mod.github.io/CMIP6Plus_CVs":".cache/repos/CMIP6Plus_CVs"}
 
 def merge_dicts(original: list, custom: list) -> dict:
     """Shallow merge: Overwrites original data with custom data."""

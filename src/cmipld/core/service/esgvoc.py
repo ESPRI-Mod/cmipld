@@ -75,15 +75,6 @@ def display(table):
     console = Console(record=True,width=200)
     console.print(table)
 
-
-def test_api():
-    from cmipld.api.universe import get_all_terms_in_universe
-
-    all_terms_universe = get_all_terms_in_universe()
-    print()
-    print(all_terms_universe)
-
-
 if __name__ == "__main__":
     _LOGGER.setLevel(logging.INFO)
 

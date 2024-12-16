@@ -1,5 +1,4 @@
 
-from pathlib import Path
 from typing import Any
 from cmipld.api.projects import find_terms_in_collection, find_terms_in_project, get_all_collections_in_project, get_all_projects, get_all_terms_in_collection
 from cmipld.api.universe import find_terms_in_data_descriptor, find_terms_in_universe, get_all_data_descriptors_in_universe, get_all_terms_in_data_descriptor
@@ -16,7 +15,6 @@ console = Console()
 
 _LOGGER = logging.getLogger(__name__)
 
-
 def validate_key_format(key: str):
     """
     Validate if the key matches the XXXX:YYYY:ZZZZ format.
@@ -24,60 +22,6 @@ def validate_key_format(key: str):
     if not re.match(r"^(\w*-?\w*)*:(\w*-?\w*)*:(\w*-?\w*)*$", key):
         raise typer.BadParameter(f"Invalid key format: {key}. Must be XXXX:YYYY:ZZZZ.")
     return key.split(":")
-
-## JUST to inventory all possible get : 
-
-"""
-UNIVERSE
-
-find_terms_in_data_descriptor(data_descriptor_id: str,
-                                  term_id: str,
-                                  settings: SearchSettings|None = None) \
-                                     -> BaseModel|dict[str: BaseModel]|None:
-find_terms_in_universe(term_id: str,
-                          settings: SearchSettings|None = None) \
-                            -> dict[str, BaseModel]|\
-                               dict[str, dict[str, BaseModel]]|\
-                               None:
-get_all_terms_in_data_descriptor(data_descriptor_id: str) \
-                                        -> dict[str, BaseModel]|None:
-find_data_descriptors_in_universe(data_descriptor_id: str,
-                                     settings: SearchSettings|None = None) \
-                                        -> dict|dict[str, dict]|None:
-get_all_data_descriptors_in_universe() -> dict[str, dict]:
-get_all_terms_in_universe() -> dict[str, dict[str, BaseModel]]:
-
-PROJECT
-
-valid_term_in_collection(value: str,
-                             project_id: str,
-                             collection_id: str,
-                             term_id: str|None = None) \
-                               -> bool:
-find_terms_in_collection(project_id:str,
-                             collection_id: str,
-                             term_id: str,
-                             settings: SearchSettings|None = None) \
-                                -> BaseModel|dict[str: BaseModel]|None:
-find_terms_in_project(project_id: str,
-                          term_id: str,
-                          settings: SearchSettings|None = None) \
-                            -> dict[str, BaseModel]|\
-                               dict[str, dict[str, BaseModel]]|\
-                               None:
-get_all_terms_in_collection(project_id: str,
-                                collection_id: str)\
-                                   -> dict[str, BaseModel]|None:
-find_collections_in_project(project_id: str,
-                                collection_id: str,
-                                settings: SearchSettings|None = None) \
-                                    -> dict|dict[str, dict]|None:
-get_all_collections_in_project(project_id: str) -> dict[str, dict]|None:
-get_all_terms_in_project(project_id: str) -> dict[str, dict[str, BaseModel]]|None:
-find_project(project_id: str) -> dict|None:
-def get_all_projects() -> dict[str: dict]:
-
-"""
 
 
 def handle_universe(data_descriptor_id:str|None,term_id:str|None, options=None):

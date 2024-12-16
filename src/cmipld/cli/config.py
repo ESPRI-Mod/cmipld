@@ -1,6 +1,5 @@
 
 import json
-from pathlib import Path
 from rich.syntax import Syntax
 import typer
 from cmipld.core.service.settings import SETTINGS_FILE, ServiceSettings, load_settings
