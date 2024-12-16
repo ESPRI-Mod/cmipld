@@ -7,10 +7,10 @@ from cmipld.apps.drs.models import (DrsType,
                                     ProjectSpecs)
                                     
 
-__all__ = [DrsType,
-           DrsPartType,
-           DrsConstant,
-           DrsCollection,
-           DrsPart,
-           DrsSpecification,
-           ProjectSpecs]
+__all__ = ["DrsType",
+           "DrsPartType",
+           "DrsConstant",
+           "DrsCollection",
+           "DrsPart",
+           "DrsSpecification",
+           "ProjectSpecs"]

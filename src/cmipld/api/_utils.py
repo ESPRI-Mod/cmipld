@@ -21,7 +21,10 @@ def get_pydantic_class(data_descriptor_id_or_term_type: str) -> type[BaseModel]:
 
 
 def get_universe_session() -> Session:
-    return UNIVERSE_DB_CONNECTION.create_session()
+    if UNIVERSE_DB_CONNECTION:
+        return UNIVERSE_DB_CONNECTION.create_session()
+    else:
+        raise RuntimeError('universe connection is not initialized')
 
 
 def instantiate_pydantic_term(term: UTerm|PTerm) -> BaseModel:

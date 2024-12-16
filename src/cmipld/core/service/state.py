@@ -22,7 +22,7 @@ class BaseState:
         self.rf = RepoFetcher()
         
         self.db_path = db_path
-        self.db_connection = None
+        self.db_connection:DBConnection|None = None
 
         self.github_version = None
         self.local_version = None
