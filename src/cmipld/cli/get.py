@@ -4,6 +4,7 @@ from typing import Any
 from cmipld.api.projects import find_terms_in_collection, find_terms_in_project, get_all_collections_in_project, get_all_projects, get_all_terms_in_collection
 from cmipld.api.universe import find_terms_in_data_descriptor, find_terms_in_universe, get_all_data_descriptors_in_universe, get_all_terms_in_data_descriptor
 from pydantic import BaseModel
+from requests import logging
 from rich.table import Table
 import typer
 import re
@@ -96,7 +97,7 @@ def handle_universe(data_descriptor_id:str|None,term_id:str|None, options=None):
         # dict[str, BaseModel]|None:
 
     else:
-        return get_all_data_descriptors_in_universe().keys()
+        return get_all_data_descriptors_in_universe()
         # dict[str, dict]:
 
 def handle_project(project_id:str,collection_id:str|None,term_id:str|None,options=None):
