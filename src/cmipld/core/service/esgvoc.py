@@ -65,9 +65,9 @@ def init():
         state_service.projects[name].fetch_versions()
         print("version local déduite",state_service.projects[name].local_version)
         if proj_setting.db_path and proj_setting.local_path :
-            ingest_project(Path(proj_setting.local_path),
-                           Path(proj_setting.db_path),
-                           state_service.projects[name].local_version)
+            ingest_project(project_dir_path=Path(proj_setting.local_path),
+                           project_db_file_path=Path(proj_setting.db_path),
+                           git_hash=state_service.projects[name].local_version)
         state_service.projects[name].fetch_versions()
     display(state_service.table())
 
