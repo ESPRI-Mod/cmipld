@@ -9,9 +9,9 @@ from sqlmodel import col
 
 import cmipld.settings as api_settings
 from cmipld.api.data_descriptors import get_pydantic_class
-from cmipld.db.models.mixins import TermKind
-from cmipld.db.models.project import PTerm
-from cmipld.db.models.universe import UTerm
+from cmipld.core.db.models.mixins import TermKind
+from cmipld.core.db.models.project import PTerm
+from cmipld.core.db.models.universe import UTerm
 
 
 def instantiate_pydantic_term(term: UTerm|PTerm) -> BaseModel:

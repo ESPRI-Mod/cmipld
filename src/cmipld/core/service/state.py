@@ -4,9 +4,9 @@ from pathlib import Path
 from typing import Optional
 from cmipld.core.repo_fetcher import RepoFetcher
 from cmipld.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings
-from cmipld.db import DBConnection
-from cmipld.db.models.project import Project
-from cmipld.db.models.universe import Universe 
+from cmipld.core.db import DBConnection
+from cmipld.core.db.models.project import Project
+from cmipld.core.db.models.universe import Universe 
 from rich.table import Table
 from sqlalchemy.exc import NoResultFound
 from sqlmodel import select
@@ -112,7 +112,7 @@ class StateService:
     def __init__(self, service_settings: ServiceSettings):
         self.universe = StateUniverse(service_settings.universe)
         self.projects = {name: StateProject(proj) for name, proj in service_settings.projects.items()}
-        #self.connect_db()
+        self.connect_db()
 
     def get_state_summary(self):
         universe_status = self.universe.check_sync_status()

@@ -3,13 +3,13 @@ from pathlib import Path
 
 from cmipld.core.data_handler import JsonLdResource
 from cmipld.core.service.data_merger import DataMerger
-from cmipld.db.models.mixins import TermKind
+from cmipld.core.db.models.mixins import TermKind
 from pydantic import BaseModel
 
-import cmipld.db as db
+import cmipld.core.db as db
 import cmipld.settings as settings
-from cmipld.db import DBConnection, read_json_file
-from cmipld.db.models.project import Collection, Project, PTerm
+from cmipld.core.db import DBConnection, read_json_file
+from cmipld.core.db.models.project import Collection, Project, PTerm
 
 
 _LOGGER = logging.getLogger("project_ingestion")

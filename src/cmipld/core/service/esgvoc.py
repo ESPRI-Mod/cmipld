@@ -2,11 +2,11 @@
 import logging
 import os
 from pathlib import Path
-from cmipld.db import DBConnection
-from cmipld.db.models.project import project_create_db
-from cmipld.db.models.universe import universe_create_db
-from cmipld.db.universe_ingestion import ingest_metadata_universe, ingest_universe
-from cmipld.db.project_ingestion import ingest_metadata_project, ingest_project
+from cmipld.core.db import DBConnection
+from cmipld.core.db.models.project import project_create_db
+from cmipld.core.db.models.universe import universe_create_db
+from cmipld.core.db.universe_ingestion import ingest_metadata_universe, ingest_universe
+from cmipld.core.db.project_ingestion import ingest_project
 from rich.logging import RichHandler
 from rich.console import Console
 

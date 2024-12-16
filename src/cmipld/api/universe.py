@@ -3,9 +3,8 @@ from typing import Sequence
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-import cmipld.db as db
 from cmipld.api import SearchSettings, create_str_comparison_expression, instantiate_pydantic_terms
-from cmipld.db.models.universe import DataDescriptor, UTerm
+from cmipld.core.db.models.universe import DataDescriptor, UTerm
 import cmipld.core.service as service
 
 UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection

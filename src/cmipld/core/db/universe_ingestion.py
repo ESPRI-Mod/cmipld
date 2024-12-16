@@ -5,12 +5,12 @@ from cmipld.core.data_handler import JsonLdResource
 from cmipld.core.service.data_merger import DataMerger
 from sqlmodel import Session, select
 
-import cmipld.db as db
+import cmipld.core.db as db
 import cmipld.settings as settings
-from cmipld.db import read_json_file
-from cmipld.db.models.mixins import TermKind
-from cmipld.db.models.universe import DataDescriptor, UTerm, Universe
-from cmipld.db.models.universe import universe_create_db
+from cmipld.core.db import read_json_file
+from cmipld.core.db.models.mixins import TermKind
+from cmipld.core.db.models.universe import DataDescriptor, UTerm, Universe
+from cmipld.core.db.models.universe import universe_create_db
 
 _LOGGER = logging.getLogger(__name__)
 

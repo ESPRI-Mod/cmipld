@@ -5,30 +5,22 @@ from pydantic import BaseModel
 from sqlmodel import Session, and_, select
 
 import cmipld.api.universe as universe
-import cmipld.db as db
 import cmipld.settings as api_settings
 from cmipld.api import (MatchingTerm, ProjectTermError, SearchSettings,
                         UniverseTermError, ValidationError, ValidationReport,
                         create_str_comparison_expression,
                         instantiate_pydantic_term,
                         instantiate_pydantic_terms)
-from cmipld.db.models.mixins import TermKind
-from cmipld.db.models.project import Collection, Project, PTerm
-from cmipld.db.models.universe import UTerm
+from cmipld.core.db import DBConnection
+from cmipld.core.db.models.mixins import TermKind
+from cmipld.core.db.models.project import Collection, Project, PTerm
+from cmipld.core.db.models.universe import UTerm
 import cmipld.core.service as service
 
 
 UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection
 
-def _get_project_connection(project_id: str) -> db.DBConnection|None:
-    ############## DEBUG ##############
-    # TODO: to be deleted.
-    # The following instructions are only temporary as long as a complete data management will be implemented.
-    #return db.DBConnection(db.CMIP6PLUS_DB_FILE_PATH, 'cmip6plus', False)
-    ###################################
-    print("TATA", list(service.state_service.projects.items()))
-    print("TOTO", service.state_service.projects[project_id].db_connection)
-
+def _get_project_connection(project_id: str) -> DBConnection|None:
     return service.state_service.projects[project_id].db_connection
 
 def _get_project_session_with_exception(project_id: str) -> Session:
