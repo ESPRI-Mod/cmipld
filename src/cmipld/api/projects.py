@@ -63,6 +63,42 @@ def _resolve_term(term_id: str,
         return result
 
 
+def _valid_value_for_term_composite_with_separator(value: str,
+                                                   term: UTerm|PTerm,
+                                                   universe_session: Session,
+                                                   project_session: Session)\
+                                                      -> list[ValidationError]:
+    result = list()
+    separator = term.specs[api_settings.COMPOSITE_SEPARATOR_JSON_KEY]
+    parts = term.specs[api_settings.COMPOSITE_PARTS_JSON_KEY]
+    if separator in value:
+        splits = value.split(separator)
+        if len(splits) == len(parts):
+            for index in range(0, len(splits)):
+                given_value = splits[index]
+                referenced_id = parts[index][api_settings.TERM_ID_JSON_KEY]
+                referenced_type = parts[index][api_settings.TERM_TYPE_JSON_KEY]
+                resolved_term = _resolve_term(referenced_id,
+                                              referenced_type,
+                                              universe_session,
+                                              project_session)
+                if resolved_term:
+                    errors = _valid_value(given_value,
+                                          resolved_term,
+                                          universe_session,
+                                          project_session)
+                    result.extend(errors)
+                else:
+                    msg = f'unable to find the term {referenced_id} ' + \
+                          f'in {referenced_type}'
+                    raise RuntimeError(msg)
+        else:
+            result.append(_create_term_error(value, term))
+    else:
+        result.append(_create_term_error(value, term))
+    return result
+
+
 # TODO: support optionality of parts of composite.
 # It is backtrack possible for more than one missing parts.
 def _valid_value_for_term_composite(value: str,
@@ -72,33 +108,9 @@ def _valid_value_for_term_composite(value: str,
                                         -> list[ValidationError]:
     result = list()
     separator = term.specs[api_settings.COMPOSITE_SEPARATOR_JSON_KEY]
-    parts = term.specs[api_settings.COMPOSITE_PARTS_JSON_KEY]
     if separator:
-        if separator in value:
-            splits = value.split(separator)
-            if len(splits) == len(parts):
-                for index in range(0, len(splits)):
-                    given_value = splits[index]
-                    referenced_id = parts[index][api_settings.TERM_ID_JSON_KEY]
-                    referenced_type = parts[index][api_settings.TERM_TYPE_JSON_KEY]
-                    resolved_term = _resolve_term(referenced_id,
-                                                  referenced_type,
-                                                  universe_session,
-                                                  project_session)
-                    if resolved_term:
-                        errors = _valid_value(given_value,
-                                              resolved_term,
-                                              universe_session,
-                                              project_session)
-                        result.extend(errors)
-                    else:
-                        msg = f'unable to find the term {referenced_id} ' + \
-                              f'in {referenced_type}'
-                        raise RuntimeError(msg)
-            else:
-                result.append(_create_term_error(value, term))
-        else:
-            result.append(_create_term_error(value, term))
+        result = _valid_value_for_term_composite_with_separator(value, term, universe_session,
+                                                                project_session)
     else:
         raise NotImplementedError(f'unsupported separator less term composite {term.id} ')
     return result
