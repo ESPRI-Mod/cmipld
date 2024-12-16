@@ -13,14 +13,15 @@ class DBConnection:
     SQLITE_URL_PREFIX = 'sqlite://'
     _ENGINES: dict[Path, Engine] = dict()
 
-    def __init__(self, db_file_path: Path, name: str|None = None, echo: bool = False) -> None:
-        if db_file_path in DBConnection._ENGINES:
-            self.engine = DBConnection._ENGINES[db_file_path]
+    def __init__(self, db_file_path: Path, echo: bool = False) -> None:
+        absolute_str_path = str(db_file_path.absolute())
+        if absolute_str_path in DBConnection._ENGINES:
+            self.engine = DBConnection._ENGINES[absolute_str_path]
         else:
-            self.engine = create_engine(f'{DBConnection.SQLITE_URL_PREFIX}/{str(db_file_path)}', echo=echo)
-            DBConnection._ENGINES[db_file_path] = self.engine
-        self.name = name
-        self.file_path = db_file_path
+            self.engine = create_engine(f'{DBConnection.SQLITE_URL_PREFIX}/{absolute_str_path}', echo=echo)
+            DBConnection._ENGINES[absolute_str_path] = self.engine
+        self.name = db_file_path.stem
+        self.file_path = db_file_path.absolute()
 
     def set_echo(self, echo: bool) -> None:
         self.engine.echo = echo
