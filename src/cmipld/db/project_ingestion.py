@@ -8,9 +8,8 @@ from pydantic import BaseModel
 
 import cmipld.db as db
 import cmipld.settings as settings
-from cmipld.db import DBConnection, items_of_interest, read_json_file
+from cmipld.db import DBConnection, read_json_file
 from cmipld.db.models.project import Collection, Project, PTerm
-import cmipld.db.universe_ingestion as universe_ingestion
 
 
 _LOGGER = logging.getLogger("project_ingestion")

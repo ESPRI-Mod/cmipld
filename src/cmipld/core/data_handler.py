@@ -10,6 +10,7 @@ from pydantic import BaseModel, model_validator, ConfigDict
 
 from cmipld.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
 # Configure logging
+logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
 
 mapping = DATA_DESCRIPTOR_CLASS_MAPPING
@@ -48,7 +49,7 @@ class JsonLdResource(BaseModel):
         return values
     
     @cached_property
-    def json(self) -> Dict:
+    def json_dict(self) -> Dict:
         """Fetch the original JSON data."""
         _LOGGER.debug(f"Fetching JSON data from {self.uri}")
         return unified_document_loader(self.uri)
@@ -63,10 +64,10 @@ class JsonLdResource(BaseModel):
     def context(self) -> Dict:
         """Fetch and return the JSON content of the '@context'."""
         
-        context_data =JsonLdResource(uri="/".join(self.uri.split("/")[:-1])+"/"+self.json["@context"]) 
+        context_data =JsonLdResource(uri="/".join(self.uri.split("/")[:-1])+"/"+self.json_dict["@context"]) 
         # Works only in relative path declaration
 
-        context_value = context_data.json
+        context_value = context_data.json_dict
         if isinstance(context_value, str):
             # It's a URI, fetch it
             _LOGGER.info(f"Fetching context from URI: {context_value}")
@@ -94,7 +95,7 @@ class JsonLdResource(BaseModel):
         model_key = self._extract_model_key(self.uri)
         if model_key and model_key in mapping:
             model = mapping[model_key]
-            return model(**self.json)
+            return model(**self.json_dict)
         _LOGGER.warning(f"No matching model found for key: {model_key}")
         return None
 
@@ -110,9 +111,9 @@ class JsonLdResource(BaseModel):
         """Return a detailed summary of the data."""
         res = f"{'#' * 100}\n"
         res += f"###   {self.uri.split('/')[-1]}   ###\n"
-        res += f"{'#' * 100}\n"
+        res += f"JSON Version:\n {json.dumps(self.json_dict, indent=2)}\n"
         res += f"URI: {self.uri}\n"
-        res += f"JSON Version:\n {json.dumps(self.json, indent=2)}\n"
+        res += f"JSON Version:\n {json.dumps(self.json_dict, indent=2)}\n"
         res += f"Expanded Version:\n {json.dumps(self.expanded, indent=2)}\n"
         res += f"Normalized Version:\n {self.normalized}\n"
         res += f"Pydantic Model Instance:\n {self.python}\n"

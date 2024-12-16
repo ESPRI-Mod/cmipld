@@ -40,7 +40,7 @@ class DataMerger:
 
     def merge_linked_json(self) -> List[Dict]:
         """Fetch and merge data recursively, returning a list of progressively merged Data json instances."""
-        result_list = [self.data.json]  # Start with the original json object
+        result_list = [self.data.json_dict]  # Start with the original json object
         visited = set(self.data.uri)  # Track visited URIs to prevent cycles
         current_data = self.data
         #print(current_data.expanded)
@@ -57,8 +57,8 @@ class DataMerger:
                 if next_id.startswith(local_repo):
                     next_id = next_id.replace(local_repo,self.locally_available[local_repo])
             next_data_instance = JsonLdResource(uri=next_id)
-            merged_json_data = merge_dicts([current_data.json], [next_data_instance.json])
-            next_data_instance.json = merged_json_data
+            merged_json_data = merge_dicts([current_data.json_dict], [next_data_instance.json_dict])
+            next_data_instance.json_dict = merged_json_data
 
             # Add the merged instance to the result list
             result_list.append(merged_json_data)

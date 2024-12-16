@@ -4,41 +4,8 @@ from pathlib import Path
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
 
-# [KEEP]
 def read_json_file(json_file_path: Path) -> dict:
     return json.loads(json_file_path.read_text())
-
-
-# TODO: repositories structures should be reworked.
-def items_of_interest(dir_path: Path,
-                      glob_inclusion_pattern: str = '*',
-                      exclude_prefixes: list[str] = [],
-                      kind: str = 'all') :
-    for item in dir_path.glob(glob_inclusion_pattern):
-        skip_item = False
-        for exclude_prefix in exclude_prefixes:
-            if item.name.startswith(exclude_prefix):
-                skip_item = True
-                break
-        if skip_item:
-            continue
-        else:
-            match kind:
-                case 'dir':
-                    if item.is_dir():
-                        yield item
-                    else:
-                        continue
-                case 'file':
-                    if item.is_file():
-                        yield item
-                    else:
-                        continue
-                case 'all':
-                    yield item
-                case _:
-                    raise NotImplementedError(f'kind {kind} is not supported')
-                
 
 # Singleton for SQLModel engines.
 # Not thread safe.
