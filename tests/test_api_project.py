@@ -135,7 +135,9 @@ def test_find_terms_from_data_descriptor_in_all_projects(data_descriptor_id,
 def test_valid_term() -> None:
     validation_requests = [
     (0, ('IPSL', 'cmip6plus', 'institution_id', 'ipsl')),
+    (0, ('r1i1p1f1', 'cmip6plus', 'member_id', 'ripf')),
     (1, ('IPL', 'cmip6plus', 'institution_id', 'ipsl')),
+    (1, ('r1i1p1f111', 'cmip6plus', 'member_id', 'ripf')),
     (0, ('20241206-20241207', 'cmip6plus', 'time_range', 'daily')),
     (2, ('0241206-0241207', 'cmip6plus', 'time_range', 'daily'))]
     for validation_request in validation_requests:
@@ -147,7 +149,9 @@ def test_valid_term() -> None:
 def test_valid_term_in_collection() -> None:
     validation_requests = [
     (1, ('IPSL', 'cmip6plus', 'institution_id'), 'ipsl'),
+    (1, ('r1i1p1f1', 'cmip6plus', 'member_id'), 'ripf'),
     (0, ('IPL', 'cmip6plus', 'institution_id'), None),
+    (0, ('r1i1p1f11', 'cmip6plus', 'member_id'), None),
     (1, ('20241206-20241207', 'cmip6plus', 'time_range'), 'daily'),
     (0, ('0241206-0241207', 'cmip6plus', 'time_range'), None)]
     for validation_request in validation_requests:
@@ -157,12 +161,13 @@ def test_valid_term_in_collection() -> None:
         if nb_matching_terms == 1:
             assert matching_terms[0].term_id == term_id
 
-"""
-# TODO: support term composite without separator (e.g., ripf).
+
 def test_valid_term_in_project() -> None:
     validation_requests = [
     (1, ('IPSL', 'cmip6plus'), 'ipsl'),
+    (1, ('r1i1p1f1', 'cmip6plus'), 'ripf'),
     (0, ('IPL', 'cmip6plus'), None),
+    (0, ('r1i1p1f11', 'cmip6plus'), None),
     (1, ('20241206-20241207', 'cmip6plus'), 'daily'),
     (0, ('0241206-0241207', 'cmip6plus'), None)]
     for validation_request in validation_requests:
@@ -171,4 +176,3 @@ def test_valid_term_in_project() -> None:
         assert len(matching_terms) == nb_matching_terms
         if nb_matching_terms == 1:
             assert matching_terms[0].term_id == term_id
-"""

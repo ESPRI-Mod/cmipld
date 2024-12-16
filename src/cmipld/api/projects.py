@@ -43,11 +43,12 @@ def _get_universe_session() -> Session:
     return UNIVERSE_DB_CONNECTION.create_session()
 
 
-def _resolve_term(term_id: str,
-                  term_type: str,
+def _resolve_term(term_composite_part: dict,
                   universe_session: Session,
-                  project_session: Session) -> UTerm|PTerm|None:
+                  project_session: Session) -> UTerm|PTerm:
     '''First find the term in the universe than in the current project'''
+    term_id = term_composite_part[api_settings.TERM_ID_JSON_KEY]
+    term_type = term_composite_part[api_settings.TERM_TYPE_JSON_KEY]
     uterms = universe._find_terms_in_data_descriptor(data_descriptor_id=term_type,
                                                      term_id=term_id,
                                                      session=universe_session,
@@ -59,39 +60,41 @@ def _resolve_term(term_id: str,
                                            term_id=term_id,
                                            session=project_session,
                                            settings=None)
-        result = pterms[0] if pterms else None
-        return result
+    if pterms:
+        return pterms[0]
+    else:
+        msg = f'unable to find the term {term_id} in {term_type}'
+        raise RuntimeError(msg)           
 
 
-def _valid_value_for_term_composite_with_separator(value: str,
-                                                   term: UTerm|PTerm,
-                                                   universe_session: Session,
-                                                   project_session: Session)\
-                                                      -> list[ValidationError]:
-    result = list()
+def _get_term_composite_separator_parts(term: UTerm|PTerm) -> tuple[str, list]:
     separator = term.specs[api_settings.COMPOSITE_SEPARATOR_JSON_KEY]
     parts = term.specs[api_settings.COMPOSITE_PARTS_JSON_KEY]
+    return separator, parts
+
+
+# TODO: support optionality of parts of composite.
+# It is backtrack possible for more than one missing parts.
+def _valid_value_term_composite_with_separator(value: str,
+                                               term: UTerm|PTerm,
+                                               universe_session: Session,
+                                               project_session: Session)\
+                                                   -> list[ValidationError]:
+    result = list()
+    separator, parts = _get_term_composite_separator_parts(term)
     if separator in value:
         splits = value.split(separator)
         if len(splits) == len(parts):
             for index in range(0, len(splits)):
                 given_value = splits[index]
-                referenced_id = parts[index][api_settings.TERM_ID_JSON_KEY]
-                referenced_type = parts[index][api_settings.TERM_TYPE_JSON_KEY]
-                resolved_term = _resolve_term(referenced_id,
-                                              referenced_type,
+                resolved_term = _resolve_term(parts[index],
                                               universe_session,
                                               project_session)
-                if resolved_term:
-                    errors = _valid_value(given_value,
-                                          resolved_term,
-                                          universe_session,
-                                          project_session)
-                    result.extend(errors)
-                else:
-                    msg = f'unable to find the term {referenced_id} ' + \
-                          f'in {referenced_type}'
-                    raise RuntimeError(msg)
+                errors = _valid_value(given_value,
+                                      resolved_term,
+                                      universe_session,
+                                      project_session)
+                result.extend(errors)
         else:
             result.append(_create_term_error(value, term))
     else:
@@ -99,20 +102,70 @@ def _valid_value_for_term_composite_with_separator(value: str,
     return result
 
 
+def _transform_to_pattern(term: UTerm|PTerm,
+                          universe_session: Session,
+                          project_session: Session) -> str:
+    match term.kind:
+        case TermKind.PLAIN:
+            result = term.specs[api_settings.DRS_SPECS_JSON_KEY]
+        case TermKind.PATTERN:
+            result = term.specs[api_settings.PATTERN_JSON_KEY]
+        case TermKind.COMPOSITE:
+            separator, parts =  _get_term_composite_separator_parts(term)
+            result = ""
+            for part in parts:
+                resolved_term = _resolve_term(part, universe_session, project_session)
+                pattern = _transform_to_pattern(resolved_term, universe_session, project_session)
+                result = f'{result}{pattern}{separator}'
+            result = result.rstrip(separator)
+        case _:
+            raise NotImplementedError(f'unsupported term kind {term.kind}')
+    return result
+
+
 # TODO: support optionality of parts of composite.
 # It is backtrack possible for more than one missing parts.
+def _valid_value_term_composite_separator_less(value: str,
+                                               term: UTerm|PTerm,
+                                               universe_session: Session,
+                                               project_session: Session)\
+                                                   -> list[ValidationError]:
+    result = list()
+    try:
+        pattern = _transform_to_pattern(term, universe_session, project_session)
+        try:
+            # Term patterns are meant to be validated individually.
+            # So their regex are defined as a whole (begins by a ^, ends by a $).
+            # As the pattern is a concatenation of plain or regex, multiple ^ and $ can exist.
+            # The later, must be removed.
+            pattern = pattern.replace('^', '').replace('$', '')
+            pattern = f'^{pattern}$'
+            regex = re.compile(pattern)
+        except Exception as e:
+            msg = f'regex compilation error:\n{e}'
+            raise ValueError(msg) from e    
+        match = regex.match(value)
+        if match is None:
+            result.append(_create_term_error(value, term))
+        return result
+    except Exception as e:
+        msg = f'cannot validate separator less composite term {term.id}:\n{e}'        
+        raise RuntimeError(msg) from e
+
+
 def _valid_value_for_term_composite(value: str,
                                     term: UTerm|PTerm,
                                     universe_session: Session,
                                     project_session: Session)\
                                         -> list[ValidationError]:
     result = list()
-    separator = term.specs[api_settings.COMPOSITE_SEPARATOR_JSON_KEY]
+    separator, _ = _get_term_composite_separator_parts(term)
     if separator:
-        result = _valid_value_for_term_composite_with_separator(value, term, universe_session,
-                                                                project_session)
+        result = _valid_value_term_composite_with_separator(value, term, universe_session,
+                                                            project_session)
     else:
-        raise NotImplementedError(f'unsupported separator less term composite {term.id} ')
+        result = _valid_value_term_composite_separator_less(value, term, universe_session,
+                                                            project_session)
     return result
 
 
@@ -806,7 +859,7 @@ def get_all_projects() -> list[str]:
 
 
 if __name__ == "__main__":
-    vr = valid_term('0241206-0241207', 'cmip6plus', 'time_range', 'daily')
+    vr = valid_term('r1i1p1f111', 'cmip6plus', 'member_id', 'ripf')
     if vr:
         print('OK')
     else:
