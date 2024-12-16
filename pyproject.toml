@@ -30,6 +30,7 @@ dev-dependencies = [
     "jupyter-console>=6.6.3",
     "mypy>=1.13.0",
     "pytest-mock>=3.14.0",
+    "isort>=5.13.2",
 ]
 [tool.rye.scripts]
 ev = { cmd = "python src/cmipld/cli/main.py" }
