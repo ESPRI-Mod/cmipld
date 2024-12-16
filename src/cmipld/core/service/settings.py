@@ -34,6 +34,7 @@ class ServiceSettings(BaseModel):
         with open(file_path, "w") as f:
             toml.dump(data, f)
 
+# TODO Really ? 
 SETTINGS_FILE = Path("./src/cmipld/core/service/settings.toml")
 
 def load_settings() -> ServiceSettings:
