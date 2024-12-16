@@ -1,27 +1,21 @@
 import re
 from typing import Sequence
 
-from pydantic import BaseModel
-from sqlmodel import Session, and_, select
-
 import cmipld.api.universe as universe
+import cmipld.core.service as service
 import cmipld.settings as api_settings
-from cmipld.api.search import MatchingTerm, SearchSettings
 from cmipld.api._utils import (create_str_comparison_expression,
-                               instantiate_pydantic_term,
-                               instantiate_pydantic_terms,
-                               get_universe_session)
-from cmipld.api.report import (ProjectTermError,
-                               UniverseTermError,
-                               ValidationError,
-                               ValidationReport)
-                        
-                        
+                               get_universe_session, instantiate_pydantic_term,
+                               instantiate_pydantic_terms)
+from cmipld.api.report import (ProjectTermError, UniverseTermError,
+                               ValidationError, ValidationReport)
+from cmipld.api.search import MatchingTerm, SearchSettings
 from cmipld.core.db._utils import DBConnection
 from cmipld.core.db.models.mixins import TermKind
 from cmipld.core.db.models.project import Collection, Project, PTerm
 from cmipld.core.db.models.universe import UTerm
-import cmipld.core.service as service
+from pydantic import BaseModel
+from sqlmodel import Session, and_, select
 
 
 def _get_project_connection(project_id: str) -> DBConnection|None:

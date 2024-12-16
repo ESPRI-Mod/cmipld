@@ -1,13 +1,12 @@
 from typing import Sequence
 
-from pydantic import BaseModel
-from sqlmodel import Session, select
-
 from cmipld.api._utils import (create_str_comparison_expression,
-                               instantiate_pydantic_terms,
-                               get_universe_session)
+                               get_universe_session,
+                               instantiate_pydantic_terms)
 from cmipld.api.search import SearchSettings
 from cmipld.core.db.models.universe import DataDescriptor, UTerm
+from pydantic import BaseModel
+from sqlmodel import Session, select
 
 
 def _find_terms_in_data_descriptor(data_descriptor_id: str,

@@ -1,16 +1,14 @@
 from typing import Sequence
-from pydantic import BaseModel
-from sqlalchemy import ColumnElement, func
-from sqlmodel import col, Session
 
+import cmipld.core.service as service
 import cmipld.settings as api_settings
+from cmipld.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
+from cmipld.api.search import SearchSettings, SearchType
 from cmipld.core.db.models.project import PTerm
 from cmipld.core.db.models.universe import UTerm
-from cmipld.api.search import SearchSettings, SearchType
-import cmipld.core.service as service
-
-from cmipld.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
-
+from pydantic import BaseModel
+from sqlalchemy import ColumnElement, func
+from sqlmodel import Session, col
 
 UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection
 
