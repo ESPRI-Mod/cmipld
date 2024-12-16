@@ -1,5 +1,5 @@
 [[projects]]
-project_name = "CMIP6Plus_CVs"
+project_name = "cmip6plus"
 github_repo = "https://github.com/ESPRI-Mod/CMIP6Plus_CVs"
 branch = "uni_proj_ld"
 local_path = ".cache/repos/CMIP6Plus_CVs"
