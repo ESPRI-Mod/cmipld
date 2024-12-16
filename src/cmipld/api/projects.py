@@ -383,7 +383,6 @@ def _valid_term_in_project(value: str,
     return result
 
 
-# TODO: support term composite without separator (e.g., ripf).
 def valid_term_in_project(value: str, project_id: str) -> list[MatchingTerm]:
     """
     Check if the given value may or may not represent a term in the given project. The function
