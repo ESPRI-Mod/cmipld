@@ -109,11 +109,17 @@ class StateService:
     def __init__(self, service_settings: ServiceSettings):
         self.universe = StateUniverse(service_settings.universe)
         self.projects = {name: StateProject(proj) for name, proj in service_settings.projects.items()}
+        self.connect_db()
 
     def get_state_summary(self):
         universe_status = self.universe.check_sync_status()
         project_statuses = {name: proj.check_sync_status() for name, proj in self.projects.items()}
         return {"universe": universe_status, "projects": project_statuses}
+
+    def connect_db(self):
+        self.universe.fetch_versions()
+        for _,proj_state in self.projects.items():
+            proj_state.fetch_versions()
 
     def synchronize_all(self):
         self.universe.sync()
@@ -130,28 +136,6 @@ class StateService:
             table.add_row(f"{proj_name} path",proj.github_repo,proj.local_path,proj.db_path)
             table.add_row("Version",proj.github_version,proj.local_version,proj.db_version)
         return table
-
-    # def find_version_differences(self):
-    #     summary = self.get_state_summary()
-    #     if not summary["universe"]["github_sync"]:
-    #         print("OUT OF SYNC")
-    #         print(f"github universe version: {self.universe.github_version}")
-    #         print(f"local universe version: {self.universe.local_version}")
-    #     for project in summary["projects"]:
-    #         if not project["github_sync"]:
-    #             print("OUT OF SYNC")
-    #             print("AHHHHHHHHHHHH", project)
-    #             # print(f"github {project["project_name"]} version: {project["github_version"]}")
-    #             # print(f"local {project["project_name"]} version: {project["local_version"]}")
-    #
-    #     out_of_sync_projects = [
-    #         project for project in summary["projects"] if not project["github_db_sync"]
-    #     ]
-    #     return {
-    #         "universe_out_of_sync": not summary["universe"]["github_db_sync"],
-    #         "out_of_sync_projects": out_of_sync_projects
-    #     }
-
 
 if __name__ == "__main__":
     # Load settings from file

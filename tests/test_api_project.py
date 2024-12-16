@@ -5,7 +5,7 @@ from typing import Generator
 import cmipld.api.projects as projects
 from cmipld.api import SearchSettings, SearchType
 
-_SOME_PROJECT_IDS = ['cmip6plus']
+_SOME_PROJECT_IDS = ['CMIP6Plus_CVs']
 _SOME_COLLECTION_IDS = ['institution_id', 'time_range', 'source_id']
 _SOME_DATA_DESCRIPTOR_IDS = ['organisation', 'time_range', 'source']
 _SOME_TERM_IDS = ['ipsl', 'daily', 'miroc6']
@@ -134,12 +134,12 @@ def test_find_terms_from_data_descriptor_in_all_projects(data_descriptor_id,
 
 def test_valid_term() -> None:
     validation_requests = [
-    (0, ('IPSL', 'cmip6plus', 'institution_id', 'ipsl')),
-    (0, ('r1i1p1f1', 'cmip6plus', 'member_id', 'ripf')),
-    (1, ('IPL', 'cmip6plus', 'institution_id', 'ipsl')),
-    (1, ('r1i1p1f111', 'cmip6plus', 'member_id', 'ripf')),
-    (0, ('20241206-20241207', 'cmip6plus', 'time_range', 'daily')),
-    (2, ('0241206-0241207', 'cmip6plus', 'time_range', 'daily'))]
+    (0, ('IPSL', 'CMIP6Plus_CVs', 'institution_id', 'ipsl')),
+    (0, ('r1i1p1f1', 'CMIP6Plus_CVs', 'member_id', 'ripf')),
+    (1, ('IPL', 'CMIP6Plus_CVs', 'institution_id', 'ipsl')),
+    (1, ('r1i1p1f111', 'CMIP6Plus_CVs', 'member_id', 'ripf')),
+    (0, ('20241206-20241207', 'CMIP6Plus_CVs', 'time_range', 'daily')),
+    (2, ('0241206-0241207', 'CMIP6Plus_CVs', 'time_range', 'daily'))]
     for validation_request in validation_requests:
         nb_errors, parameters = validation_request
         vr = projects.valid_term(*parameters)
@@ -148,12 +148,12 @@ def test_valid_term() -> None:
 
 def test_valid_term_in_collection() -> None:
     validation_requests = [
-    (1, ('IPSL', 'cmip6plus', 'institution_id'), 'ipsl'),
-    (1, ('r1i1p1f1', 'cmip6plus', 'member_id'), 'ripf'),
-    (0, ('IPL', 'cmip6plus', 'institution_id'), None),
-    (0, ('r1i1p1f11', 'cmip6plus', 'member_id'), None),
-    (1, ('20241206-20241207', 'cmip6plus', 'time_range'), 'daily'),
-    (0, ('0241206-0241207', 'cmip6plus', 'time_range'), None)]
+    (1, ('IPSL', 'CMIP6Plus_CVs', 'institution_id'), 'ipsl'),
+    (1, ('r1i1p1f1', 'CMIP6Plus_CVs', 'member_id'), 'ripf'),
+    (0, ('IPL', 'CMIP6Plus_CVs', 'institution_id'), None),
+    (0, ('r1i1p1f11', 'CMIP6Plus_CVs', 'member_id'), None),
+    (1, ('20241206-20241207', 'CMIP6Plus_CVs', 'time_range'), 'daily'),
+    (0, ('0241206-0241207', 'CMIP6Plus_CVs', 'time_range'), None)]
     for validation_request in validation_requests:
         nb_matching_terms, parameters, term_id = validation_request
         matching_terms = projects.valid_term_in_collection(*parameters)
@@ -164,12 +164,12 @@ def test_valid_term_in_collection() -> None:
 
 def test_valid_term_in_project() -> None:
     validation_requests = [
-    (1, ('IPSL', 'cmip6plus'), 'ipsl'),
-    (1, ('r1i1p1f1', 'cmip6plus'), 'ripf'),
-    (0, ('IPL', 'cmip6plus'), None),
-    (0, ('r1i1p1f11', 'cmip6plus'), None),
-    (1, ('20241206-20241207', 'cmip6plus'), 'daily'),
-    (0, ('0241206-0241207', 'cmip6plus'), None)]
+    (1, ('IPSL', 'CMIP6Plus_CVs'), 'ipsl'),
+    (1, ('r1i1p1f1', 'CMIP6Plus_CVs'), 'ripf'),
+    (0, ('IPL', 'CMIP6Plus_CVs'), None),
+    (0, ('r1i1p1f11', 'CMIP6Plus_CVs'), None),
+    (1, ('20241206-20241207', 'CMIP6Plus_CVs'), 'daily'),
+    (0, ('0241206-0241207', 'CMIP6Plus_CVs'), None)]
     for validation_request in validation_requests:
         nb_matching_terms, parameters, term_id = validation_request
         matching_terms = projects.valid_term_in_project(*parameters)

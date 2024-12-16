@@ -6,13 +6,9 @@ from sqlmodel import Session, select
 import cmipld.db as db
 from cmipld.api import SearchSettings, create_str_comparison_expression, instantiate_pydantic_terms
 from cmipld.db.models.universe import DataDescriptor, UTerm
+import cmipld.core.service as service
 
-############## DEBUG ##############
-# TODO: to be deleted.
-# The following instructions are only temporary as long as a complete data management will be implemented.
-UNIVERSE_DB_CONNECTION = db.DBConnection(db.UNIVERSE_DB_FILE_PATH, 'universe', False)
-###################################
-
+UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection
 
 def _find_terms_in_data_descriptor(data_descriptor_id: str,
                                    term_id: str,

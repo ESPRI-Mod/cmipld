@@ -15,21 +15,21 @@ from cmipld.api import (MatchingTerm, ProjectTermError, SearchSettings,
 from cmipld.db.models.mixins import TermKind
 from cmipld.db.models.project import Collection, Project, PTerm
 from cmipld.db.models.universe import UTerm
+import cmipld.core.service as service
 
-############## DEBUG ##############
-# TODO: to be deleted.
-# The following instructions are only temporary as long as a complete data management will be implemented.
-UNIVERSE_DB_CONNECTION = db.DBConnection(db.UNIVERSE_DB_FILE_PATH, 'universe', False)
-###################################
 
+UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection
 
 def _get_project_connection(project_id: str) -> db.DBConnection|None:
     ############## DEBUG ##############
     # TODO: to be deleted.
     # The following instructions are only temporary as long as a complete data management will be implemented.
-    return db.DBConnection(db.CMIP6PLUS_DB_FILE_PATH, 'cmip6plus', False)
+    #return db.DBConnection(db.CMIP6PLUS_DB_FILE_PATH, 'cmip6plus', False)
     ###################################
+    print("TATA", list(service.state_service.projects.items()))
+    print("TOTO", service.state_service.projects[project_id].db_connection)
 
+    return service.state_service.projects[project_id].db_connection
 
 def _get_project_session_with_exception(project_id: str) -> Session:
     if connection:=_get_project_connection(project_id):
@@ -854,16 +854,17 @@ def get_all_projects() -> list[str]:
     :returns: A list of project ids.
     :rtype: list[str]
     """
-    return ['cmip6plus'] # DEBUG TODO: to be implemented
+    return list(service.state_service.projects.keys())
 
 
 if __name__ == "__main__":
-    vr = valid_term('r1i1p1f111', 'cmip6plus', 'member_id', 'ripf')
-    if vr:
-        print('OK')
-    else:
-        print(vr)
-        from cmipld.api import BasicValidationErrorVisitor
-        visitor = BasicValidationErrorVisitor()
-        for error in vr.errors:
-            print(error.accept(visitor))
+    print("TITI",find_project("CMIP6Plus_CVs"))
+    # vr = valid_term('r1i1p1f111', 'cmip6plus', 'member_id', 'ripf')
+    # if vr:
+    #     print('OK')
+    # else:
+    #     print(vr)
+    #     from cmipld.api import BasicValidationErrorVisitor
+    #     visitor = BasicValidationErrorVisitor()
+    #     for error in vr.errors:
+    #         print(error.accept(visitor))

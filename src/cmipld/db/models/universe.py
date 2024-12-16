@@ -56,4 +56,4 @@ def universe_create_db(db_file_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    universe_create_db(db.UNIVERSE_DB_FILE_PATH)
+    pass

@@ -1,8 +1,7 @@
+
 import logging
 import os
 from pathlib import Path
-from cmipld.core.service.settings import ServiceSettings
-from cmipld.core.service.state import StateService
 from cmipld.db import DBConnection
 from cmipld.db.models.project import project_create_db
 from cmipld.db.models.universe import universe_create_db
@@ -11,15 +10,16 @@ from cmipld.db.project_ingestion import ingest_metadata_project, ingest_project
 from rich.logging import RichHandler
 from rich.console import Console
 
+import cmipld.core.service as service 
+
 _LOGGER = logging.getLogger(__name__)
 
 rich_handler = RichHandler(rich_tracebacks=True)
 _LOGGER.addHandler(rich_handler)
 
+
 def reset_init_all():
-    settings_path = "src/cmipld/core/service/settings.toml"
-    service_settings = ServiceSettings.load_from_file(settings_path)
-    
+    service_settings = service.service_settings 
     if (service_settings.universe.db_path) and os.path.exists(service_settings.universe.db_path):
         os.remove(service_settings.universe.db_path)
     for _, proj in service_settings.projects.items():    
@@ -28,17 +28,12 @@ def reset_init_all():
 
 
 def init():
-    
-    settings_path = "src/cmipld/core/service/settings.toml"
-    service_settings = ServiceSettings.load_from_file(settings_path)
-
-    # Initialize StateService
-    state_service = StateService(service_settings)
+    service_settings = service.service_settings 
+    state_service = service.state_service
     state_service.get_state_summary()
-    display(state_service.table())
-
     state_service.synchronize_all()
     
+    display(state_service.table())
     # create DB if present in setting and not in described path
     if service_settings.universe.db_path is not None:
         if not os.path.exists(service_settings.universe.db_path):
@@ -63,13 +58,14 @@ def init():
             project_create_db(Path(proj_setting.db_path))
             #ingest_metadata_project(DBConnection(Path(proj_setting.db_path)),state_service.projects[name].local_version)
         state_service.projects[name].fetch_versions()
-        print("version local déduite",state_service.projects[name].local_version)
         if proj_setting.db_path and proj_setting.local_path :
             ingest_project(project_dir_path=Path(proj_setting.local_path),
                            project_db_file_path=Path(proj_setting.db_path),
                            git_hash=state_service.projects[name].local_version)
         state_service.projects[name].fetch_versions()
+
     display(state_service.table())
+
 
 def display(table):
     console = Console(record=True,width=200)

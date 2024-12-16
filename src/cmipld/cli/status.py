@@ -27,5 +27,8 @@ def status():
     state_service = StateService(service_settings)
     state_service.get_state_summary()
     display(state_service.table())
+    print(state_service.universe.db_connection)
+    for name_proj,state_proj in state_service.projects.items():
+        print(state_proj.db_connection)
 
     

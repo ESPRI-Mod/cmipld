@@ -38,18 +38,4 @@ class DBConnection:
         return self.file_path
 
 
-############## DEBUG ##############
-# TODO: to be deleted.
-# The following instructions are only temporary as long as a complete data management will be implemented.
 
-from cmipld.settings import ROOT_DIR_PATH  # noqa
-
-UNIVERSE_DIR_NAME = '.cache/repos/mip-cmor-tables'
-CMIP6PLUS_DIR_NAME = '.cache/repos/CMIP6Plus_CVs'
-
-UNIVERSE_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(UNIVERSE_DIR_NAME)
-CMIP6PLUS_DIR_PATH = ROOT_DIR_PATH.parent.joinpath(CMIP6PLUS_DIR_NAME)
-
-UNIVERSE_DB_FILE_PATH = Path('.cache/dbs/universe.sqlite')
-CMIP6PLUS_DB_FILE_PATH = Path('.cache/dbs/cmip6plus.sqlite')
-###################################
