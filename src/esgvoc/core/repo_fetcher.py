@@ -1,5 +1,5 @@
 import os
-from _pytest.pytester import subprocess
+import subprocess
 import requests
 from pydantic import BaseModel, ValidationError
 from typing import List, Optional
