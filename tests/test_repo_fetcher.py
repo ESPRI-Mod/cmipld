@@ -1,7 +1,7 @@
 
 import pytest
 from unittest.mock import patch
-from cmipld.core.repo_fetcher import RepoFetcher 
+from esgvoc.core.repo_fetcher import RepoFetcher 
 
 @pytest.fixture
 def fetcher():

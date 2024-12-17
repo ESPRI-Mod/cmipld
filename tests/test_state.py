@@ -1,8 +1,8 @@
 
 import pytest
 from unittest.mock import MagicMock
-from cmipld.core.service.state import StateService
-from cmipld.core.service.settings import ServiceSettings, UniverseSettings, ProjectSettings
+from esgvoc.core.service.state import StateService
+from esgvoc.core.service.settings import ServiceSettings, UniverseSettings, ProjectSettings
 
 @pytest.fixture
 def mock_repo_fetcher(mocker):

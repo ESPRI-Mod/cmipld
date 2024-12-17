@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from unittest.mock import patch
 from pydantic import ValidationError
-from cmipld.core.data_handler import JsonLdResource
+from esgvoc.core.data_handler import JsonLdResource
 
 mock_json_data = {"@context": "http://example.com/context", "name": "Test"}
 

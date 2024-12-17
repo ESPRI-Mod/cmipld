@@ -1,5 +1,5 @@
 [project]
-name = "cmipld"
+name = "esgvoc"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
@@ -33,14 +33,14 @@ dev-dependencies = [
     "isort>=5.13.2",
 ]
 [tool.rye.scripts]
-ev = { cmd = "python src/cmipld/cli/main.py" }
-evc = { cmd = "python src/cmipld/cli/main.py config" }
-evcp = { cmd = "python src/cmipld/cli/main.py config projects." }
-evg = { cmd = "python src/cmipld/cli/main.py get" }
-evs = {cmd = "python src/cmipld/cli/main.py status"}
+ev = { cmd = "python src/esgvoc/cli/main.py" }
+evc = { cmd = "python src/esgvoc/cli/main.py config" }
+evcp = { cmd = "python src/esgvoc/cli/main.py config projects." }
+evg = { cmd = "python src/esgvoc/cli/main.py get" }
+evs = {cmd = "python src/esgvoc/cli/main.py status"}
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/cmipld"]
+packages = ["src/esgvoc"]

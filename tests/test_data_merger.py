@@ -1,7 +1,7 @@
 from pathlib import Path
-from cmipld.core.data_handler import JsonLdResource
-from cmipld.core.service.data_merger import DataMerger, merge
-from cmipld.core.repo_fetcher import RepoFetcher
+from esgvoc.core.data_handler import JsonLdResource
+from esgvoc.core.service.data_merger import DataMerger, merge
+from esgvoc.core.repo_fetcher import RepoFetcher
 
 def test_remote_organisation_ipsl():
     

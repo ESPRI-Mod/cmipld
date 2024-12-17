@@ -2,8 +2,8 @@ import pytest
 
 from typing import Generator
 
-import cmipld.api.projects as projects
-from cmipld.api import SearchSettings, SearchType
+import esgvoc.api.projects as projects
+from esgvoc.api import SearchSettings, SearchType
 
 _SOME_PROJECT_IDS = ['cmip6plus']
 _SOME_COLLECTION_IDS = ['institution_id', 'time_range', 'source_id']
