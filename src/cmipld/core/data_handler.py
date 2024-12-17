@@ -10,7 +10,6 @@ from pydantic import BaseModel, model_validator, ConfigDict
 
 from cmipld.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
 # Configure logging
-logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
 
 mapping = DATA_DESCRIPTOR_CLASS_MAPPING

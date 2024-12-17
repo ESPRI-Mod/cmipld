@@ -72,13 +72,13 @@ def display(table):
     console.print(table)
 
 if __name__ == "__main__":
-    _LOGGER.setLevel(logging.INFO)
+    #_LOGGER.setLevel(logging.INFO)
 
     # print("BEGIN")
     reset_init_all()
     init()
     # print("END")
-    
+
     # print("BEGIN")
     # display_state()
     # print("END")
