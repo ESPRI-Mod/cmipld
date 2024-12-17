@@ -1,4 +1,4 @@
 import logging.config
 
-
-logging.config.fileConfig("src/cmipld/core/logging.conf")
+# TODO: refactor path.
+logging.config.fileConfig("src/esgvoc/core/logging.conf")

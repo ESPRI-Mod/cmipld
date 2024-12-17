@@ -142,7 +142,7 @@ class StateService:
 
 if __name__ == "__main__":
     # Load settings from file
-    service_settings = ServiceSettings.load_from_file("src/cmipld/core/service/settings.toml")
+    service_settings = ServiceSettings.load_from_file("src/esgvoc/core/service/settings.toml")
     
     # Initialize StateService
     state_service = StateService(service_settings)

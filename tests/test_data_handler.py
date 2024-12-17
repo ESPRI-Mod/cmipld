@@ -11,7 +11,7 @@ mock_json_data = {"@context": "http://example.com/context", "name": "Test"}
 def data_instance():
     return JsonLdResource(uri="http://example.com/resource")
 
-@patch("cmipld.core.data_handler.unified_document_loader", return_value=mock_json_data)
+@patch("esgvoc.core.data_handler.unified_document_loader", return_value=mock_json_data)
 def test_json(mock_loader, data_instance):
     assert data_instance.json_dict == mock_json_data
     mock_loader.assert_called_once_with("http://example.com/resource")

@@ -7,7 +7,7 @@ from esgvoc.core.service.settings import ServiceSettings, UniverseSettings, Proj
 @pytest.fixture
 def mock_repo_fetcher(mocker):
     """Fixture to mock the RepoFetcher class and its methods."""
-    mock_rf = mocker.patch('cmipld.core.repo_fetcher.RepoFetcher')
+    mock_rf = mocker.patch('esgvoc.core.repo_fetcher.RepoFetcher')
     instance = mock_rf.return_value
     instance.get_github_version = MagicMock()
     instance.get_local_repo_version = MagicMock()

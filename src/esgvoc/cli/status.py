@@ -20,7 +20,7 @@ def status():
     i.e summary of version of usable ressources (between remote/cached)  
     
     """
-    settings_path = "src/cmipld/core/service/settings.toml"
+    settings_path = "src/esgvoc/core/service/settings.toml"
     service_settings = ServiceSettings.load_from_file(settings_path)
 
     # Initialize StateService
