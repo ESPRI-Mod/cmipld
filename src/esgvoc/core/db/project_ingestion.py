@@ -3,12 +3,13 @@ from pathlib import Path
 
 import esgvoc.core.constants
 from esgvoc.core.data_handler import JsonLdResource
+from esgvoc.core.db.connection import DBConnection
 from esgvoc.core.service.data_merger import DataMerger
 from esgvoc.core.db.models.mixins import TermKind
 from pydantic import BaseModel
 
-import esgvoc.core.db as db
-from esgvoc.core.db._utils import DBConnection, read_json_file
+import esgvoc.core.db.connection as db
+from esgvoc.core.db.connection import read_json_file
 from esgvoc.core.db.models.project import Collection, Project, PTerm
 
 

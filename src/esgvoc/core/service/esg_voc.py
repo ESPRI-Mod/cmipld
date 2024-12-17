@@ -2,7 +2,7 @@
 import logging
 import os
 from pathlib import Path
-from esgvoc.core.db import DBConnection
+from esgvoc.core.db.connection import DBConnection
 from esgvoc.core.db.models.project import project_create_db
 from esgvoc.core.db.models.universe import universe_create_db
 from esgvoc.core.db.universe_ingestion import ingest_metadata_universe, ingest_universe

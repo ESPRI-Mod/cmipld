@@ -6,8 +6,8 @@ from esgvoc.core.data_handler import JsonLdResource
 from esgvoc.core.service.data_merger import DataMerger
 from sqlmodel import Session, select
 
-import esgvoc.core.db as db
-from esgvoc.core.db._utils import read_json_file
+import esgvoc.core.db.connection as db
+from esgvoc.core.db.connection import read_json_file
 from esgvoc.core.db.models.mixins import TermKind
 from esgvoc.core.db.models.universe import DataDescriptor, UTerm, Universe
 from esgvoc.core.db.models.universe import universe_create_db

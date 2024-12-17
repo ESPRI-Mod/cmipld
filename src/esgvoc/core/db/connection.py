@@ -1,11 +1,8 @@
-import json
 from pathlib import Path
-
+import json
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
 
-def read_json_file(json_file_path: Path) -> dict:
-    return json.loads(json_file_path.read_text())
 
 class DBConnection:
     SQLITE_URL_PREFIX = 'sqlite://'
@@ -25,6 +22,10 @@ class DBConnection:
 
     def get_name(self) -> str|None:
         return self.name
-    
+
     def get_file_path(self) -> Path:
         return self.file_path
+
+
+def read_json_file(json_file_path: Path) -> dict:
+    return json.loads(json_file_path.read_text())

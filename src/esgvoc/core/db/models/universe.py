@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.sqlite import JSON
 from sqlmodel import Column, Field, Relationship, SQLModel
 
-import esgvoc.core.db as db
+import esgvoc.core.db.connection as db
 from esgvoc.core.db.models.mixins import IdMixin, PkMixin, TermKind
 
 _LOGGER = logging.getLogger("universe_db_creation")

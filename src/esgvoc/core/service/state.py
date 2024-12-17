@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional
 from esgvoc.core.repo_fetcher import RepoFetcher
 from esgvoc.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings
-from esgvoc.core.db._utils import DBConnection
+from esgvoc.core.db.connection import DBConnection
 from esgvoc.core.db.models.project import Project
 from esgvoc.core.db.models.universe import Universe 
 from rich.table import Table
