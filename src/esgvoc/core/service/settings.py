@@ -3,6 +3,9 @@ from typing import Dict, Optional
 from pathlib import Path
 import toml
 
+
+SETTINGS_FILE = Path(__file__) / "settings.toml"
+
 class ProjectSettings(BaseModel):
     project_name: str
     github_repo: str
@@ -33,9 +36,6 @@ class ServiceSettings(BaseModel):
         }
         with open(file_path, "w") as f:
             toml.dump(data, f)
-
-# TODO Really ? 
-SETTINGS_FILE = Path("./src/esgvoc/core/service/settings.toml")
 
 def load_settings() -> ServiceSettings:
     """Load the settings from the TOML file."""

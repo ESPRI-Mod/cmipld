@@ -1,4 +1,4 @@
 import logging.config
+from pathlib import Path
 
-# TODO: refactor path.
-logging.config.fileConfig("src/esgvoc/core/logging.conf")
+logging.config.fileConfig(f"{Path(__file__).parent}/logging.conf")
