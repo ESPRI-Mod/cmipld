@@ -1,7 +1,7 @@
 from typing import Sequence
 
 import cmipld.core.service as service
-import cmipld.settings as api_settings
+import cmipld.core.constants as api_settings
 from cmipld.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
 from cmipld.api.search import SearchSettings, SearchType
 from cmipld.core.db.models.project import PTerm

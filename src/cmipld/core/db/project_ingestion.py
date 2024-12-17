@@ -1,13 +1,13 @@
 import logging
 from pathlib import Path
 
+import cmipld.core.constants
 from cmipld.core.data_handler import JsonLdResource
 from cmipld.core.service.data_merger import DataMerger
 from cmipld.core.db.models.mixins import TermKind
 from pydantic import BaseModel
 
 import cmipld.core.db as db
-import cmipld.settings as settings
 from cmipld.core.db._utils import DBConnection, read_json_file
 from cmipld.core.db.models.project import Collection, Project, PTerm
 
@@ -15,9 +15,9 @@ from cmipld.core.db.models.project import Collection, Project, PTerm
 _LOGGER = logging.getLogger("project_ingestion")
 
 def infer_term_kind(json_specs: dict) -> TermKind:
-    if settings.PATTERN_JSON_KEY in json_specs:
+    if cmipld.core.constants.PATTERN_JSON_KEY in json_specs:
         return TermKind.PATTERN
-    elif settings.COMPOSITE_PARTS_JSON_KEY in json_specs:
+    elif cmipld.core.constants.COMPOSITE_PARTS_JSON_KEY in json_specs:
         return TermKind.COMPOSITE
     else:
         return TermKind.PLAIN
@@ -31,7 +31,7 @@ def ingest_metadata_project(connection:DBConnection,git_hash):
 
 ###############################
 def get_data_descriptor_id_from_context(collection_context: dict) -> str:
-    data_descriptor_url = collection_context[settings.CONTEXT_JSON_KEY][settings.DATA_DESCRIPTOR_JSON_KEY]
+    data_descriptor_url = collection_context[cmipld.core.constants.CONTEXT_JSON_KEY][cmipld.core.constants.DATA_DESCRIPTOR_JSON_KEY]
     return Path(data_descriptor_url).name
 
 
@@ -51,7 +51,7 @@ def ingest_collection(collection_dir_path: Path,
 
 
     collection_id = collection_dir_path.name
-    collection_context_file_path = collection_dir_path.joinpath(settings.CONTEXT_FILENAME)
+    collection_context_file_path = collection_dir_path.joinpath(cmipld.core.constants.CONTEXT_FILENAME)
     try:
         collection_context = read_json_file(collection_context_file_path)
         data_descriptor_id = get_data_descriptor_id_from_context(collection_context)
@@ -114,9 +114,9 @@ def ingest_project(project_dir_path: Path,
         
     with project_connection.create_session() as project_db_session:
         try:
-            project_specs_file_path = project_dir_path.joinpath(settings.PROJECT_SPECS_FILENAME)
+            project_specs_file_path = project_dir_path.joinpath(cmipld.core.constants.PROJECT_SPECS_FILENAME)
             project_json_specs = read_json_file(project_specs_file_path)
-            project_id = project_json_specs[settings.PROJECT_ID_JSON_KEY]
+            project_id = project_json_specs[cmipld.core.constants.PROJECT_ID_JSON_KEY]
         except Exception as e:
             msg = f'Unable to read project specs file  {project_specs_file_path}. Abort.'
             _LOGGER.fatal(msg)

@@ -1,12 +1,12 @@
 import logging
 from pathlib import Path
 
+import cmipld.core.constants
 from cmipld.core.data_handler import JsonLdResource
 from cmipld.core.service.data_merger import DataMerger
 from sqlmodel import Session, select
 
 import cmipld.core.db as db
-import cmipld.settings as settings
 from cmipld.core.db._utils import read_json_file
 from cmipld.core.db.models.mixins import TermKind
 from cmipld.core.db.models.universe import DataDescriptor, UTerm, Universe
@@ -15,9 +15,9 @@ from cmipld.core.db.models.universe import universe_create_db
 _LOGGER = logging.getLogger(__name__)
 
 def infer_term_kind(json_specs: dict) -> TermKind:
-    if settings.PATTERN_JSON_KEY in json_specs:
+    if cmipld.core.constants.PATTERN_JSON_KEY in json_specs:
         return TermKind.PATTERN
-    elif settings.COMPOSITE_PARTS_JSON_KEY in json_specs:
+    elif cmipld.core.constants.COMPOSITE_PARTS_JSON_KEY in json_specs:
         return TermKind.COMPOSITE
     else:
         return TermKind.PLAIN
@@ -52,7 +52,7 @@ def ingest_data_descriptor(data_descriptor_path: Path,
 
     data_descriptor_id = data_descriptor_path.name
 
-    context_file_path = data_descriptor_path.joinpath(settings.CONTEXT_FILENAME)
+    context_file_path = data_descriptor_path.joinpath(cmipld.core.constants.CONTEXT_FILENAME)
     try:
         context = read_json_file(context_file_path)
     except Exception as e:

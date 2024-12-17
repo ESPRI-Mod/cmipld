@@ -2,8 +2,8 @@ import re
 from typing import Sequence
 
 import cmipld.api.universe as universe
+import cmipld.core.constants
 import cmipld.core.service as service
-import cmipld.settings as api_settings
 from cmipld.api._utils import (create_str_comparison_expression,
                                get_universe_session, instantiate_pydantic_term,
                                instantiate_pydantic_terms)
@@ -33,8 +33,8 @@ def _resolve_term(term_composite_part: dict,
                   universe_session: Session,
                   project_session: Session) -> UTerm|PTerm:
     '''First find the term in the universe than in the current project'''
-    term_id = term_composite_part[api_settings.TERM_ID_JSON_KEY]
-    term_type = term_composite_part[api_settings.TERM_TYPE_JSON_KEY]
+    term_id = term_composite_part[cmipld.core.constants.TERM_ID_JSON_KEY]
+    term_type = term_composite_part[cmipld.core.constants.TERM_TYPE_JSON_KEY]
     uterms = universe._find_terms_in_data_descriptor(data_descriptor_id=term_type,
                                                      term_id=term_id,
                                                      session=universe_session,
@@ -54,8 +54,8 @@ def _resolve_term(term_composite_part: dict,
 
 
 def _get_term_composite_separator_parts(term: UTerm|PTerm) -> tuple[str, list]:
-    separator = term.specs[api_settings.COMPOSITE_SEPARATOR_JSON_KEY]
-    parts = term.specs[api_settings.COMPOSITE_PARTS_JSON_KEY]
+    separator = term.specs[cmipld.core.constants.COMPOSITE_SEPARATOR_JSON_KEY]
+    parts = term.specs[cmipld.core.constants.COMPOSITE_PARTS_JSON_KEY]
     return separator, parts
 
 
@@ -93,9 +93,9 @@ def _transform_to_pattern(term: UTerm|PTerm,
                           project_session: Session) -> str:
     match term.kind:
         case TermKind.PLAIN:
-            result = term.specs[api_settings.DRS_SPECS_JSON_KEY]
+            result = term.specs[cmipld.core.constants.DRS_SPECS_JSON_KEY]
         case TermKind.PATTERN:
-            result = term.specs[api_settings.PATTERN_JSON_KEY]
+            result = term.specs[cmipld.core.constants.PATTERN_JSON_KEY]
         case TermKind.COMPOSITE:
             separator, parts =  _get_term_composite_separator_parts(term)
             result = ""
@@ -169,11 +169,11 @@ def _valid_value(value: str,
     result = list()
     match term.kind:
         case TermKind.PLAIN:
-            if term.specs[api_settings.DRS_SPECS_JSON_KEY] != value:
+            if term.specs[cmipld.core.constants.DRS_SPECS_JSON_KEY] != value:
                 result.append(_create_term_error(value, term))
         case TermKind.PATTERN:
             # OPTIM: Pattern can be compiled and stored for further matching.
-            pattern_match = re.match(term.specs[api_settings.PATTERN_JSON_KEY], value)
+            pattern_match = re.match(term.specs[cmipld.core.constants.PATTERN_JSON_KEY], value)
             if pattern_match is None:
                 result.append(_create_term_error(value, term))
         case TermKind.COMPOSITE:
@@ -199,7 +199,7 @@ def _search_plain_term_and_valid_value(value: str,
                                        project_session: Session) \
                                         -> str|None:
     where_expression = and_(Collection.id == collection_id,
-                            PTerm.specs[api_settings.DRS_SPECS_JSON_KEY] == f'"{value}"')
+                            PTerm.specs[cmipld.core.constants.DRS_SPECS_JSON_KEY] == f'"{value}"')
     statement = select(PTerm).join(Collection).where(where_expression)
     term = project_session.exec(statement).one_or_none()
     return term.id if term else None
@@ -740,7 +740,7 @@ def find_collections_in_project(project_id: str,
 
 
 def _get_all_collections_in_project(session: Session) -> list[Collection]:
-    project = session.get(Project, api_settings.SQLITE_FIRST_PK)
+    project = session.get(Project, cmipld.core.constants.SQLITE_FIRST_PK)
     # Project can't be missing if session exists.
     return project.collections # type: ignore
 
@@ -827,7 +827,7 @@ def find_project(project_id: str) -> dict|None:
     result = None
     if connection:=_get_project_connection(project_id):
         with connection.create_session() as session:
-            project = session.get(Project, api_settings.SQLITE_FIRST_PK)
+            project = session.get(Project, cmipld.core.constants.SQLITE_FIRST_PK)
             # Project can't be missing if session exists.
             result = project.specs # type: ignore
     return result

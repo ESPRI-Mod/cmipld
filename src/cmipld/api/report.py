@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-import cmipld.settings as api_settings
+import cmipld.core.constants as api_settings
 from cmipld.core.db.models.mixins import TermKind
 from cmipld.core.db.models.project import PTerm
 from cmipld.core.db.models.universe import UTerm
