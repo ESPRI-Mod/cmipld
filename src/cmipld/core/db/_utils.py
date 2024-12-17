@@ -11,7 +11,7 @@ def read_json_file(json_file_path: Path) -> dict:
 # Not thread safe.
 class DBConnection:
     SQLITE_URL_PREFIX = 'sqlite://'
-    _ENGINES: dict[Path, Engine] = dict()
+    _ENGINES: dict[str, Engine] = dict()
 
     def __init__(self, db_file_path: Path, echo: bool = False) -> None:
         absolute_str_path = str(db_file_path.absolute())
