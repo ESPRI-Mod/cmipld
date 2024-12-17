@@ -844,13 +844,12 @@ def get_all_projects() -> list[str]:
 
 
 if __name__ == "__main__":
-    print("TITI",find_project("CMIP6Plus_CVs"))
-    # vr = valid_term('r1i1p1f111', 'cmip6plus', 'member_id', 'ripf')
-    # if vr:
-    #     print('OK')
-    # else:
-    #     print(vr)
-    #     from esgvoc.api import BasicValidationErrorVisitor
-    #     visitor = BasicValidationErrorVisitor()
-    #     for error in vr.errors:
-    #         print(error.accept(visitor))
+    vr = valid_term('r1i1p1f111', 'cmip6plus', 'member_id', 'ripf')
+    if vr:
+        print('OK')
+    else:
+        print(vr)
+        from esgvoc.api import BasicValidationErrorVisitor
+        visitor = BasicValidationErrorVisitor()
+        for error in vr.errors:
+            print(error.accept(visitor))
