@@ -1,9 +1,8 @@
 from typing import Sequence
 
-from esgvoc.api._utils import (create_str_comparison_expression,
-                               get_universe_session,
+from esgvoc.api._utils import (get_universe_session,
                                instantiate_pydantic_terms)
-from esgvoc.api.search import SearchSettings
+from esgvoc.api.search import SearchSettings, create_str_comparison_expression
 from esgvoc.core.db.models.universe import DataDescriptor, UTerm
 from pydantic import BaseModel
 from sqlmodel import Session, select

@@ -4,12 +4,11 @@ from typing import Sequence
 import esgvoc.api.universe as universe
 import esgvoc.core.constants
 import esgvoc.core.service as service
-from esgvoc.api._utils import (create_str_comparison_expression,
-                               get_universe_session, instantiate_pydantic_term,
+from esgvoc.api._utils import (get_universe_session, instantiate_pydantic_term,
                                instantiate_pydantic_terms)
 from esgvoc.api.report import (ProjectTermError, UniverseTermError,
                                ValidationError, ValidationReport)
-from esgvoc.api.search import MatchingTerm, SearchSettings
+from esgvoc.api.search import MatchingTerm, SearchSettings, create_str_comparison_expression
 from esgvoc.core.db.connection import DBConnection
 from esgvoc.core.db.models.mixins import TermKind
 from esgvoc.core.db.models.project import Collection, Project, PTerm
