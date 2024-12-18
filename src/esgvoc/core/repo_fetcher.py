@@ -183,10 +183,36 @@ class RepoFetcher:
                 except Exception as e:
                     raise Exception(f"Failed to clone repository: {e}")
 
-    def get_github_version(self, owner: str, repo: str, branch: str ="main"):
+    def get_github_version_with_api(self, owner: str, repo: str, branch: str ="main"):
         """ Fetch the latest commit version (or any other versioning scheme) from GitHub. """
         details = self.fetch_branch_details( owner, repo, branch)
         return details.commit.get('sha')
+
+    def get_github_version(self, owner: str, repo: str, branch: str="main"):
+        """ Fetch the latest commit version (or any other versioning scheme) from GitHub. with command git fetch """
+        repo_url = f"https://github.com/{owner}/{repo}.git"
+        command = ["git", "ls-remote", repo_url, f"{self.repo_dir}/{repo}"]
+        if branch:
+            command.extend([branch])
+
+        # with redirect_stdout_to_log():
+        output=None
+        try:
+            result = subprocess.run(command,   capture_output=True,
+                                                text=True,
+                                                check=True)
+            # Parse the output to get the commit hash
+            output = result.stdout.strip()
+            _LOGGER.debug(f"Repository fetch successfully from {self.repo_dir}/{repo}")
+        except Exception as e:
+
+            _LOGGER.debug("error in with git fetch " +  repr(e))
+        if output is not None:
+            commit_hash = output.split()[0]
+            return commit_hash
+        return None
+
+        # return git_hash
 
     def get_local_repo_version(self, repo_path: str, branch: Optional[str] = "main"):
         """ Check the version of the local repository by fetching the latest commit hash. """
