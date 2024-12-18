@@ -113,7 +113,7 @@ class StateService:
         self.universe = StateUniverse(service_settings.universe)
         self.projects = {name: StateProject(proj) for name, proj in service_settings.projects.items()}
         self.connect_db()
-
+        
     def get_state_summary(self):
         universe_status = self.universe.check_sync_status()
         project_statuses = {name: proj.check_sync_status() for name, proj in self.projects.items()}

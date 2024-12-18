@@ -41,6 +41,7 @@ evc = { cmd = "python src/esgvoc/cli/main.py config" }
 evcp = { cmd = "python src/esgvoc/cli/main.py config projects." }
 evg = { cmd = "python src/esgvoc/cli/main.py get" }
 evs = {cmd = "python src/esgvoc/cli/main.py status"}
+evv = {cmd = "python src/esgvoc/cli/main.py valid"}
 
 [project.scripts]
 ev = "esgvoc.cli.main:main" 
