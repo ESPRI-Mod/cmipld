@@ -11,5 +11,7 @@ app.add_typer(config_app)
 app.add_typer(get_app)
 app.add_typer(status_app)
 
-if __name__ == "__main__":
+def main():
     app()
+if __name__ == "__main__":
+    main()

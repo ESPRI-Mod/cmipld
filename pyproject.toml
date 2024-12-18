@@ -1,6 +1,6 @@
 [project]
 name = "esgvoc"
-version = "0.1.0"
+version = "0.1.1"
 description = "Add your description here"
 authors = [
     {name = "TROUSSELLIER Laurent", email = "laurent.troussellier@ipsl.fr"},
@@ -41,6 +41,9 @@ evc = { cmd = "python src/esgvoc/cli/main.py config" }
 evcp = { cmd = "python src/esgvoc/cli/main.py config projects." }
 evg = { cmd = "python src/esgvoc/cli/main.py get" }
 evs = {cmd = "python src/esgvoc/cli/main.py status"}
+
+[project.scripts]
+ev = "esgvoc.cli.main:main" 
 
 [tool.hatch.metadata]
 allow-direct-references = true
