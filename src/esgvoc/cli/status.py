@@ -1,5 +1,4 @@
-from esgvoc.core.service.settings import ServiceSettings
-from esgvoc.core.service.state import StateService
+from esgvoc.core import service
 import typer
 from rich.console import Console
 
@@ -20,12 +19,8 @@ def status():
     i.e summary of version of usable ressources (between remote/cached)  
     
     """
-    settings_path = "src/esgvoc/core/service/settings.toml"
-    service_settings = ServiceSettings.load_from_file(settings_path)
 
-    # Initialize StateService
-    state_service = StateService(service_settings)
-    state_service.get_state_summary()
-    display(state_service.table())
+    service.state_service.get_state_summary()
+    display(service.state_service.table())
 
     
