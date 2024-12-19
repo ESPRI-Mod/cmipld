@@ -2,16 +2,16 @@ import logging
 import os
 from pathlib import Path
 from typing import Optional
-from esgvoc.core.db.project_ingestion import ingest_project
-from esgvoc.core.db.universe_ingestion import ingest_metadata_universe
+
 from esgvoc.core.repo_fetcher import RepoFetcher
 from esgvoc.core.service.settings import UniverseSettings, ProjectSettings, ServiceSettings
 from esgvoc.core.db.connection import DBConnection
-from esgvoc.core.db.models.project import Project, project_create_db
-from esgvoc.core.db.models.universe import Universe, universe_create_db 
+
 from rich.table import Table
 from sqlalchemy.exc import NoResultFound
 from sqlmodel import select
+from esgvoc.core.db.models.universe import Universe
+from esgvoc.core.db.models.project import Project
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +103,12 @@ class BaseState:
 
     
     def build_db(self):
+        from esgvoc.core.db.project_ingestion import ingest_project
+        from esgvoc.core.db.universe_ingestion import ingest_metadata_universe
+        from esgvoc.core.db.models.project import project_create_db
+        from esgvoc.core.db.models.universe import universe_create_db 
+        from esgvoc.core.db.universe_ingestion import ingest_universe
+
         if self.db_path :
             if os.path.exists(self.db_path):
                 os.remove(self.db_path)
@@ -112,6 +118,7 @@ class BaseState:
             if self.db_sqlmodel == Universe: # Ugly 
                 universe_create_db(Path(self.db_path))
                 ingest_metadata_universe(DBConnection(Path(self.db_path)),self.local_version)
+                ingest_universe(Path(self.local_path), Path(self.db_path))
 
             elif self.db_sqlmodel == Project:
                 project_create_db(Path(self.db_path))

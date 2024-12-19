@@ -74,6 +74,6 @@ if __name__ == "__main__":
     # TODO Some other test to do to be complete:
     # Change the settings ... for now .. let say nobody change the settings ! 
 
-
-    service.state_service.synchronize_all()
+    OnlyLocal()
+    # service.state_service.synchronize_all()
     
