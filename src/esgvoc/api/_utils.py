@@ -1,6 +1,6 @@
 from typing import Sequence
 
-import esgvoc.core.service as service
+
 import esgvoc.core.constants as api_settings
 from esgvoc.api.data_descriptors import DATA_DESCRIPTOR_CLASS_MAPPING
 from esgvoc.core.db.models.project import PTerm
@@ -8,7 +8,6 @@ from esgvoc.core.db.models.universe import UTerm
 from pydantic import BaseModel
 from sqlmodel import Session
 
-UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection
 
 
 def get_pydantic_class(data_descriptor_id_or_term_type: str) -> type[BaseModel]:
@@ -19,6 +18,9 @@ def get_pydantic_class(data_descriptor_id_or_term_type: str) -> type[BaseModel]:
 
 
 def get_universe_session() -> Session:
+    import esgvoc.core.service as service
+    UNIVERSE_DB_CONNECTION = service.state_service.universe.db_connection
+
     if UNIVERSE_DB_CONNECTION:
         return UNIVERSE_DB_CONNECTION.create_session()
     else:

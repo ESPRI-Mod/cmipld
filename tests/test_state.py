@@ -54,9 +54,9 @@ def test_all_in_sync(mock_repo_fetcher, service_settings):
     summary = state_service.get_state_summary()
     print(summary)
 
-    assert summary['universe']['github_sync'] is True
+    assert summary['universe']['github_local_sync'] is True
     for project_name,_ in summary['projects'].items():
-        assert summary['projects'][project_name]['github_sync'] is True
+        assert summary['projects'][project_name]['github_local_sync'] is True
 
 
 
@@ -74,7 +74,7 @@ def test_github_ahead_of_local(mock_repo_fetcher, service_settings):
 
     summary = state_service.get_state_summary()
 
-    assert summary['universe']['github_sync'] is False
+    assert summary['universe']['github_local_sync'] is False
 
     # Perform synchronization
     state_service.synchronize_all()
@@ -87,7 +87,7 @@ def test_missing_local_repo(mock_repo_fetcher, service_settings):
     state_service = StateService(service_settings)
     summary = state_service.get_state_summary()
 
-    assert summary['universe']['github_sync'] is None
+    assert summary['universe']['github_local_sync'] is None
 
 
 #TODO when DB will be up
