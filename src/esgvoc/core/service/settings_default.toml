@@ -1,0 +1,20 @@
+
+# [[projects]]
+# project_name = "TestProject"
+# github_repo = "XXX"
+# branch = "XXX"
+# local_path = "XXX"
+# db_path = "./cache/dbs/XXXX.sqlite"
+
+[[projects]]
+project_name = "cmip6plus"
+github_repo = "https://github.com/ESPRI-Mod/CMIP6Plus_CVs"
+branch = "uni_proj_ld"
+local_path = ".cache/repos/CMIP6Plus_CVs"
+db_path = ".cache/dbs/cmip6plus.sqlite"
+
+[universe]
+github_repo = "https://github.com/ESPRI-Mod/mip-cmor-tables"
+branch = "uni_proj_ld"
+local_path = ".cache/repos/mip-cmor-tables"
+db_path = ".cache/dbs/universe.sqlite"

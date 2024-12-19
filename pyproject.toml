@@ -1,6 +1,6 @@
 [project]
-name = "cmipld"
-version = "0.1.0"
+name = "esgvoc"
+version = "0.1.1"
 description = "Add your description here"
 authors = [
     {name = "TROUSSELLIER Laurent", email = "laurent.troussellier@ipsl.fr"},
@@ -14,30 +14,45 @@ dependencies = [
     "pyld>=2.0.4",
     "requests>=2.32.3",
     "toml>=0.10.2",
-    "pytest-mock>=3.14.0",
     "typer>=0.15.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.12"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.26.3"]
 build-backend = "hatchling.build"
+
+[project.urls]
+Repository = "https://github.com/ESPRI-Mod/cmipld"
 
 [tool.rye]
 managed = true
 dev-dependencies = [
     "pytest>=8.3.3",
     "jupyter-console>=6.6.3",
+    "mypy>=1.13.0",
+    "pytest-mock>=3.14.0",
+    "isort>=5.13.2",
 ]
 [tool.rye.scripts]
-ev = { cmd = "python src/cmipld/cli/main.py" }
-evc = { cmd = "python src/cmipld/cli/main.py config" }
-evcp = { cmd = "python src/cmipld/cli/main.py config projects." }
-evg = { cmd = "python src/cmipld/cli/main.py get" }
+ev = { cmd = "python src/esgvoc/cli/main.py" }
+evc = { cmd = "python src/esgvoc/cli/main.py config" }
+evcp = { cmd = "python src/esgvoc/cli/main.py config projects." }
+evg = { cmd = "python src/esgvoc/cli/main.py get" }
+evs = {cmd = "python src/esgvoc/cli/main.py status"}
+evv = {cmd = "python src/esgvoc/cli/main.py valid"}
+
+[project.scripts]
+ev = "esgvoc.cli.main:main" 
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/cmipld"]
+packages = ["src/esgvoc"]
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "ERROR"
+log_cli_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"

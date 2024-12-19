@@ -2,15 +2,15 @@ from typing import Generator
 
 import pytest
 
-import cmipld.api.universe as universe
-from cmipld.api import SearchSettings, SearchType
+import esgvoc.api.universe as universe
+from esgvoc.api import SearchSettings, SearchType
 
 _SOME_DATA_DESCRIPTOR_IDS = ['institution', 'product', 'variable']
 _SOME_TERM_IDS = ['ipsl', 'observations', 'airmass']
 _SETTINGS = SearchSettings(type=SearchType.LIKE)
 
 
-def _provide_data_descriptor_ids() -> Generator[str]:
+def _provide_data_descriptor_ids() -> Generator:
     for id in _SOME_DATA_DESCRIPTOR_IDS:
         yield id
 
@@ -20,7 +20,7 @@ def data_descriptor_id(request) -> str:
     return request.param
 
 
-def _provide_term_ids() -> Generator[str]:
+def _provide_term_ids() -> Generator:
     for id in _SOME_TERM_IDS:
         yield id
 
@@ -31,27 +31,38 @@ def term_id(request) -> str:
 
 
 def test_get_all_terms_in_universe() -> None:
-    universe.get_all_terms_in_universe()
+    terms = universe.get_all_terms_in_universe()
+    assert len(terms) > 0
 
 
 def test_get_all_data_descriptors_in_universe() -> None:
-    universe.get_all_data_descriptors_in_universe()
+    data_descriptors = universe.get_all_data_descriptors_in_universe()
+    assert len(data_descriptors) > 0
 
 
 def test_get_terms_in_data_descriptor(data_descriptor_id) -> None:
-    universe.get_all_terms_in_data_descriptor(data_descriptor_id)
+    terms = universe.get_all_terms_in_data_descriptor(data_descriptor_id)
+    assert len(terms) > 0
         
 
 def test_find_term_in_data_descriptor(data_descriptor_id, term_id) -> None:
-    universe.find_terms_in_data_descriptor(data_descriptor_id, term_id)
-    universe.find_terms_in_data_descriptor(data_descriptor_id, term_id, _SETTINGS)
+    terms = universe.find_terms_in_data_descriptor(data_descriptor_id, term_id)
+    if terms:
+        assert terms[0].id == term_id
+    terms = universe.find_terms_in_data_descriptor(data_descriptor_id, term_id, _SETTINGS)
+    if terms:
+        assert terms[0].id == term_id
 
 
 def test_find_terms_in_universe(term_id) -> None:
-    universe.find_terms_in_universe(term_id)
-    universe.find_terms_in_universe(term_id, settings=_SETTINGS)
+    terms = universe.find_terms_in_universe(term_id)
+    assert len(terms) == 1
+    terms = universe.find_terms_in_universe(term_id, settings=_SETTINGS)
+    assert len(terms) > 0
 
 
 def test_find_data_descriptor_in_universe(data_descriptor_id) -> None:
-    universe.find_data_descriptors_in_universe(data_descriptor_id)
-    universe.find_data_descriptors_in_universe(data_descriptor_id, settings=_SETTINGS)    
+    data_descriptors = universe.find_data_descriptors_in_universe(data_descriptor_id)
+    assert len(data_descriptors) == 1
+    universe.find_data_descriptors_in_universe(data_descriptor_id, settings=_SETTINGS)
+    assert len(data_descriptors) > 0

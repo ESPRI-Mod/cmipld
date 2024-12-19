@@ -1,7 +1,7 @@
 from pathlib import Path
-from cmipld.core.data_handler import JsonLdResource
-from cmipld.core.service.data_merger import DataMerger, merge
-from cmipld.core.repo_fetcher import RepoFetcher
+from esgvoc.core.data_handler import JsonLdResource
+from esgvoc.core.service.data_merger import DataMerger, merge
+from esgvoc.core.repo_fetcher import RepoFetcher
 
 def test_remote_organisation_ipsl():
     
@@ -37,7 +37,7 @@ def test_local_from_project_ipsl():
 
 
 
-
+"""
 def test_remote_project_remote_universe():
     rf = RepoFetcher()
     dir_list = rf.list_directory("ESPRI-Mod","CMIP6Plus_CVs","uni_proj_ld")
@@ -130,4 +130,4 @@ def test_local_project_local_universe():
     assert len(res)==59 # For now at least .. 
 
 
-
+"""

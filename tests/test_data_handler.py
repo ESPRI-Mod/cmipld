@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from unittest.mock import patch
 from pydantic import ValidationError
-from cmipld.core.data_handler import JsonLdResource
+from esgvoc.core.data_handler import JsonLdResource
 
 mock_json_data = {"@context": "http://example.com/context", "name": "Test"}
 
@@ -11,9 +11,9 @@ mock_json_data = {"@context": "http://example.com/context", "name": "Test"}
 def data_instance():
     return JsonLdResource(uri="http://example.com/resource")
 
-@patch("cmipld.core.data_handler.unified_document_loader", return_value=mock_json_data)
+@patch("esgvoc.core.data_handler.unified_document_loader", return_value=mock_json_data)
 def test_json(mock_loader, data_instance):
-    assert data_instance.json == mock_json_data
+    assert data_instance.json_dict == mock_json_data
     mock_loader.assert_called_once_with("http://example.com/resource")
 
 def test_invalid_uri():

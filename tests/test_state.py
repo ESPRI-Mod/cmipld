@@ -1,13 +1,13 @@
 
 import pytest
 from unittest.mock import MagicMock
-from cmipld.core.service.state import StateService
-from cmipld.core.service.settings import ServiceSettings, UniverseSettings, ProjectSettings
+from esgvoc.core.service.state import StateService
+from esgvoc.core.service.settings import ServiceSettings, UniverseSettings, ProjectSettings
 
 @pytest.fixture
 def mock_repo_fetcher(mocker):
     """Fixture to mock the RepoFetcher class and its methods."""
-    mock_rf = mocker.patch('cmipld.core.repo_fetcher.RepoFetcher')
+    mock_rf = mocker.patch('esgvoc.core.repo_fetcher.RepoFetcher')
     instance = mock_rf.return_value
     instance.get_github_version = MagicMock()
     instance.get_local_repo_version = MagicMock()
@@ -54,9 +54,9 @@ def test_all_in_sync(mock_repo_fetcher, service_settings):
     summary = state_service.get_state_summary()
     print(summary)
 
-    assert summary['universe']['github_sync'] is True
+    assert summary['universe']['github_local_sync'] is True
     for project_name,_ in summary['projects'].items():
-        assert summary['projects'][project_name]['github_sync'] is True
+        assert summary['projects'][project_name]['github_local_sync'] is True
 
 
 
@@ -74,7 +74,7 @@ def test_github_ahead_of_local(mock_repo_fetcher, service_settings):
 
     summary = state_service.get_state_summary()
 
-    assert summary['universe']['github_sync'] is False
+    assert summary['universe']['github_local_sync'] is False
 
     # Perform synchronization
     state_service.synchronize_all()
@@ -87,7 +87,7 @@ def test_missing_local_repo(mock_repo_fetcher, service_settings):
     state_service = StateService(service_settings)
     summary = state_service.get_state_summary()
 
-    assert summary['universe']['github_sync'] is None
+    assert summary['universe']['github_local_sync'] is None
 
 
 #TODO when DB will be up
