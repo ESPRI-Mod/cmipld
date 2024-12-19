@@ -44,7 +44,7 @@ evs = {cmd = "python src/esgvoc/cli/main.py status"}
 evv = {cmd = "python src/esgvoc/cli/main.py valid"}
 
 [project.scripts]
-ev = "esgvoc.cli.main:main" 
+esgvoc = "esgvoc.cli.main:main" 
 
 [tool.hatch.metadata]
 allow-direct-references = true
